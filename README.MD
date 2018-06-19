@@ -20,6 +20,7 @@
 
 	工具：（Axure 8）  
 	目录：docs/axure
+	地址：http://www.bronsp.com:8000/senior/index.html
 
 >数据库版本管理
 
