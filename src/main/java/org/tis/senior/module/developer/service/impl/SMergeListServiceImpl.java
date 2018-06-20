@@ -11,7 +11,7 @@ import org.tis.senior.module.developer.service.ISMergeListService;
  * sMergeList的Service接口实现类
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @Service
 @Transactional(rollbackFor = Exception.class)

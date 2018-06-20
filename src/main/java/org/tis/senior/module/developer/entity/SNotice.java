@@ -9,7 +9,7 @@ import java.io.Serializable;
  * sNotice记录开发过程中，各工作项流转过程中的各种通知记录
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @Data
 @TableName("s_notice")

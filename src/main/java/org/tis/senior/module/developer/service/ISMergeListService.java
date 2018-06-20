@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.service.IService;
  * sMergeList的Service接口类
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 public interface ISMergeListService extends IService<SMergeList>  {
 

@@ -10,7 +10,7 @@ import java.io.Serializable;
  * sPatch根据投放申请制作出来的补丁
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @Data
 @TableName("s_patch")

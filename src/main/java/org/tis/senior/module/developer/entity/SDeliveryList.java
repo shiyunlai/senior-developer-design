@@ -9,7 +9,7 @@ import java.io.Serializable;
  * sDeliveryList（开发人员提出）投放申请，其中包括哪些程序文件
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @Data
 @TableName("s_delivery_list")
@@ -36,9 +36,19 @@ public class SDeliveryList implements Serializable {
     public static final String COLUMN_GUID_DELIVERY = "guid_delivery";
 
     /**
-     * guidProgram对应表字段
+     * programName对应表字段
      */
-    public static final String COLUMN_GUID_PROGRAM = "guid_program";
+    public static final String COLUMN_PROGRAM_NAME = "program_name";
+
+    /**
+     * startVersion对应表字段
+     */
+    public static final String COLUMN_START_VERSION = "start_version";
+
+    /**
+     * currVersion对应表字段
+     */
+    public static final String COLUMN_CURR_VERSION = "curr_version";
 
     /**
      * deliveryVersion对应表字段
@@ -49,11 +59,6 @@ public class SDeliveryList implements Serializable {
      * patchType对应表字段
      */
     public static final String COLUMN_PATCH_TYPE = "patch_type";
-
-    /**
-     * programName对应表字段
-     */
-    public static final String COLUMN_PROGRAM_NAME = "program_name";
 
     /**
      * fullPath对应表字段
@@ -76,9 +81,19 @@ public class SDeliveryList implements Serializable {
     public static final String NAME_GUID_DELIVERY = "投放申请GUID";
 
     /**
-     * guidProgram逻辑名
+     * programName逻辑名
      */
-    public static final String NAME_GUID_PROGRAM = "程序GUID";
+    public static final String NAME_PROGRAM_NAME = "程序名称";
+
+    /**
+     * startVersion逻辑名
+     */
+    public static final String NAME_START_VERSION = "起始版本";
+
+    /**
+     * currVersion逻辑名
+     */
+    public static final String NAME_CURR_VERSION = "当前最新版本";
 
     /**
      * deliveryVersion逻辑名
@@ -89,11 +104,6 @@ public class SDeliveryList implements Serializable {
      * patchType逻辑名
      */
     public static final String NAME_PATCH_TYPE = "补丁类型";
-
-    /**
-     * programName逻辑名
-     */
-    public static final String NAME_PROGRAM_NAME = "程序名称";
 
     /**
      * fullPath逻辑名
@@ -117,9 +127,19 @@ public class SDeliveryList implements Serializable {
     private Integer guidDelivery;
 
     /**
-     * 程序GUID:唯一标示某条数据（自增长）
+     * 程序名称:记录程序名称
      */
-    private Integer guidProgram;
+    private String programName;
+
+    /**
+     * 起始版本:分支创建好时的版本
+     */
+    private Integer startVersion;
+
+    /**
+     * 当前最新版本:经过开发后的当前版本
+     */
+    private Integer currVersion;
 
     /**
      * 投放版本:投放时该代码的svn版本
@@ -135,11 +155,6 @@ public class SDeliveryList implements Serializable {
      * DBV 作为数据库脚本（SQL、DDL等数据库版本脚本）
      */
     private String patchType;
-
-    /**
-     * 程序名称:冗余设计
-     */
-    private String programName;
 
     /**
      * 代码全路径:冗余设计

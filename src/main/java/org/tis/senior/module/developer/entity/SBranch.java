@@ -14,7 +14,7 @@ import java.io.Serializable;
  * 4、开发人员对每个代码的提交历史
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @Data
 @TableName("s_branch")
@@ -61,6 +61,11 @@ public class SBranch implements Serializable {
     public static final String COLUMN_BRANCH_FOR = "branch_for";
 
     /**
+     * currVersion对应表字段
+     */
+    public static final String COLUMN_CURR_VERSION = "curr_version";
+
+    /**
      * guid逻辑名
      */
     public static final String NAME_GUID = "数据id";
@@ -89,6 +94,11 @@ public class SBranch implements Serializable {
      * branchFor逻辑名
      */
     public static final String NAME_BRANCH_FOR = "分支作用说明";
+
+    /**
+     * currVersion逻辑名
+     */
+    public static final String NAME_CURR_VERSION = "分支当前版本";
 
     /**
      * 数据id:唯一标示某条数据（自增长）
@@ -122,6 +132,11 @@ public class SBranch implements Serializable {
      * 分支作用说明:创建这个分支的目的说明
      */
     private String branchFor;
+
+    /**
+     * 分支当前版本:分支的当前版本号
+     */
+    private Integer currVersion;
 
 }
 

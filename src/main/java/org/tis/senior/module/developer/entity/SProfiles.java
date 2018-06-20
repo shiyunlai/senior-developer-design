@@ -9,7 +9,7 @@ import java.io.Serializable;
  * sProfiles记录有哪些验证环境，如：SIT、SIT_DEV、UAT…. PP、生产
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @Data
 @TableName("s_profiles")

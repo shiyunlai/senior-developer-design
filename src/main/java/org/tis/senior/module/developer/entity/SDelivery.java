@@ -12,7 +12,7 @@ import java.io.Serializable;
  * 工作项开发负责人提出申请，RCT人员处理申请
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @Data
 @TableName("s_delivery")
@@ -59,9 +59,19 @@ public class SDelivery implements Serializable {
     public static final String COLUMN_APPLY_TIME = "apply_time";
 
     /**
+     * deliveryDesc对应表字段
+     */
+    public static final String COLUMN_DELIVERY_DESC = "delivery_desc";
+
+    /**
      * deliver对应表字段
      */
     public static final String COLUMN_DELIVER = "deliver";
+
+    /**
+     * packTiming对应表字段
+     */
+    public static final String COLUMN_PACK_TIMING = "pack_timing";
 
     /**
      * deliveryTime对应表字段
@@ -72,11 +82,6 @@ public class SDelivery implements Serializable {
      * deliveryResult对应表字段
      */
     public static final String COLUMN_DELIVERY_RESULT = "delivery_result";
-
-    /**
-     * deliveryDesc对应表字段
-     */
-    public static final String COLUMN_DELIVERY_DESC = "delivery_desc";
 
     /**
      * guid逻辑名
@@ -109,9 +114,19 @@ public class SDelivery implements Serializable {
     public static final String NAME_APPLY_TIME = "提出申请时间";
 
     /**
+     * deliveryDesc逻辑名
+     */
+    public static final String NAME_DELIVERY_DESC = "投放说明";
+
+    /**
      * deliver逻辑名
      */
     public static final String NAME_DELIVER = "投放处理人";
+
+    /**
+     * packTiming逻辑名
+     */
+    public static final String NAME_PACK_TIMING = "打包窗口";
 
     /**
      * deliveryTime逻辑名
@@ -122,11 +137,6 @@ public class SDelivery implements Serializable {
      * deliveryResult逻辑名
      */
     public static final String NAME_DELIVERY_RESULT = "投放结果";
-
-    /**
-     * deliveryDesc逻辑名
-     */
-    public static final String NAME_DELIVERY_DESC = "投放说明";
 
     /**
      * 数据id:唯一标示某条数据（自增长）
@@ -160,9 +170,20 @@ public class SDelivery implements Serializable {
     private Date applyTime;
 
     /**
+     * 投放说明:对投放结果的说明，如：因为合并代码与申请中投放代码数量不符，RCT投放失败，此处说明该原因
+     */
+    private String deliveryDesc;
+
+    /**
      * 投放处理人:谁处理了这个投放申请，一般记录RCT小组成员
      */
     private String deliver;
+
+    /**
+     * 打包窗口:本环境对应的打包窗口时间，用业务字典来实现
+     * 如：SIT_PACK_TIMING，其中字典值为，09:00、12:30、16:00
+     */
+    private String packTiming;
 
     /**
      * 投放时间
@@ -176,11 +197,6 @@ public class SDelivery implements Serializable {
      * C 取消投放（功能没有投放）
      */
     private String deliveryResult;
-
-    /**
-     * 投放说明:对投放结果的说明，如：因为合并代码与申请中投放代码数量不符，RCT投放失败，此处说明该原因
-     */
-    private String deliveryDesc;
 
 }
 

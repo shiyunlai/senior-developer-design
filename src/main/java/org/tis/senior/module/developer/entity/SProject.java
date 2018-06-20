@@ -6,10 +6,10 @@ import com.baomidou.mybatisplus.annotations.TableId;
 import java.io.Serializable;
 
 /**
- * sProject该分支中包括了哪些工程
+ * sProject记录了TIP中所有的工程，以及布丁形式，和可部署的位置信息
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @Data
 @TableName("s_project")
@@ -31,11 +31,6 @@ public class SProject implements Serializable {
     public static final String COLUMN_GUID = "guid";
 
     /**
-     * guidBranch对应表字段
-     */
-    public static final String COLUMN_GUID_BRANCH = "guid_branch";
-
-    /**
      * projectName对应表字段
      */
     public static final String COLUMN_PROJECT_NAME = "project_name";
@@ -54,11 +49,6 @@ public class SProject implements Serializable {
      * guid逻辑名
      */
     public static final String NAME_GUID = "数据id";
-
-    /**
-     * guidBranch逻辑名
-     */
-    public static final String NAME_GUID_BRANCH = "分支GUID";
 
     /**
      * projectName逻辑名
@@ -82,22 +72,19 @@ public class SProject implements Serializable {
     private Integer guid;
 
     /**
-     * 分支GUID:唯一标示某条数据（自增长）
-     */
-    private Integer guidBranch;
-
-    /**
      * 工程名称
      */
     private String projectName;
 
     /**
      * 部署类型:该工程以什么样的形式部署到系统中
+     * 如： jar、war、ecd、epd
      */
     private String deployType;
 
     /**
-     * 部署到哪里:该工程部署到什么位置
+     * 部署到哪里:该工程可以部署到哪些子系统
+     * 用json的方式存储，前端解析后，提供多选
      */
     private String deployWhere;
 

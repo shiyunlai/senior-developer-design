@@ -2,19 +2,19 @@ package org.tis.senior.module.developer.controller;
 
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.service.ISBranchService;
+import org.tis.senior.module.core.web.vo.ResultVO;
 import org.springframework.validation.annotation.Validated;
-import org.tis.senior.module.core.web.controller.BaseController;
 import org.tis.senior.module.core.web.vo.SmartPage;
+import org.tis.senior.module.core.web.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.hibernate.validator.constraints.NotBlank;
-import org.tis.senior.module.core.web.vo.ResultVO;
 
 /**
  * sBranch的Controller类
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @RestController
 @RequestMapping("/sBranch")

@@ -9,7 +9,7 @@ import java.io.Serializable;
  * sSvnAccount
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @Data
 @TableName("s_svn_account")

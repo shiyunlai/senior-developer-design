@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.service.IService;
  * sProfiles的Service接口类
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 public interface ISProfilesService extends IService<SProfiles>  {
 
