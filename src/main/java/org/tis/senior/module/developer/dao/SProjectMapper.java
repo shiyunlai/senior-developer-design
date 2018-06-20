@@ -7,7 +7,7 @@ import org.tis.senior.module.developer.entity.SProject;
  * sProject的Mapper类
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 public interface SProjectMapper extends BaseMapper<SProject>  {
 

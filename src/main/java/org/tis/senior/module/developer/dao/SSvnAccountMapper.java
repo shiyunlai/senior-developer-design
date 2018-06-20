@@ -7,7 +7,7 @@ import org.tis.senior.module.developer.entity.SSvnAccount;
  * sSvnAccount的Mapper类
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 public interface SSvnAccountMapper extends BaseMapper<SSvnAccount>  {
 

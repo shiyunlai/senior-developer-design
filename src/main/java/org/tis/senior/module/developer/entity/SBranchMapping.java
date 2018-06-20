@@ -11,7 +11,7 @@ import java.io.Serializable;
  * 每次指定记录为一条记录
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @Data
 @TableName("s_branch_mapping")

@@ -11,7 +11,7 @@ import java.io.Serializable;
  * SALM管理流程：一个工作项对应一个唯一的开发分支（如果开发组内要多分枝，请自行git进行管理，但是对于交付来说工作项唯一对应一个开发分支）
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @Data
 @TableName("s_workitem")
@@ -78,6 +78,11 @@ public class SWorkitem implements Serializable {
     public static final String COLUMN_DELIVERY_TIME = "delivery_time";
 
     /**
+     * itemStatus对应表字段
+     */
+    public static final String COLUMN_ITEM_STATUS = "item_status";
+
+    /**
      * guid逻辑名
      */
     public static final String NAME_GUID = "数据id";
@@ -126,6 +131,11 @@ public class SWorkitem implements Serializable {
      * deliveryTime逻辑名
      */
     public static final String NAME_DELIVERY_TIME = "实际投产时间";
+
+    /**
+     * itemStatus逻辑名
+     */
+    public static final String NAME_ITEM_STATUS = "工作项状态";
 
     /**
      * 数据id:唯一标示某条数据（自增长）
@@ -177,6 +187,13 @@ public class SWorkitem implements Serializable {
      * 实际投产时间
      */
     private Date deliveryTime;
+
+    /**
+     * 工作项状态:0 开发中
+     * 1 已投产 （ 不能再提交投放申请）
+     * 2 已取消 （新建后，不再使用）
+     */
+    private String itemStatus;
 
 }
 

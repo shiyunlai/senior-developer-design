@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.mapper.BaseMapper;
  * sWorkitem的Mapper类
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 public interface SWorkitemMapper extends BaseMapper<SWorkitem>  {
 

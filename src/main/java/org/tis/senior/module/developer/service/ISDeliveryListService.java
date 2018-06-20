@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.service.IService;
  * sDeliveryList的Service接口类
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 public interface ISDeliveryListService extends IService<SDeliveryList>  {
 

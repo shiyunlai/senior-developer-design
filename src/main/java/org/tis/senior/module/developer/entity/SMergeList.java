@@ -10,7 +10,7 @@ import java.io.Serializable;
  * sMergeList（RCT人员合并开发分支）其中合并了哪些程序文件
  * 
  * @author Auto Generate Tools
- * @date 2018/06/19
+ * @date 2018/06/20
  */
 @Data
 @TableName("s_merge_list")
