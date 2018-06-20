@@ -6,3 +6,7 @@
 .settings/
 
 target/
+/senior-developer-design.iml
+/.idea/
+/src/main/resources/application.yml
+/fortest.jnl
