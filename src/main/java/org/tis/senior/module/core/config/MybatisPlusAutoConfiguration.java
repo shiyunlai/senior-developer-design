@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Configuration;
  * @since 2017/5/20 21:58
  */
 @Configuration
-@MapperScan(basePackages = {"org.tis.**.dao"})
+@MapperScan(basePackages = {"org.tis.senior.module.**.dao"})
 public class MybatisPlusAutoConfiguration {
 
     /**
