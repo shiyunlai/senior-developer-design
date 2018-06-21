@@ -6,35 +6,45 @@ import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.alibaba.fastjson.serializer.ValueFilter;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * fastjson配置类
- *
- * @author
- * @date 2017-05-23 22:56
- */
-@Configuration("defaultFastjsonConfig")
-@ConditionalOnClass(com.alibaba.fastjson.JSON.class)
-@ConditionalOnMissingBean(FastJsonHttpMessageConverter.class)
-public class DefaultFastjsonConfig {
+@EnableWebMvc
+@Configuration
+public class MyWebAppConfigurer extends WebMvcConfigurerAdapter {
 
-    @Bean
-    public FastJsonHttpMessageConverter fastJsonHttpMessageConverter() {
-        FastJsonHttpMessageConverter converter = new FastJsonHttpMessageConverter();
-        converter.setFastJsonConfig(fastjsonConfig());
-        converter.setSupportedMediaTypes(getSupportedMediaType());
-        return converter;
+    /**
+     * 跨域， 匹配所有请求
+     * @param registry
+     */
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("*")
+                .allowCredentials(true)
+                .allowedHeaders("*")
+                .allowedMethods("GET", "POST", "DELETE", "PUT")
+                .maxAge(3600);
+    }
+
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+
+        //定义一个转换消息的对象
+        FastJsonHttpMessageConverter fastConverter = new FastJsonHttpMessageConverter();
+        fastConverter.setFastJsonConfig(fastjsonConfig());
+        fastConverter.setSupportedMediaTypes(getSupportedMediaType());
+        //将转换器添加到converters中
+        converters.add(fastConverter);
     }
 
     /**
@@ -81,5 +91,6 @@ public class DefaultFastjsonConfig {
         mediaTypes.add(MediaType.APPLICATION_JSON_UTF8);
         return mediaTypes;
     }
+
 
 }

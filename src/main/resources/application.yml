@@ -3,7 +3,10 @@
 ######################################
 
 server:
-    port: 8080
+  port: 8080
+
+shiro:
+  enable: true
 
 # :::::: spring ::::::
 
@@ -21,7 +24,7 @@ mybatis-plus:
   typeAliasesPackage: org.tis.senior.module.*.entity
   typeEnumsPackage: org.tis.senior.module.*.entity.enums
   global-config:
-    id-type: 5
+    id-type: 0
     field-strategy: 2
     db-column-underline: false
     refresh-mapper: true
