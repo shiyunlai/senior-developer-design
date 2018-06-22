@@ -1,4 +1,7 @@
 package org.tis.senior.module.core.web.vo;
+
+import javax.validation.constraints.Min;
+
 /**
  * describe: 分页对象
  *
@@ -10,11 +13,13 @@ public class PageVO {
     /**
      * 当前页
      */
-    private Integer current = 0;
+    @Min(value = 1, message = "当前页至少为1")
+    private Integer current = 1;
 
     /**
      * 每页显示条数
      */
+    @Min(value = 1, message = "每页至少显示1条")
     private Integer size = 10;
 
     /**

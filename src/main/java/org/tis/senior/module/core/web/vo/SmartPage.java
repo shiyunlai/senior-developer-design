@@ -2,6 +2,7 @@ package org.tis.senior.module.core.web.vo;
 
 import org.tis.senior.module.core.web.vo.PageVO;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -13,8 +14,10 @@ import javax.validation.constraints.NotNull;
 public class SmartPage<T> {
 
     @NotNull(message = "分页参数不能为空")
+    @Valid
     private PageVO page;
 
+    @Valid
     private T condition;
 
     public PageVO getPage() {

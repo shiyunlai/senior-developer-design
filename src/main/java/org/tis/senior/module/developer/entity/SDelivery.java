@@ -1,9 +1,14 @@
 package org.tis.senior.module.developer.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableName;
 import java.util.Date;
 import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
+import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
+import org.tis.senior.module.developer.entity.enums.DeliveryResult;
+import org.tis.senior.module.developer.entity.enums.DeliveryType;
+
 import java.io.Serializable;
 
 /**
@@ -49,6 +54,11 @@ public class SDelivery implements Serializable {
     public static final String COLUMN_GUID_PROFILES = "guid_profiles";
 
     /**
+     * deliveryType对应表字段
+     */
+    public static final String COLUMN_DELIVERY_TYPE = "delivery_type";
+
+    /**
      * proposer对应表字段
      */
     public static final String COLUMN_PROPOSER = "proposer";
@@ -84,6 +94,11 @@ public class SDelivery implements Serializable {
     public static final String COLUMN_DELIVERY_RESULT = "delivery_result";
 
     /**
+     * mergeList对应表字段
+     */
+    public static final String COLUMN_MERGE_LIST = "merge_list";
+
+    /**
      * guid逻辑名
      */
     public static final String NAME_GUID = "数据id";
@@ -102,6 +117,11 @@ public class SDelivery implements Serializable {
      * guidProfiles逻辑名
      */
     public static final String NAME_GUID_PROFILES = "运行环境GUID";
+
+    /**
+     * deliveryType逻辑名
+     */
+    public static final String NAME_DELIVERY_TYPE = "投放类型";
 
     /**
      * proposer逻辑名
@@ -139,6 +159,11 @@ public class SDelivery implements Serializable {
     public static final String NAME_DELIVERY_RESULT = "投放结果";
 
     /**
+     * mergeList逻辑名
+     */
+    public static final String NAME_MERGE_LIST = "合并清单";
+
+    /**
      * 数据id:唯一标示某条数据（自增长）
      */
     @TableId
@@ -158,6 +183,13 @@ public class SDelivery implements Serializable {
      * 运行环境GUID:唯一标示某条数据（自增长）
      */
     private Integer guidProfiles;
+
+    /**
+     * 投放类型：G 普通申请
+     * M 合并申请
+     */
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private DeliveryType deliveryType;
 
     /**
      * 投放申请人:提出投放申请的开发人员
@@ -196,7 +228,12 @@ public class SDelivery implements Serializable {
      * F 失败
      * C 取消投放（功能没有投放）
      */
-    private String deliveryResult;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private DeliveryResult deliveryResult;
 
+    /**
+     * 合并清单：合并投放申请的id集合，以，分割
+     */
+    private String mergeList;
 }
 
