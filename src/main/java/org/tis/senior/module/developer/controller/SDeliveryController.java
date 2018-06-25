@@ -20,6 +20,7 @@ import org.hibernate.validator.constraints.NotBlank;
  */
 @RestController
 @RequestMapping("/deliveries")
+@Validated
 public class SDeliveryController extends BaseController<SDelivery>  {
 
     @Autowired
@@ -57,12 +58,15 @@ public class SDeliveryController extends BaseController<SDelivery>  {
         return  ResultVO.success("查询成功", sDeliveryService.selectPage(getPage(page), getCondition(page)));
     }
 
+    /**
+     * 获取合并投放清单信息
+     * @param request
+     * @return
+     */
     @PostMapping("/merge/info")
     public ResultVO mergeInfo(@RequestBody @Validated MergeDeliveryRequest request) {
         return ResultVO.success(sDeliveryService.getMergeInfo(request, getUser().getUserId()));
     }
-
-
 
 
     /**
@@ -76,6 +80,12 @@ public class SDeliveryController extends BaseController<SDelivery>  {
     public ResultVO merge(@RequestBody @Validated MergeDeliveryRequest request) {
         sDeliveryService.mergeDeliver(request, getUser().getUserId());
         return ResultVO.success("申请合并投放成功！");
+    }
+
+    @PostMapping("/profile/{id}/check")
+    public ResultVO merge(@NotBlank(message = "环境不能为空！") String id) {
+        DeliveryDetail detail = sDeliveryService.check(id);
+        return ResultVO.success(detail);
     }
     
 }

@@ -20,7 +20,7 @@ import java.util.Map;
 @Configuration
 public class ShiroConfig {
 
-    @Value("${shiro.enable}")
+    @Value("${tis.shiro.enable}")
     private boolean enable;
 
     @Bean

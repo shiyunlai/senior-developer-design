@@ -10,6 +10,7 @@ import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.dao.SDeliveryMapper;
 import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.BranchForWhat;
+import org.tis.senior.module.developer.entity.enums.DeliveryType;
 import org.tis.senior.module.developer.entity.enums.PatchType;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
@@ -17,9 +18,7 @@ import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
 
 import javax.swing.text.html.parser.Entity;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -87,7 +86,6 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         deliveryDetail.setBranches(sBranches);
         deliveryDetail.setDetailList(details);
         deliveryDetail.setPatchCount(patchCount);
-        deliveryDetail.setDeliveryCount(deliveryCount);
 
         return deliveryDetail;
     }
@@ -95,10 +93,27 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     @Override
     public void mergeDeliver(MergeDeliveryRequest mergeDelivery, String userId) {
         List<SDelivery> deliveryList = isAllowMerge(mergeDelivery.getMergeList());
+        List<SDelivery> insert = new ArrayList<>(deliveryList.size());
+        // 合并为一个投产申请,每个环境形成一个独立的投放申请
         mergeDelivery.getProfiles().forEach(p -> {
-
+            SDelivery sDelivery = new SDelivery();
+            sDelivery.setGuidProfiles(p.getGuidProfiles());
+            sDelivery.setPackTiming(p.getPackTiming());
+            sDelivery.setDeliveryType(DeliveryType.MERGE);
+            sDelivery.setMergeList(mergeDelivery.getMergeList().stream().reduce("", (r, s) -> r + "," + s));
+            sDelivery.setApplyAlias(deliveryList.stream()
+                    .map(SDelivery::getApplyAlias).reduce("合并投放", (r, s) -> r + "，" + s));
+            sDelivery.setApplyTime(new Date());
+            sDelivery.setProposer(userId);
+            insert.add(sDelivery);
         });
+        // FIXME 合并申请与普通申请,其代码清单是相同的，所以无需再生成新清单
+        insertBatch(insert);
+    }
 
+    @Override
+    public DeliveryDetail check(String profileId) {
+        return null;
     }
 
     /**
