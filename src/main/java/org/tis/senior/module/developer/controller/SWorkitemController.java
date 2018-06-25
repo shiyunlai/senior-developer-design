@@ -1,6 +1,7 @@
 package org.tis.senior.module.developer.controller;
 
 import org.tis.senior.module.core.web.vo.ResultVO;
+import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import org.springframework.validation.annotation.Validated;
 import org.tis.senior.module.core.web.vo.SmartPage;
@@ -9,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.tis.senior.module.developer.service.ISWorkitemService;
 import org.hibernate.validator.constraints.NotBlank;
+
+import java.util.List;
 
 /**
  * sWorkitem的Controller类
@@ -23,7 +26,8 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
     @Autowired
     private ISWorkitemService sWorkitemService;
 
-    @PostMapping("/add")
+
+    @PostMapping
     public ResultVO add(@RequestBody @Validated SWorkitem sWorkitem) {
         sWorkitemService.insert(sWorkitem);
         return ResultVO.success("新增成功！");
@@ -53,6 +57,15 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
     @PostMapping("/list")
     public ResultVO list(@RequestBody @Validated SmartPage<SWorkitem> page) {
         return  ResultVO.success("查询成功", sWorkitemService.selectPage(getPage(page), getCondition(page)));
+    }
+
+    @GetMapping
+    public ResultVO loadLoginUserWork(){
+
+        SSvnAccount sSvnAccount = getUser();
+        List<SWorkitem> swList = sWorkitemService.selectWorkitemByUser(sSvnAccount.getUserId());
+
+        return ResultVO.success("查询成功",swList);
     }
     
 }

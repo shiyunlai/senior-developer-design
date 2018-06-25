@@ -17,7 +17,7 @@ public class SvnCommit {
     /**
      * 版本号revision
      */
-    private String revision;
+    private Long revision;
 
     /**
      * 提交人author

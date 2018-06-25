@@ -3,6 +3,8 @@ package org.tis.senior.module.developer.service;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import com.baomidou.mybatisplus.service.IService;
 
+import java.util.List;
+
 /**
  * sWorkitem的Service接口类
  * 
@@ -10,6 +12,9 @@ import com.baomidou.mybatisplus.service.IService;
  * @date 2018/06/20
  */
 public interface ISWorkitemService extends IService<SWorkitem>  {
+
+
+    List<SWorkitem> selectWorkitemByUser(String userName);
 
 }
 
