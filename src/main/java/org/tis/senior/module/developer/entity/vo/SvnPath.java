@@ -18,5 +18,5 @@ public class SvnPath {
 
     private String copyPath;
 
-    private String copyRevision;
+    private Long copyRevision;
 }
