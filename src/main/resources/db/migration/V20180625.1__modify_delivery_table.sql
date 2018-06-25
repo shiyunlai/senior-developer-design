@@ -1,0 +1,1 @@
+ALTER TABLE s_delivery MODIFY delivery_desc varchar(1024) COMMENT '投放说明 : 对投放结果的说明，如：因为合并代码与申请中投放代码数量不符，RCT投放失败，此处说明该原因';

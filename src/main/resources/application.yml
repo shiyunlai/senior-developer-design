@@ -5,8 +5,12 @@
 server:
   port: 8080
 
-shiro:
-  enable: true
+tis:
+  shiro:
+    enable: true
+  svn:
+    userName: admin
+    password: administrator
 
 # :::::: spring ::::::
 

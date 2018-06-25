@@ -28,5 +28,11 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      */
     void mergeDeliver(MergeDeliveryRequest mergeDelivery, String userId);
 
+    /**
+     * 核对合并清单
+     * @param profileId
+     * @return
+     */
+    DeliveryDetail check(String profileId);
 }
 
