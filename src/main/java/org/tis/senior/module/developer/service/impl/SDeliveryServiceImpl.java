@@ -86,7 +86,6 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         deliveryDetail.setBranches(sBranches);
         deliveryDetail.setDetailList(details);
         deliveryDetail.setPatchCount(patchCount);
-        deliveryDetail.setDeliveryCount(deliveryCount);
 
         return deliveryDetail;
     }

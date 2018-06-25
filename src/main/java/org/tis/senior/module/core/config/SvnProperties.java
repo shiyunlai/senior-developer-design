@@ -1,6 +1,7 @@
 package org.tis.senior.module.core.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
  * description:
@@ -8,6 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author zhaoch
  * @date 2018/6/25
  **/
+@Component
 @ConfigurationProperties(prefix = "tis.svn")
 public class SvnProperties {
 

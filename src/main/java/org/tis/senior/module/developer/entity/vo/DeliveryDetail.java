@@ -39,11 +39,6 @@ public class DeliveryDetail  {
     private Map<PatchType, Integer> patchCount;
 
     /**
-     * 投放合计
-     */
-    private Map<String, Integer> deliveryCount;
-
-    /**
      * 投放清单
      */
     private List<DeliveryProjectDetail> detailList;
