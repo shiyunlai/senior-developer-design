@@ -3,10 +3,10 @@ package org.tis.senior.module.developer.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.tis.senior.module.core.config.SvnProperties;
 import org.tis.senior.module.developer.entity.enums.SvnPathType;
 import org.tis.senior.module.developer.entity.vo.SvnCommit;
 import org.tis.senior.module.developer.entity.vo.SvnPath;
-import org.tis.senior.module.developer.service.ISProjectService;
 import org.tis.senior.module.developer.service.ISSvnKitService;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNLogEntry;
@@ -26,19 +26,20 @@ import java.util.*;
 @Transactional(rollbackFor = Exception.class)
 public class SSvnKitServiceImpl implements ISSvnKitService {
 
+    @Autowired
+    private SvnProperties svnProperties;
     /**
      * 获取svn的提交历史记录
      *
      * @return
      */
-    public List<SvnCommit> loadSvnHistory() {
+    @Override
+    public List<SvnCommit> loadSvnHistory(String url, Long startRevision) {
 
         List<SvnCommit> scList = new ArrayList<>();
 
-        String url = "http://10.232.84.99/svn/repos/tip/development/branches/SIT/bos.tis.tws.trans.fourth/bos.tis.ui.bos_tis_trans.hzyht/src/hzyht/815173_main.xwt";
-        String name = "wangbo";
-        String password = "xiao1201";
-        long startRevision = 0;
+        String name = svnProperties.getUserName();
+        String password = svnProperties.getPassword();
         //HEAD (the latest) revision
         long endRevision = -1;
 
@@ -52,7 +53,7 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
             System.err.println("error while creating an SVNRepository for the location '" + url + "': " + svne.getMessage());
         }
 
-        ISVNAuthenticationManager authManager = SVNWCUtil.createDefaultAuthenticationManager(name, password);
+        ISVNAuthenticationManager authManager = SVNWCUtil.createDefaultAuthenticationManager(name, password.toCharArray());
         repository.setAuthenticationManager(authManager);
 
         try {
