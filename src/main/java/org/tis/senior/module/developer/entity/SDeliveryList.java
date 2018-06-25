@@ -1,9 +1,15 @@
 package org.tis.senior.module.developer.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
+import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
+import org.tis.senior.module.developer.entity.enums.CommitType;
+import org.tis.senior.module.developer.entity.enums.PatchType;
+
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * sDeliveryList（开发人员提出）投放申请，其中包括哪些程序文件
@@ -71,6 +77,21 @@ public class SDeliveryList implements Serializable {
     public static final String COLUMN_PART_OF_PROJECT = "part_of_project";
 
     /**
+     * author对应表字段
+     */
+    public static final String COLUMN_AUTHOR = "author";
+
+    /**
+     * commitDate对应表字段
+     */
+    public static final String COLUMN_COMMIT_DATE = "commit_date";
+
+    /**
+     * commitType对应表字段
+     */
+    public static final String COLUMN_COMMIT_TYPE = "commit_type";
+
+    /**
      * guid逻辑名
      */
     public static final String NAME_GUID = "数据id";
@@ -116,6 +137,20 @@ public class SDeliveryList implements Serializable {
     public static final String NAME_PART_OF_PROJECT = "代码所在工程";
 
     /**
+     * author逻辑名
+     */
+    public static final String NAME_AUTHOR = "提交人";
+
+    /**
+     * commitDate逻辑名
+     */
+    public static final String NAME_COMMIT_DATE = "提交日期";
+
+    /**
+     * commitType逻辑名
+     */
+    public static final String NAME_COMMIT_TYPE = "提交类型";
+    /**
      * 数据id:唯一标示某条数据（自增长）
      */
     @TableId
@@ -154,7 +189,8 @@ public class SDeliveryList implements Serializable {
      * CFG 作为配置文件
      * DBV 作为数据库脚本（SQL、DDL等数据库版本脚本）
      */
-    private String patchType;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private PatchType patchType;
 
     /**
      * 代码全路径:冗余设计
@@ -166,6 +202,22 @@ public class SDeliveryList implements Serializable {
      * 冗余设计
      */
     private String partOfProject;
+
+    /**
+     * SVN提交人
+     */
+    private String author;
+
+    /**
+     * 提交日期
+     */
+    private Date commitDate;
+
+    /**
+     * 提交类型
+     */
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private CommitType commitType;
 
 }
 

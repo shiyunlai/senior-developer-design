@@ -5,7 +5,9 @@ import org.springframework.validation.annotation.Validated;
 import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.core.web.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
+import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 import org.tis.senior.module.developer.service.ISDeliveryService;
 import org.springframework.web.bind.annotation.*;
 import org.hibernate.validator.constraints.NotBlank;
@@ -17,13 +19,13 @@ import org.hibernate.validator.constraints.NotBlank;
  * @date 2018/06/20
  */
 @RestController
-@RequestMapping("/sDelivery")
+@RequestMapping("/deliveries")
 public class SDeliveryController extends BaseController<SDelivery>  {
 
     @Autowired
     private ISDeliveryService sDeliveryService;
 
-    @PostMapping("/add")
+    @PostMapping
     public ResultVO add(@RequestBody @Validated SDelivery sDelivery) {
         sDeliveryService.insert(sDelivery);
         return ResultVO.success("新增成功！");
@@ -53,6 +55,27 @@ public class SDeliveryController extends BaseController<SDelivery>  {
     @PostMapping("/list")
     public ResultVO list(@RequestBody @Validated SmartPage<SDelivery> page) {
         return  ResultVO.success("查询成功", sDeliveryService.selectPage(getPage(page), getCondition(page)));
+    }
+
+    @PostMapping("/merge/info")
+    public ResultVO mergeInfo(@RequestBody @Validated MergeDeliveryRequest request) {
+        return ResultVO.success(sDeliveryService.getMergeInfo(request, getUser().getUserId()));
+    }
+
+
+
+
+    /**
+     * 合并投放（开发人员使用）
+     * 1、选择多条“投放申请”，合并为一个新的投放申请；
+     * 2、合并的投放申请都是成功的；
+     * 3、合并的投放申请都来自同一个运行环境；
+     * @return
+     */
+    @PostMapping("/merge")
+    public ResultVO merge(@RequestBody @Validated MergeDeliveryRequest request) {
+        sDeliveryService.mergeDeliver(request, getUser().getUserId());
+        return ResultVO.success("申请合并投放成功！");
     }
     
 }

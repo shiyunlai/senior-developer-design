@@ -10,21 +10,21 @@ import java.io.Serializable;
  * @author zhaoch
  * @date 2018/6/22
  **/
-public enum SvnPathType implements BaseEnum {
-
-    ADDED("A", "新增"),
-
-    DELETED("D", "删除"),
-
-    MODIFIED("M", "修改"),
-
-    REPLACED("R", "替换");
+public enum BranchType implements BaseEnum {
+    /**
+     * F 特性分支，普通功能/项目对一个的分支
+     * H hot分支，修复生产bug，或开发紧急投产内容的分支
+     * R release分支
+     */
+    FEATURE("F", "特性分支"),
+    HOT("H", "hot分支"),
+    RELEASE("R", "release分支");
 
     private final String value;
 
     private final String name;
 
-    SvnPathType(final String value, final String name) {
+    BranchType(final String value, final String name) {
         this.value = value;
         this.name = name;
     }
