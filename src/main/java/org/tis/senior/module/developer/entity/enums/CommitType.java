@@ -5,12 +5,12 @@ import org.tis.senior.module.core.entity.enums.BaseEnum;
 import java.io.Serializable;
 
 /**
- * description:
+ * description: SVN提交类型
  *
  * @author zhaoch
- * @date 2018/6/22
+ * @date 2018/6/24
  **/
-public enum SvnPathType implements BaseEnum {
+public enum CommitType implements BaseEnum {
 
     ADDED("A", "新增"),
 
@@ -24,10 +24,11 @@ public enum SvnPathType implements BaseEnum {
 
     private final String name;
 
-    SvnPathType(final String value, final String name) {
+    CommitType(final String value, final String name) {
         this.value = value;
         this.name = name;
     }
+
 
     @Override
     public Serializable deserialze() {

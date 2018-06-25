@@ -6,27 +6,29 @@ import java.io.Serializable;
 
 /**
  * description:
+ * JAR 输出为jar包
+ * ECD 输出为ecd包
+ * EPD 输出为epd
+ * CFG 作为配置文件
+ * DBV 作为数据库脚本（SQL、DDL等数据库版本脚本）
  *
  * @author zhaoch
- * @date 2018/6/22
+ * @date 2018/6/24
  **/
-public enum SvnPathType implements BaseEnum {
+public enum PatchType implements BaseEnum {
 
-    ADDED("A", "新增"),
-
-    DELETED("D", "删除"),
-
-    MODIFIED("M", "修改"),
-
-    REPLACED("R", "替换");
+    ECD("ecd"),
+    EPD("epd"),
+    JAR("jar"),
+    EXE_JAR("可执行jar"),
+    PLUGINS("plugins"),
+    DBV("sql"),
+    CFG("配置文件");
 
     private final String value;
 
-    private final String name;
-
-    SvnPathType(final String value, final String name) {
+    PatchType(final String value) {
         this.value = value;
-        this.name = name;
     }
 
     @Override
@@ -41,6 +43,6 @@ public enum SvnPathType implements BaseEnum {
 
     @Override
     public String toString() {
-        return name;
+        return value;
     }
 }
