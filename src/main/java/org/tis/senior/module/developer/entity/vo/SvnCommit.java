@@ -17,7 +17,7 @@ public class SvnCommit {
     /**
      * 版本号revision
      */
-    private Long revision;
+    private int revision;
 
     /**
      * 提交人author
@@ -27,7 +27,7 @@ public class SvnCommit {
     /**
      * 日期date
      */
-    private Date date;
+    private Date commitDate;
 
     /**
      * 信息log message

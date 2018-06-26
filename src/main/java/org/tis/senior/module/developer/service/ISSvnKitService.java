@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface ISSvnKitService {
 
-    List<SvnCommit> loadSvnHistory(String url, Long startRevision);
+    List<SvnCommit> loadSvnHistory(String url, int startRevision);
 }
