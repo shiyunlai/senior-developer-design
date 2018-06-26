@@ -1,7 +1,7 @@
 package org.tis.senior.module.developer.entity.vo;
 
 import lombok.Data;
-import org.tis.senior.module.developer.entity.enums.SvnPathType;
+import org.tis.senior.module.developer.entity.enums.CommitType;
 
 /**
  * description:
@@ -12,11 +12,11 @@ import org.tis.senior.module.developer.entity.enums.SvnPathType;
 @Data
 public class SvnPath {
 
-    private SvnPathType type;
+    private CommitType type;
 
     private String path;
 
     private String copyPath;
 
-    private Long copyRevision;
+    private int copyRevision;
 }

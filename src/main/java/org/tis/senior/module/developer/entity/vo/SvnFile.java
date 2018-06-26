@@ -1,7 +1,7 @@
 package org.tis.senior.module.developer.entity.vo;
 
 import lombok.Data;
-import org.tis.senior.module.developer.entity.enums.SvnPathType;
+import org.tis.senior.module.developer.entity.enums.CommitType;
 
 import java.util.Date;
 
@@ -20,7 +20,7 @@ public class SvnFile {
 
     private Date data;
 
-    private SvnPathType type;
+    private CommitType type;
 
     private String path;
 }

@@ -3,6 +3,8 @@ package org.tis.senior.module.developer.service;
 import org.tis.senior.module.developer.entity.SProfiles;
 import com.baomidou.mybatisplus.service.IService;
 
+import java.util.List;
+
 /**
  * sProfiles的Service接口类
  * 
@@ -11,5 +13,10 @@ import com.baomidou.mybatisplus.service.IService;
  */
 public interface ISProfilesService extends IService<SProfiles>  {
 
+    /**
+     * 查询所有运行环境
+     * @return
+     */
+    List<SProfiles> selectProfilesAll();
 }
 

@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.tis.senior.module.core.config.SvnProperties;
-import org.tis.senior.module.developer.entity.enums.SvnPathType;
+import org.tis.senior.module.developer.entity.enums.CommitType;
 import org.tis.senior.module.developer.entity.vo.SvnCommit;
 import org.tis.senior.module.developer.entity.vo.SvnPath;
 import org.tis.senior.module.developer.service.ISSvnKitService;
@@ -34,7 +34,7 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
      * @return
      */
     @Override
-    public List<SvnCommit> loadSvnHistory(String url, Long startRevision) {
+    public List<SvnCommit> loadSvnHistory(String url, int startRevision) {
 
         List<SvnCommit> scList = new ArrayList<>();
 
@@ -62,10 +62,15 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
             System.err.println("error while fetching the latest repository revision: " + svne.getMessage());
         }
 
-        Collection logEntries = null;
+        Collection logEntries = new LinkedList();
         try {
 
-            logEntries = repository.log(new String[] {""}, null, startRevision, endRevision, true, true);
+            repository.log(new String[] {""}, startRevision, endRevision, true, true,
+                    0, false, null, logEntry -> {
+                        if (logEntry.getRevision() != -1) {
+                            logEntries.add(logEntry);
+                        }
+                    });
 
         } catch (SVNException svne) {
             System.out.println("error while collecting log information for '" + url + "': " + svne.getMessage());
@@ -77,9 +82,9 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
             SVNLogEntry logEntry = (SVNLogEntry) entries.next();
 
             SvnCommit svnCommit = new SvnCommit();
-            svnCommit.setRevision(logEntry.getRevision());
+            svnCommit.setRevision((int)logEntry.getRevision());
             svnCommit.setAuthor(logEntry.getAuthor());
-            svnCommit.setDate(logEntry.getDate());
+            svnCommit.setCommitDate(logEntry.getDate());
             svnCommit.setMessage(logEntry.getMessage());
 
             if (logEntry.getChangedPaths().size() > 0) {
@@ -96,17 +101,17 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
                     svnPath.setPath(entryPath.getPath());
                     //变动类型
                     if("A".equals(type)){
-                        svnPath.setType(SvnPathType.ADDED);
+                        svnPath.setType(CommitType.ADDED);
                     }else if("D".equals(type)){
-                        svnPath.setType(SvnPathType.DELETED);
+                        svnPath.setType(CommitType.DELETED);
                     }else if("M".equals(type)){
-                        svnPath.setType(SvnPathType.MODIFIED);
+                        svnPath.setType(CommitType.MODIFIED);
                     }else if("R".equals(type)){
-                        svnPath.setType(SvnPathType.REPLACED);
+                        svnPath.setType(CommitType.REPLACED);
                     }
                     if(entryPath.getCopyPath() != null){
                         svnPath.setCopyPath(entryPath.getCopyPath());
-                        svnPath.setCopyRevision(entryPath.getCopyRevision());
+                        svnPath.setCopyRevision((int)entryPath.getCopyRevision());
                     }
                 }
             }
