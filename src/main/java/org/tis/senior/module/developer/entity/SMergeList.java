@@ -1,6 +1,7 @@
 package org.tis.senior.module.developer.entity;
 
 import com.baomidou.mybatisplus.annotations.TableName;
+import java.util.Date;
 import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
 import java.io.Serializable;
@@ -31,19 +32,9 @@ public class SMergeList implements Serializable {
     public static final String COLUMN_GUID = "guid";
 
     /**
-     * guidFromBranch对应表字段
+     * checkGuid对应表字段
      */
-    public static final String COLUMN_GUID_FROM_BRANCH = "guid_from_branch";
-
-    /**
-     * fromBranchPath对应表字段
-     */
-    public static final String COLUMN_FROM_BRANCH_PATH = "from_branch_path";
-
-    /**
-     * toBranchPath对应表字段
-     */
-    public static final String COLUMN_TO_BRANCH_PATH = "to_branch_path";
+    public static final String COLUMN_CHECK_GUID = "check_guid";
 
     /**
      * programName对应表字段
@@ -51,24 +42,29 @@ public class SMergeList implements Serializable {
     public static final String COLUMN_PROGRAM_NAME = "program_name";
 
     /**
-     * developer对应表字段
+     * mergeVersion对应表字段
      */
-    public static final String COLUMN_DEVELOPER = "developer";
+    public static final String COLUMN_MERGE_VERSION = "merge_version";
 
     /**
-     * mergeOperator对应表字段
+     * fullPath对应表字段
      */
-    public static final String COLUMN_MERGE_OPERATOR = "merge_operator";
+    public static final String COLUMN_FULL_PATH = "full_path";
 
     /**
-     * oldVersion对应表字段
+     * author对应表字段
      */
-    public static final String COLUMN_OLD_VERSION = "old_version";
+    public static final String COLUMN_AUTHOR = "author";
 
     /**
-     * newVersion对应表字段
+     * mergeDate对应表字段
      */
-    public static final String COLUMN_NEW_VERSION = "new_version";
+    public static final String COLUMN_MERGE_DATE = "merge_date";
+
+    /**
+     * mergeType对应表字段
+     */
+    public static final String COLUMN_MERGE_TYPE = "merge_type";
 
     /**
      * developerConfirm对应表字段
@@ -81,19 +77,9 @@ public class SMergeList implements Serializable {
     public static final String NAME_GUID = "数据id";
 
     /**
-     * guidFromBranch逻辑名
+     * checkGuid逻辑名
      */
-    public static final String NAME_GUID_FROM_BRANCH = "被合并分支";
-
-    /**
-     * fromBranchPath逻辑名
-     */
-    public static final String NAME_FROM_BRANCH_PATH = "被合并分支路径";
-
-    /**
-     * toBranchPath逻辑名
-     */
-    public static final String NAME_TO_BRANCH_PATH = "接受合并分支路径";
+    public static final String NAME_CHECK_GUID = "核对GUID";
 
     /**
      * programName逻辑名
@@ -101,24 +87,29 @@ public class SMergeList implements Serializable {
     public static final String NAME_PROGRAM_NAME = "程序名称";
 
     /**
-     * developer逻辑名
+     * mergeVersion逻辑名
      */
-    public static final String NAME_DEVELOPER = "开发人员";
+    public static final String NAME_MERGE_VERSION = "提交后新版本号";
 
     /**
-     * mergeOperator逻辑名
+     * fullPath逻辑名
      */
-    public static final String NAME_MERGE_OPERATOR = "合并操作类型";
+    public static final String NAME_FULL_PATH = "代码全路径";
 
     /**
-     * oldVersion逻辑名
+     * author逻辑名
      */
-    public static final String NAME_OLD_VERSION = "提交前代码版本";
+    public static final String NAME_AUTHOR = "合并人员";
 
     /**
-     * newVersion逻辑名
+     * mergeDate逻辑名
      */
-    public static final String NAME_NEW_VERSION = "提交后新版本号";
+    public static final String NAME_MERGE_DATE = "合并时间";
+
+    /**
+     * mergeType逻辑名
+     */
+    public static final String NAME_MERGE_TYPE = "合并操作类型";
 
     /**
      * developerConfirm逻辑名
@@ -132,19 +123,9 @@ public class SMergeList implements Serializable {
     private Integer guid;
 
     /**
-     * 被合并分支:来源分支
+     * 核对GUID:唯一标示某条数据（自增长）
      */
-    private Integer guidFromBranch;
-
-    /**
-     * 被合并分支路径:冗余字段，减少查询关联
-     */
-    private String fromBranchPath;
-
-    /**
-     * 接受合并分支路径:冗余字段，减少查询关联
-     */
-    private String toBranchPath;
+    private Integer checkGuid;
 
     /**
      * 程序名称:冗余设计
@@ -152,26 +133,31 @@ public class SMergeList implements Serializable {
     private String programName;
 
     /**
-     * 开发人员:记录开发人员的svn账号
+     * 提交后新版本号:合并成功后，代码的新版本号
      */
-    private String developer;
+    private Integer mergeVersion;
+
+    /**
+     * 代码全路径
+     */
+    private String fullPath;
+
+    /**
+     * 合并人员
+     */
+    private String author;
+
+    /**
+     * 合并时间
+     */
+    private Date mergeDate;
 
     /**
      * 合并操作类型:A  新增 Add
      * U  修改 Update
      * D  删除 Delete
      */
-    private String mergeOperator;
-
-    /**
-     * 提交前代码版本:记录代码在合并前的历史版本号（svn版本号）
-     */
-    private Integer oldVersion;
-
-    /**
-     * 提交后新版本号:合并成功后，代码的新版本号
-     */
-    private Integer newVersion;
+    private String mergeType;
 
     /**
      * 开发确认:合并后的代码都需要开发人员进行确认

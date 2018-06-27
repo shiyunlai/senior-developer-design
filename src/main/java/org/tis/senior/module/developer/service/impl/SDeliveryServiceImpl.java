@@ -111,11 +111,6 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         insertBatch(insert);
     }
 
-    @Override
-    public DeliveryDetail check(String profileId) {
-        return null;
-    }
-
     /**
      * 判断是否允许合并投放，返回合并申请信息集合
      * @param deliveryGuids
