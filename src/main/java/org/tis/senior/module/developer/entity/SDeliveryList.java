@@ -1,21 +1,16 @@
 package org.tis.senior.module.developer.entity;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableName;
+import java.util.Date;
 import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
-import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
-import org.tis.senior.module.developer.entity.enums.CommitType;
-import org.tis.senior.module.developer.entity.enums.PatchType;
-
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * sDeliveryList（开发人员提出）投放申请，其中包括哪些程序文件
  * 
  * @author Auto Generate Tools
- * @date 2018/06/20
+ * @date 2018/06/27
  */
 @Data
 @TableName("s_delivery_list")
@@ -47,16 +42,6 @@ public class SDeliveryList implements Serializable {
     public static final String COLUMN_PROGRAM_NAME = "program_name";
 
     /**
-     * startVersion对应表字段
-     */
-    public static final String COLUMN_START_VERSION = "start_version";
-
-    /**
-     * currVersion对应表字段
-     */
-    public static final String COLUMN_CURR_VERSION = "curr_version";
-
-    /**
      * deliveryVersion对应表字段
      */
     public static final String COLUMN_DELIVERY_VERSION = "delivery_version";
@@ -65,6 +50,11 @@ public class SDeliveryList implements Serializable {
      * patchType对应表字段
      */
     public static final String COLUMN_PATCH_TYPE = "patch_type";
+
+    /**
+     * deployWhere对应表字段
+     */
+    public static final String COLUMN_DEPLOY_WHERE = "deploy_where";
 
     /**
      * fullPath对应表字段
@@ -92,6 +82,11 @@ public class SDeliveryList implements Serializable {
     public static final String COLUMN_COMMIT_TYPE = "commit_type";
 
     /**
+     * developerConfirm对应表字段
+     */
+    public static final String COLUMN_DEVELOPER_CONFIRM = "developer_confirm";
+
+    /**
      * guid逻辑名
      */
     public static final String NAME_GUID = "数据id";
@@ -107,16 +102,6 @@ public class SDeliveryList implements Serializable {
     public static final String NAME_PROGRAM_NAME = "程序名称";
 
     /**
-     * startVersion逻辑名
-     */
-    public static final String NAME_START_VERSION = "起始版本";
-
-    /**
-     * currVersion逻辑名
-     */
-    public static final String NAME_CURR_VERSION = "当前最新版本";
-
-    /**
      * deliveryVersion逻辑名
      */
     public static final String NAME_DELIVERY_VERSION = "投放版本";
@@ -125,6 +110,11 @@ public class SDeliveryList implements Serializable {
      * patchType逻辑名
      */
     public static final String NAME_PATCH_TYPE = "补丁类型";
+
+    /**
+     * deployWhere逻辑名
+     */
+    public static final String NAME_DEPLOY_WHERE = "部署到";
 
     /**
      * fullPath逻辑名
@@ -139,7 +129,7 @@ public class SDeliveryList implements Serializable {
     /**
      * author逻辑名
      */
-    public static final String NAME_AUTHOR = "提交人";
+    public static final String NAME_AUTHOR = "提交人员";
 
     /**
      * commitDate逻辑名
@@ -150,6 +140,12 @@ public class SDeliveryList implements Serializable {
      * commitType逻辑名
      */
     public static final String NAME_COMMIT_TYPE = "提交类型";
+
+    /**
+     * developerConfirm逻辑名
+     */
+    public static final String NAME_DEVELOPER_CONFIRM = "开发确认";
+
     /**
      * 数据id:唯一标示某条数据（自增长）
      */
@@ -167,16 +163,6 @@ public class SDeliveryList implements Serializable {
     private String programName;
 
     /**
-     * 起始版本:分支创建好时的版本
-     */
-    private Integer startVersion;
-
-    /**
-     * 当前最新版本:经过开发后的当前版本
-     */
-    private Integer currVersion;
-
-    /**
      * 投放版本:投放时该代码的svn版本
      * 可以投当前版本，也可以投开发过程中的某个版本
      */
@@ -189,8 +175,12 @@ public class SDeliveryList implements Serializable {
      * CFG 作为配置文件
      * DBV 作为数据库脚本（SQL、DDL等数据库版本脚本）
      */
-    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
-    private PatchType patchType;
+    private String patchType;
+
+    /**
+     * 部署到
+     */
+    private String deployWhere;
 
     /**
      * 代码全路径:冗余设计
@@ -204,20 +194,24 @@ public class SDeliveryList implements Serializable {
     private String partOfProject;
 
     /**
-     * SVN提交人
+     * 提交人员:svn提交人
      */
     private String author;
 
     /**
-     * 提交日期
+     * 提交日期:提交日期
      */
     private Date commitDate;
 
     /**
-     * 提交类型
+     * 提交类型:提交类型
      */
-    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
-    private CommitType commitType;
+    private String commitType;
+
+    /**
+     * 开发确认
+     */
+    private String developerConfirm;
 
 }
 

@@ -82,11 +82,6 @@ public class SDeliveryController extends BaseController<SDelivery>  {
         return ResultVO.success("申请合并投放成功！");
     }
 
-    @PostMapping("/profile/{id}/check")
-    public ResultVO merge(@NotBlank(message = "环境不能为空！") String id) {
-        DeliveryDetail detail = sDeliveryService.check(id);
-        return ResultVO.success(detail);
-    }
     
 }
 
