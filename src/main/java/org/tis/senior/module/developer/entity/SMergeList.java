@@ -1,7 +1,6 @@
 package org.tis.senior.module.developer.entity;
 
 import com.baomidou.mybatisplus.annotations.TableName;
-import java.util.Date;
 import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
 import java.io.Serializable;
@@ -10,7 +9,7 @@ import java.io.Serializable;
  * sMergeList（RCT人员合并开发分支）其中合并了哪些程序文件
  * 
  * @author Auto Generate Tools
- * @date 2018/06/20
+ * @date 2018/06/27
  */
 @Data
 @TableName("s_merge_list")
@@ -32,11 +31,6 @@ public class SMergeList implements Serializable {
     public static final String COLUMN_GUID = "guid";
 
     /**
-     * guidDelivery对应表字段
-     */
-    public static final String COLUMN_GUID_DELIVERY = "guid_delivery";
-
-    /**
      * guidFromBranch对应表字段
      */
     public static final String COLUMN_GUID_FROM_BRANCH = "guid_from_branch";
@@ -45,11 +39,6 @@ public class SMergeList implements Serializable {
      * fromBranchPath对应表字段
      */
     public static final String COLUMN_FROM_BRANCH_PATH = "from_branch_path";
-
-    /**
-     * guidToBranch对应表字段
-     */
-    public static final String COLUMN_GUID_TO_BRANCH = "guid_to_branch";
 
     /**
      * toBranchPath对应表字段
@@ -65,11 +54,6 @@ public class SMergeList implements Serializable {
      * developer对应表字段
      */
     public static final String COLUMN_DEVELOPER = "developer";
-
-    /**
-     * mergeTime对应表字段
-     */
-    public static final String COLUMN_MERGE_TIME = "merge_time";
 
     /**
      * mergeOperator对应表字段
@@ -97,11 +81,6 @@ public class SMergeList implements Serializable {
     public static final String NAME_GUID = "数据id";
 
     /**
-     * guidDelivery逻辑名
-     */
-    public static final String NAME_GUID_DELIVERY = "投放申请GUID";
-
-    /**
      * guidFromBranch逻辑名
      */
     public static final String NAME_GUID_FROM_BRANCH = "被合并分支";
@@ -110,11 +89,6 @@ public class SMergeList implements Serializable {
      * fromBranchPath逻辑名
      */
     public static final String NAME_FROM_BRANCH_PATH = "被合并分支路径";
-
-    /**
-     * guidToBranch逻辑名
-     */
-    public static final String NAME_GUID_TO_BRANCH = "接收合并分支";
 
     /**
      * toBranchPath逻辑名
@@ -130,11 +104,6 @@ public class SMergeList implements Serializable {
      * developer逻辑名
      */
     public static final String NAME_DEVELOPER = "开发人员";
-
-    /**
-     * mergeTime逻辑名
-     */
-    public static final String NAME_MERGE_TIME = "合并时间";
 
     /**
      * mergeOperator逻辑名
@@ -163,11 +132,6 @@ public class SMergeList implements Serializable {
     private Integer guid;
 
     /**
-     * 投放申请GUID:唯一标示某条数据（自增长）
-     */
-    private Integer guidDelivery;
-
-    /**
      * 被合并分支:来源分支
      */
     private Integer guidFromBranch;
@@ -176,11 +140,6 @@ public class SMergeList implements Serializable {
      * 被合并分支路径:冗余字段，减少查询关联
      */
     private String fromBranchPath;
-
-    /**
-     * 接收合并分支:代码合并入分支
-     */
-    private Integer guidToBranch;
 
     /**
      * 接受合并分支路径:冗余字段，减少查询关联
@@ -196,11 +155,6 @@ public class SMergeList implements Serializable {
      * 开发人员:记录开发人员的svn账号
      */
     private String developer;
-
-    /**
-     * 合并时间
-     */
-    private Date mergeTime;
 
     /**
      * 合并操作类型:A  新增 Add
