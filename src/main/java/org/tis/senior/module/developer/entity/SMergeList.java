@@ -5,6 +5,7 @@ import java.util.Date;
 import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * sMergeList（RCT人员合并开发分支）其中合并了哪些程序文件
@@ -52,6 +53,11 @@ public class SMergeList implements Serializable {
     public static final String COLUMN_FULL_PATH = "full_path";
 
     /**
+     * partOfProject对应表字段
+     */
+    public static final String COLUMN_PART_OF_PROJECT = "part_of_project";
+
+    /**
      * author对应表字段
      */
     public static final String COLUMN_AUTHOR = "author";
@@ -95,6 +101,11 @@ public class SMergeList implements Serializable {
      * fullPath逻辑名
      */
     public static final String NAME_FULL_PATH = "代码全路径";
+
+    /**
+     * partOfProject逻辑名
+     */
+    public static final String NAME_PART_OF_PROJECT = "代码所在工程";
 
     /**
      * author逻辑名
@@ -143,6 +154,12 @@ public class SMergeList implements Serializable {
     private String fullPath;
 
     /**
+     * 代码所在工程:记录该代码所在的工程名称（s_project.project_name）
+     * 冗余设计
+     */
+    private String partOfProject;
+
+    /**
      * 合并人员
      */
     private String author;
@@ -167,5 +184,22 @@ public class SMergeList implements Serializable {
      */
     private String developerConfirm;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SMergeList that = (SMergeList) o;
+        return Objects.equals(getFullPath(), that.getFullPath());
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(getFullPath());
+    }
 }
 
