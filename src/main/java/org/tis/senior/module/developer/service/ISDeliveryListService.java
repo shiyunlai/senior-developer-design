@@ -20,7 +20,7 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      *
      * @return
      */
-    List<DeliveryProjectDetail> assembleDelivery();
+    List<DeliveryProjectDetail> assembleDelivery(String branchGuid);
 
     void addDeliveryList();
 }

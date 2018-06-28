@@ -11,5 +11,6 @@ import com.baomidou.mybatisplus.service.IService;
  */
 public interface ISBranchService extends IService<SBranch>  {
 
+
 }
 
