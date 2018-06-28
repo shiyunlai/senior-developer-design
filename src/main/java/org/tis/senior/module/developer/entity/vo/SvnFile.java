@@ -2,6 +2,7 @@ package org.tis.senior.module.developer.entity.vo;
 
 import lombok.Data;
 import org.tis.senior.module.developer.entity.enums.CommitType;
+import org.tis.senior.module.developer.util.DeveloperUtils;
 
 import java.util.Date;
 
@@ -26,4 +27,16 @@ public class SvnFile {
 
     private String nodeType;
 
+    private String programName;
+
+    private String projectName;
+
+    public String getProgramName() {
+
+        return DeveloperUtils.getProgramName(this.path);
+    }
+
+    public String getProjectName() {
+        return DeveloperUtils.getProjectName(this.path);
+    }
 }
