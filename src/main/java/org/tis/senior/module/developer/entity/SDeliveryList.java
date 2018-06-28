@@ -1,9 +1,13 @@
 package org.tis.senior.module.developer.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableName;
 import java.util.Date;
 import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
+import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
+import org.tis.senior.module.developer.entity.enums.CommitType;
+
 import java.io.Serializable;
 
 /**
@@ -206,7 +210,8 @@ public class SDeliveryList implements Serializable {
     /**
      * 提交类型:提交类型
      */
-    private String commitType;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private CommitType commitType;
 
     /**
      * 开发确认
