@@ -1,6 +1,8 @@
 package org.tis.senior.module.developer.entity.enums;
 
+import org.apache.commons.lang3.StringUtils;
 import org.tis.senior.module.core.entity.enums.BaseEnum;
+import org.tis.senior.module.developer.exception.DeveloperException;
 
 import java.io.Serializable;
 
@@ -27,6 +29,18 @@ public enum CommitType implements BaseEnum {
     CommitType(final String value, final String name) {
         this.value = value;
         this.name = name;
+    }
+
+    public static CommitType what(String value) {
+        if (StringUtils.isBlank(value)) {
+            throw new DeveloperException("提交类型不能为null！");
+        }
+        for (CommitType type : CommitType.values()) {
+            if (type.getValue().equals(value)) {
+                return type;
+            }
+        }
+        throw new DeveloperException("没有" + value + "对应的提交类型！");
     }
 
 

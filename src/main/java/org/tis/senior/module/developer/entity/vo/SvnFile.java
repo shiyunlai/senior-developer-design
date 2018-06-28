@@ -14,7 +14,7 @@ import java.util.Date;
 @Data
 public class SvnFile {
 
-    private String revision;
+    private Long revision;
 
     private String author;
 
@@ -23,4 +23,7 @@ public class SvnFile {
     private CommitType type;
 
     private String path;
+
+    private String nodeType;
+
 }
