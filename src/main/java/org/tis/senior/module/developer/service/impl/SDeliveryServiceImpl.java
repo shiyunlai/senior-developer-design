@@ -66,7 +66,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         List<DeliveryProjectDetail> details = DeliveryProjectDetail.getDeliveryDetail(sDeliveryLists);
         // 统计投放消息
         // 补丁类型
-        Map<PatchType, Integer> patchCount = new HashMap<>(5);
+        Map<String, Integer> patchCount = new HashMap<>(5);
         details.forEach(d -> d.getPatchName().forEach(p -> {
             if (patchCount.get(p) != null) {
                 patchCount.put(p, 1);
