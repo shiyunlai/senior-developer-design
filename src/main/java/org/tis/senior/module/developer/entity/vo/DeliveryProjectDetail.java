@@ -25,7 +25,7 @@ public class DeliveryProjectDetail {
     /**
      * 编译为
      */
-    private List<PatchType> patchName;
+    private List<String> patchName;
 
     /**
      * 部署到 TODO 代码级还是工程级
@@ -45,7 +45,7 @@ public class DeliveryProjectDetail {
                 .forEach((p, l) -> {
                     DeliveryProjectDetail detail = new DeliveryProjectDetail();
                     detail.setProjectName(p);
-                    List<PatchType> types = l.stream().map(SDeliveryList::getPatchType).distinct().collect(Collectors.toList());
+                    List<String> types = l.stream().map(SDeliveryList::getPatchType).distinct().collect(Collectors.toList());
                     detail.setPatchName(types);
                     detail.setFileList(l);
                     details.add(detail);
