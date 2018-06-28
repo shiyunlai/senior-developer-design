@@ -45,4 +45,5 @@ public enum PatchType implements BaseEnum {
     public String toString() {
         return value;
     }
+
 }

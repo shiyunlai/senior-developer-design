@@ -7,8 +7,12 @@ import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.core.web.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.service.ISDeliveryListService;
 import org.hibernate.validator.constraints.NotBlank;
+
+import javax.annotation.PostConstruct;
+import java.util.List;
 
 /**
  * sDeliveryList的Controller类
@@ -22,6 +26,7 @@ public class SDeliveryListController extends BaseController<SDeliveryList>  {
 
     @Autowired
     private ISDeliveryListService sDeliveryListService;
+
 
     @PostMapping("/add")
     public ResultVO add(@RequestBody @Validated SDeliveryList sDeliveryList) {
@@ -53,6 +58,24 @@ public class SDeliveryListController extends BaseController<SDeliveryList>  {
     @PostMapping("/list")
     public ResultVO list(@RequestBody @Validated SmartPage<SDeliveryList> page) {
         return  ResultVO.success("查询成功", sDeliveryListService.selectPage(getPage(page), getCondition(page)));
+    }
+
+    /**
+     * 整理提交历史展示
+     *
+     * @param branchGuid 分支guid
+     * @return
+     */
+    @GetMapping
+    public ResultVO assembleDelivery(String branchGuid){
+        List<DeliveryProjectDetail> deliveryProjectDetails = sDeliveryListService.assembleDelivery(branchGuid);
+        return ResultVO.success("查询成功",deliveryProjectDetails);
+    }
+
+    @PostMapping
+    public ResultVO addDelivery(){
+
+        return ResultVO.success("添加成功");
     }
     
 }

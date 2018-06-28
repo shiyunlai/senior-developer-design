@@ -1,5 +1,6 @@
 package org.tis.senior.module.developer.service;
 
+import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import com.baomidou.mybatisplus.service.IService;
 
@@ -14,7 +15,14 @@ import java.util.List;
 public interface ISWorkitemService extends IService<SWorkitem>  {
 
 
+    /**
+     *
+     *
+     * @param userName
+     * @return
+     */
     List<SWorkitem> selectWorkitemByUser(String userName);
 
+    SBranch selectBranchByWorkitemId(String workitemId) throws Exception;
 }
 

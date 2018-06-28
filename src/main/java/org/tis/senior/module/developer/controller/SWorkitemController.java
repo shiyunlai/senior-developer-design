@@ -1,6 +1,7 @@
 package org.tis.senior.module.developer.controller;
 
 import org.tis.senior.module.core.web.vo.ResultVO;
+import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import org.springframework.validation.annotation.Validated;
@@ -59,6 +60,11 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
         return  ResultVO.success("查询成功", sWorkitemService.selectPage(getPage(page), getCondition(page)));
     }
 
+    /**
+     * 查询登录用户的工作项
+     *
+     * @return
+     */
     @GetMapping
     public ResultVO loadLoginUserWork(){
 
@@ -66,6 +72,18 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
         List<SWorkitem> swList = sWorkitemService.selectWorkitemByUser(sSvnAccount.getUserId());
 
         return ResultVO.success("查询成功",swList);
+    }
+
+    /**
+     * 查询工作项的开发分支
+     *
+     * @return
+     */
+    @GetMapping("/{workitemGuid}/branchDetail")
+    public ResultVO loadBranchDetail(@PathVariable @NotBlank(message = "工作项id不能为空")String workitemGuid) throws Exception {
+
+        SBranch branch = sWorkitemService.selectBranchByWorkitemId(workitemGuid);
+        return ResultVO.success("查询成功",branch);
     }
     
 }
