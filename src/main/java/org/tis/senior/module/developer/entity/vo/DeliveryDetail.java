@@ -36,7 +36,7 @@ public class DeliveryDetail  {
     /**
      * 投放小计
      */
-    private Map<PatchType, Integer> patchCount;
+    private Map<String, Integer> patchCount;
 
     /**
      * 投放清单
