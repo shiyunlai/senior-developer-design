@@ -16,7 +16,10 @@ import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -91,7 +94,9 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     @Override
     public void mergeDeliver(MergeDeliveryRequest mergeDelivery, String userId) {
         List<SDelivery> deliveryList = isAllowMerge(mergeDelivery.getMergeList());
-        List<SDelivery> insert = new ArrayList<>(deliveryList.size());
+        EntityWrapper<SDeliveryList> wrapper = new EntityWrapper<>();
+        wrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, mergeDelivery.getMergeList());
+        List<SDeliveryList> sDeliveryLists = deliveryListService.selectList(wrapper);
         // 合并为一个投产申请,每个环境形成一个独立的投放申请
         mergeDelivery.getProfiles().forEach(p -> {
             SDelivery sDelivery = new SDelivery();
@@ -103,10 +108,11 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
                     .map(SDelivery::getApplyAlias).reduce("合并投放", (r, s) -> r + "，" + s));
             sDelivery.setApplyTime(new Date());
             sDelivery.setProposer(userId);
-            insert.add(sDelivery);
+            insert(sDelivery);
+            sDeliveryLists.forEach(s -> s.setGuidDelivery(sDelivery.getGuid()));
+            deliveryListService.insertBatch(sDeliveryLists);
         });
-        // FIXME 合并申请与普通申请,其代码清单是相同的，所以无需再生成新清单
-        insertBatch(insert);
+
     }
 
     /**
