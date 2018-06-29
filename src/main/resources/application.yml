@@ -7,7 +7,7 @@ server:
 
 tis:
   shiro:
-    enable: true
+    enable: false
   svn:
     userName: admin
     password: administrator
