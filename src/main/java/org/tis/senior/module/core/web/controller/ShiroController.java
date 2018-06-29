@@ -1,5 +1,6 @@
 package org.tis.senior.module.core.web.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.tis.senior.module.core.web.controller.request.LoginRequest;
 import org.tis.senior.module.core.web.vo.ResultVO;
+import org.tis.senior.module.developer.entity.SSvnAccount;
 
 /**
  * Created by Administrator on 2017/12/11.
@@ -28,7 +30,10 @@ public class ShiroController {
         Subject subject = SecurityUtils.getSubject();
         UsernamePasswordToken token = new UsernamePasswordToken(userInfo.getUserId(), userInfo.getPassword());
         subject.login(token);
-        return ResultVO.success("登陆成功!");
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userInfo", SecurityUtils.getSubject().getPrincipal());
+        jsonObject.put("token", subject.getSession().getId());
+        return ResultVO.success("登陆成功!", jsonObject);
     }
 
     /**
