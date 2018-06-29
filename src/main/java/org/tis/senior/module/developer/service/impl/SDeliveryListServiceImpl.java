@@ -16,6 +16,7 @@ import org.tis.senior.module.developer.dao.SDeliveryListMapper;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
 import org.tis.senior.module.developer.entity.SProject;
+import org.tis.senior.module.developer.entity.enums.CommitType;
 import org.tis.senior.module.developer.entity.enums.ConfirmStatus;
 import org.tis.senior.module.developer.entity.enums.DeliveryResult;
 import org.tis.senior.module.developer.entity.enums.DeliveryType;
@@ -29,9 +30,8 @@ import org.tis.senior.module.developer.util.DeveloperUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * sDeliveryList的Service接口实现类
@@ -60,11 +60,38 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
 
         SBranch branch = branchService.selectById(branchGuid);
         //查询所有的工程
-        List<SProject> spList = projectService.selectProjectAll();
+        Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
+                collect(Collectors.toMap(SProject::getProjectName, p -> p));
 
         List<SvnFile> svnCommits = svnKitService.getDiffStatus(branch.getFullPath(),branch.getCurrVersion().toString());
         List<SDeliveryList> sdList = new ArrayList<>();
-        for (SvnFile svnFile:svnCommits){
+        Map<String, List<SvnFile>> commitMap = svnCommits.stream().collect(Collectors.groupingBy(SvnFile::getNodeType));
+        Set<String> ecdSet = new HashSet<>();
+        if (!commitMap.get("dir").isEmpty()) {
+            commitMap.get("dir").forEach(f -> {
+                String projectName = DeveloperUtils.getProjectName(f.getPath());
+                if (StringUtils.isNotBlank(projectName)) {
+                    SProject project = projectMap.get(projectName);
+                    JSONArray jsonArray = JSONArray.parseArray(project.getDeployConfig());
+                    for (Object object : jsonArray) {
+                        JSONObject jsonObject = JSONObject.parseObject(object.toString());
+                        String exportType = jsonObject.getString("exportType");
+                        String deployType = jsonObject.getString("deployType");
+                        if ("ecd".equals(exportType)) {
+                            String eoe = DeveloperUtils.isEpdOrEcd(f.getPath());
+                            if (StringUtils.isNoneBlank(eoe) && f.getType().equals(CommitType.ADDED)) {
+                                //如果是工程下的模块，以最后一个 . 截取，获取是否与工程名相等
+                                String module = StringUtils.substringBeforeLast(eoe, ".");
+                                if (module.equals(DeveloperUtils.getProjectName(f.getPath()))) {
+                                    ecdSet.add(eoe);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        commitMap.get("file").forEach(svnFile -> {
             SDeliveryList sdl = new SDeliveryList();
             sdl.setAuthor(svnFile.getAuthor());
             sdl.setCommitDate(svnFile.getData());
@@ -73,39 +100,35 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             sdl.setFullPath(svnFile.getPath());
             String programName = DeveloperUtils.getProgramName(svnFile.getPath());
             sdl.setProgramName(programName);
-            String project = DeveloperUtils.getProjectName(svnFile.getPath());
-            for (SProject sProject:spList){
-                if(project.equals(sProject.getProjectName())){
-                    sdl.setPartOfProject(sProject.getProjectName());
-                    if("com.primeton.ibs.config".equals(sProject.getProjectName())){
+            String projectName = DeveloperUtils.getProjectName(svnFile.getPath());
+            SProject sProject = projectMap.get(projectName);
+            sdl.setPartOfProject(sProject.getProjectName());
+            if("com.primeton.ibs.config".equals(sProject.getProjectName())){
 
-                    }else{
-                        String deployConfig = sProject.getDeployConfig();
-                        JSONArray jsonArray = JSONArray.parseArray(deployConfig);
-                        for (Object object:jsonArray){
-                            JSONObject jsonObject = JSONObject.parseObject(object.toString());
-                            String exportType = jsonObject.getString("exportType");
-                            String deployType = jsonObject.getString("deployType");
-                            if(exportType.equals("ecd")){
-                                if("dir".equals(svnFile.getNodeType())){
-                                    String eoe = DeveloperUtils.isEpdOrEcd(svnFile.getPath());
-                                    //如果是工程下的模块，以最后一个 . 截取，获取是否与工程名相等
-                                    String module = StringUtils.substringBeforeLast(eoe,".");
-                                    if(module.equals(project)){
-                                        sdl.setPatchType(exportType);
-                                        sdl.setDeployWhere(deployType);
-                                    }
+            }else{
+                String deployConfig = sProject.getDeployConfig();
+                JSONArray jsonArray = JSONArray.parseArray(deployConfig);
+                for (Object object:jsonArray){
+                    JSONObject jsonObject = JSONObject.parseObject(object.toString());
+                    String exportType = jsonObject.getString("exportType");
+                    String deployType = jsonObject.getString("deployType");
+                    if(exportType.equals("ecd")) {
+                        if (ecdSet.size() > 0) {
+                            for (String ecd : ecdSet) {
+                                if (svnFile.getPath().contains(ecd)) {
+                                    sdl.setPatchType(exportType);
+                                    sdl.setDeployWhere(deployType);
                                 }
-                            }else{
-                                sdl.setPatchType(exportType);
-                                sdl.setDeployWhere(deployType);
                             }
                         }
+                    } else {
+                        sdl.setPatchType(exportType);
+                        sdl.setDeployWhere(deployType);
                     }
                 }
             }
             sdList.add(sdl);
-        }
+        });
         List<DeliveryProjectDetail> dpdLst = DeliveryProjectDetail.getDeliveryDetail(sdList);
         return dpdLst;
     }

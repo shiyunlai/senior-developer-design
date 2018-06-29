@@ -35,6 +35,9 @@ public enum CommitType implements BaseEnum {
         if (StringUtils.isBlank(value)) {
             throw new DeveloperException("提交类型不能为null！");
         }
+        if("added".equals(value)){
+            return ADDED;
+        }
         for (CommitType type : CommitType.values()) {
             if (type.getValue().equals(value)) {
                 return type;
