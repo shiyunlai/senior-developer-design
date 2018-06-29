@@ -31,7 +31,9 @@ public class ShiroController {
         UsernamePasswordToken token = new UsernamePasswordToken(userInfo.getUserId(), userInfo.getPassword());
         subject.login(token);
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("userInfo", SecurityUtils.getSubject().getPrincipal());
+        SSvnAccount principal = (SSvnAccount) SecurityUtils.getSubject().getPrincipal();
+        principal.setSvnPwd(null);
+        jsonObject.put("userInfo", principal);
         jsonObject.put("token", subject.getSession().getId());
         return ResultVO.success("登陆成功!", jsonObject);
     }

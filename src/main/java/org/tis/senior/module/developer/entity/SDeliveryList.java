@@ -1,14 +1,15 @@
 package org.tis.senior.module.developer.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.baomidou.mybatisplus.annotations.TableName;
-import java.util.Date;
-import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
+import com.baomidou.mybatisplus.annotations.TableName;
+import lombok.Data;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.CommitType;
+import org.tis.senior.module.developer.entity.enums.ConfirmStatus;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * sDeliveryList（开发人员提出）投放申请，其中包括哪些程序文件
@@ -216,7 +217,8 @@ public class SDeliveryList implements Serializable {
     /**
      * 开发确认
      */
-    private String developerConfirm;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private ConfirmStatus developerConfirm;
 
 }
 

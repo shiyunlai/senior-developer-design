@@ -11,19 +11,17 @@ import org.tis.senior.module.developer.dao.SDeliveryMapper;
 import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.BranchForWhat;
 import org.tis.senior.module.developer.entity.enums.DeliveryType;
-import org.tis.senior.module.developer.entity.enums.PatchType;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * sDelivery的Service接口实现类
- * 
+ *
  * @author Auto Generate Tools
  * @date 2018/06/20
  */
@@ -67,7 +65,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         // 统计投放消息
         // 补丁类型
         Map<String, Integer> patchCount = new HashMap<>(5);
-        details.forEach(d -> d.getPatchName().forEach(p -> {
+        details.forEach(d -> d.getPatchType().forEach(p -> {
             if (patchCount.get(p) != null) {
                 patchCount.put(p, 1);
             } else {
@@ -75,9 +73,9 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
             }
         }));
         // 投放合计
-        Map<String, Integer> deliveryCount = new HashMap<>(3);
-        deliveryCount.put(DeliveryDetail.TOTAL_FILE, sDeliveryLists.size());
-        deliveryCount.put(DeliveryDetail.TOTAL_PATCH, patchCount.values().stream().reduce(0, Integer::sum));
+//        Map<String, Integer> deliveryCount = new HashMap<>(3);
+//        deliveryCount.put(DeliveryDetail.TOTAL_FILE, sDeliveryLists.size());
+//        deliveryCount.put(DeliveryDetail.TOTAL_PATCH, patchCount.values().stream().reduce(0, Integer::sum));
         // TODO 脚本数的统计
         // deliveryCount.put(DeliveryDetail.TOTAL_SCRIPT, )
 
@@ -113,6 +111,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
 
     /**
      * 判断是否允许合并投放，返回合并申请信息集合
+     *
      * @param deliveryGuids
      * @return
      * @throws DeveloperException

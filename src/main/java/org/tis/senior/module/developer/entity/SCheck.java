@@ -1,10 +1,14 @@
 package org.tis.senior.module.developer.entity;
 
-import com.baomidou.mybatisplus.annotations.TableName;
-import java.util.Date;
-import lombok.Data;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableId;
+import com.baomidou.mybatisplus.annotations.TableName;
+import lombok.Data;
+import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
+import org.tis.senior.module.developer.entity.enums.CheckStatus;
+
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * sCheck
@@ -126,7 +130,8 @@ public class SCheck implements Serializable {
      * 核对状态:F 核对错误
      * S 核对成功
      */
-    private String checkStatus;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private CheckStatus checkStatus;
 
     /**
      * 核对人员

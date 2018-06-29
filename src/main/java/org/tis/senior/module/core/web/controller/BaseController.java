@@ -7,8 +7,6 @@ import org.tis.senior.module.core.web.vo.PageVO;
 import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 
-import javax.servlet.http.HttpServletRequest;
-
 /**
  * describe: 
  *
@@ -37,11 +35,12 @@ public class BaseController<T> {
 
     /**
      * 获取登录用户
-     * @param request
      * @return
      */
     protected SSvnAccount getUser() {
-        return (SSvnAccount) SecurityUtils.getSubject().getPrincipal();
+        SSvnAccount principal = (SSvnAccount) SecurityUtils.getSubject().getPrincipal();
+        principal.setSvnPwd(null);
+        return principal;
     }
 
 
