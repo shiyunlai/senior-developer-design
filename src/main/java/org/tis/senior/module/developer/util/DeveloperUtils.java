@@ -17,11 +17,14 @@ public class DeveloperUtils {
 
         String[] pathSplit = path.split("/");
 
-        if (pathSplit[3].equals("Featrue") || pathSplit[3].equals("Hotfix")) {
+        if(pathSplit.length < 11) {
+            return "";
+        }
+        if (pathSplit[8].equals("Feature") || pathSplit[8].equals("Hotfix")) {
 
-            return pathSplit[5];
+            return pathSplit[10];
         } else {
-            return pathSplit[4];
+            return pathSplit[9];
         }
     }
 
@@ -54,13 +57,13 @@ public class DeveloperUtils {
     public static String isEpdOrEcd(String path){
 
         String[] pathSplit = path.split("/");
-        if (pathSplit[3].equals("Feature") || pathSplit[3].equals("Hotfix")) {
-            if(pathSplit.length > 6){
-                return pathSplit[6];
+        if (pathSplit[8].equals("Feature") || pathSplit[8].equals("Hotfix")) {
+            if(pathSplit.length > 10){
+                return pathSplit[10];
             }
         } else {
-            if(pathSplit.length > 5){
-                return pathSplit[5];
+            if(pathSplit.length > 9){
+                return pathSplit[9];
             }
         }
         return "";

@@ -130,7 +130,7 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
             SvnFile svnFile = new SvnFile();
             svnFile.setAuthor(lastRevision.getAuthor());
             svnFile.setData(lastRevision.getCommittedDate());
-            svnFile.setPath(diff.getURL().getPath());
+            svnFile.setPath(diff.getURL().toString());
             svnFile.setRevision(lastRevision.getCommittedRevision().getNumber());
             svnFile.setType(CommitType.what(diff.getModificationType().toString()));
             svnFile.setNodeType(diff.getKind().toString());
