@@ -51,8 +51,8 @@ public class SProfilesController extends BaseController<SProfiles>  {
     }
     
     @PostMapping("/list")
-    public ResultVO list(@RequestBody @Validated SmartPage<SProfiles> page) {
-        return  ResultVO.success("查询成功", sProfilesService.selectPage(getPage(page), getCondition(page)));
+    public ResultVO list() {
+        return  ResultVO.success("查询成功", sProfilesService.selectProfilesAll());
     }
     
 }
