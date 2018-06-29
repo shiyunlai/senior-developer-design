@@ -32,7 +32,7 @@ public class MyWebAppConfigurer extends WebMvcConfigurerAdapter {
                 .allowedOrigins("*")
                 .allowCredentials(true)
                 .allowedHeaders("*")
-                .allowedMethods("GET", "POST", "DELETE", "PUT")
+                .allowedMethods("GET", "POST", "DELETE", "PUT", "OPTIONS", "PATCH")
                 .maxAge(3600);
     }
 

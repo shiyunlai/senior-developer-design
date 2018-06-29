@@ -1,15 +1,15 @@
 package org.tis.senior.module.developer.controller;
 
-import org.tis.senior.module.core.web.vo.ResultVO;
-import org.springframework.validation.annotation.Validated;
-import org.tis.senior.module.core.web.vo.SmartPage;
-import org.tis.senior.module.core.web.controller.BaseController;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import org.tis.senior.module.developer.entity.SCheck;
 import org.hibernate.validator.constraints.NotBlank;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.tis.senior.module.core.web.controller.BaseController;
+import org.tis.senior.module.core.web.vo.ResultVO;
+import org.tis.senior.module.core.web.vo.SmartPage;
+import org.tis.senior.module.developer.entity.SCheck;
 import org.tis.senior.module.developer.entity.enums.PackTime;
-import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
+import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tis.senior.module.developer.service.ISCheckService;
 
 import javax.validation.constraints.NotNull;
@@ -30,7 +30,7 @@ public class SCheckController extends BaseController<SCheck>  {
     @PostMapping("/profiles/{profileId}/packTiming/{packTiming}")
     public ResultVO add(@PathVariable @NotBlank(message = "环境ID不能为空") String profileId,
                         @PathVariable @NotNull(message = "打包窗口不能为空") PackTime packTiming) {
-        DeliveryDetail detail = sCheckService.check(profileId, packTiming, getUser().getUserId());
+        CheckResultDetail detail = sCheckService.check(profileId, packTiming, getUser().getUserId());
         return ResultVO.success(detail);
     }
     

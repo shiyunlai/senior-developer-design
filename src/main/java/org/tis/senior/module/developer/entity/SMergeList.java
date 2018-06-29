@@ -1,10 +1,15 @@
 package org.tis.senior.module.developer.entity;
 
-import com.baomidou.mybatisplus.annotations.TableName;
-import java.util.Date;
-import lombok.Data;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableId;
+import com.baomidou.mybatisplus.annotations.TableName;
+import lombok.Data;
+import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
+import org.tis.senior.module.developer.entity.enums.CommitType;
+import org.tis.senior.module.developer.entity.enums.ConfirmStatus;
+
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -174,7 +179,8 @@ public class SMergeList implements Serializable {
      * U  修改 Update
      * D  删除 Delete
      */
-    private String mergeType;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private CommitType mergeType;
 
     /**
      * 开发确认:合并后的代码都需要开发人员进行确认
@@ -182,7 +188,8 @@ public class SMergeList implements Serializable {
      * 1 确认
      * 2 有异议（代码合并有问题，需要线下手工处理）
      */
-    private String developerConfirm;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private ConfirmStatus developerConfirm;
 
     @Override
     public boolean equals(Object o) {

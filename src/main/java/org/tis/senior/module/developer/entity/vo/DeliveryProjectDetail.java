@@ -2,10 +2,11 @@ package org.tis.senior.module.developer.entity.vo;
 
 import lombok.Data;
 import org.tis.senior.module.developer.entity.SDeliveryList;
-import org.tis.senior.module.developer.entity.enums.PatchType;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -25,18 +26,20 @@ public class DeliveryProjectDetail {
     /**
      * 编译为
      */
-    private List<String> patchName;
+    private List<DeliveryPatchDetail> deliveryPatchDetails;
 
-    /**
-     * 部署到 TODO 代码级还是工程级
-     */
-    private List<String> profileName;
 
-    /**
-     * 投放清单
-     */
-    private List<SDeliveryList> fileList;
+    public Set<String> getPatchType() {
+        Set<String> count = new HashSet<>();
+        this.deliveryPatchDetails.forEach(dpd -> {
+            String[] split = dpd.getPatchType().split(",");
+            for (String p : split) {
+                count.add(p);
+            }
+        });
+        return count;
 
+    }
 
     public static List<DeliveryProjectDetail> getDeliveryDetail(List<SDeliveryList> deliveryLists) {
         List<DeliveryProjectDetail> details = new ArrayList<>();
@@ -45,9 +48,15 @@ public class DeliveryProjectDetail {
                 .forEach((p, l) -> {
                     DeliveryProjectDetail detail = new DeliveryProjectDetail();
                     detail.setProjectName(p);
-                    List<String> types = l.stream().map(SDeliveryList::getPatchType).distinct().collect(Collectors.toList());
-                    detail.setPatchName(types);
-                    detail.setFileList(l);
+                    List<DeliveryPatchDetail> dpts = new ArrayList<>();
+                    l.stream().collect(Collectors.groupingBy(SDeliveryList::getPatchType)).forEach((pt, list) -> {
+                        DeliveryPatchDetail dpt = new DeliveryPatchDetail();
+                        dpt.setPatchType(pt);
+                        dpt.setDeployWhere(list.get(0).getDeployWhere());
+                        dpt.setFileList(list);
+                        dpts.add(dpt);
+                        detail.setDeliveryPatchDetails(dpts);
+                    });
                     details.add(detail);
                 });
         return details;

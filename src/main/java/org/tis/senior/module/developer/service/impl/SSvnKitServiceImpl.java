@@ -8,6 +8,7 @@ import org.tis.senior.module.developer.entity.enums.CommitType;
 import org.tis.senior.module.developer.entity.vo.SvnCommit;
 import org.tis.senior.module.developer.entity.vo.SvnFile;
 import org.tis.senior.module.developer.entity.vo.SvnPath;
+import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISSvnKitService;
 import org.tmatesoft.svn.core.*;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
@@ -96,6 +97,14 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
         return scList;
     }
 
+    @Override
+    public int getLastRevision(String url) {
+        try {
+            return (int) getLastRevision(SVNURL.parseURIEncoded(url)).getCommittedRevision().getNumber();
+        } catch (SVNException e) {
+            throw new DeveloperException("获取版本号发生错误", e);
+        }
+    }
 
     @Override
     public List<SvnFile> getDiffStatus(String url, String startRevision) {
@@ -138,7 +147,8 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
         );
     }
 
-    private SVNInfo getLastRevision(SVNURL url){
+
+    private SVNInfo getLastRevision(SVNURL url) {
         DefaultSVNOptions defaultOptions = SVNWCUtil.createDefaultOptions(true);
         SVNWCClient svnwcClient = new SVNWCClient(svnAuthenticationManager, defaultOptions);
         try {

@@ -23,4 +23,11 @@ public interface ISSvnKitService {
      */
     List<SvnFile> getDiffStatus(String url, String startRevision);
 
+    /**
+     * 获取最新版本
+     * @param url
+     * @return
+     */
+    int getLastRevision(String url);
+
 }
