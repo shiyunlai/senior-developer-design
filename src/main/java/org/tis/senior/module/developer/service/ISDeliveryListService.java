@@ -1,9 +1,12 @@
 package org.tis.senior.module.developer.service;
 
+import org.tis.senior.module.developer.controller.request.DeliveryListAddRequest;
+import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliveryAddRequest;
 import org.tis.senior.module.developer.entity.SDeliveryList;
 import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 
+import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -22,6 +25,10 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      */
     List<DeliveryProjectDetail> assembleDelivery(String branchGuid);
 
-    void addDeliveryList();
+    /**
+     * 添加投放申请和投产代码清单
+     * @param request
+     */
+    void addDeliveryList(DeliveryListAndDeliveryAddRequest request, String proposer) throws Exception;
 }
 

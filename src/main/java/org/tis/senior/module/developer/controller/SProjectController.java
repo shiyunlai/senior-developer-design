@@ -51,8 +51,8 @@ public class SProjectController extends BaseController<SProject>  {
     }
     
     @PostMapping("/list")
-    public ResultVO list(@RequestBody @Validated SmartPage<SProject> page) {
-        return  ResultVO.success("查询成功", sProjectService.selectPage(getPage(page), getCondition(page)));
+    public ResultVO list() {
+        return  ResultVO.success("查询成功", sProjectService.selectProjectAll());
     }
     
 }

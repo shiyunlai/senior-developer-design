@@ -46,4 +46,23 @@ public class DeveloperUtils {
         return svnPath.substring(svnPath.indexOf(getProjectName(svnPath)));
     }
 
+    /**
+     * 获取IBS工程的下级模块
+     * @param path
+     * @return
+     */
+    public static String isEpdOrEcd(String path){
+
+        String[] pathSplit = path.split("/");
+        if (pathSplit[3].equals("Feature") || pathSplit[3].equals("Hotfix")) {
+            if(pathSplit.length > 6){
+                return pathSplit[6];
+            }
+        } else {
+            if(pathSplit.length > 5){
+                return pathSplit[5];
+            }
+        }
+        return "";
+    }
 }
