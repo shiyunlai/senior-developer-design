@@ -161,23 +161,33 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         sBranch.setCurrVersion(svnKitService.getLastRevision(sBranch.getFullPath()));
         branchService.updateById(sBranch);
 
-        // 获取
-
         // 组装核对结果
+        return getCheckResultDetail((List<SMergeList>) notInDelivery, deliveryList, notInMerge);
+    }
+
+    /**
+     * 获取核对结果
+     * @param mergeLists
+     * @param deliverys
+     * @param deliveryLists
+     * @return
+     */
+    private CheckResultDetail getCheckResultDetail(List<SMergeList> mergeLists, List<SDelivery> deliverys,
+                                                   List<SDeliveryList> deliveryLists) {
         CheckResultDetail result = new CheckResultDetail();
-        result.setMergeLists((List<SMergeList>) notInDelivery);
+        result.setMergeLists(mergeLists);
         List<DeliveryCheckResultDetail> details = new ArrayList<>();
         result.setDeliveryDetails(details);
-        if (deliveryList.size() > 0) {
+        if (deliverys.size() > 0) {
             // 获取异常申请的工作项信息
-            List<Integer> workIds = deliveryList.stream().map(SDelivery::getGuidWorkitem).distinct()
+            List<Integer> workIds = deliverys.stream().map(SDelivery::getGuidWorkitem).distinct()
                     .collect(Collectors.toList());
             // 异常投放清单的map
-            Map<Integer, List<SDeliveryList>> notInMergeListMap = notInMerge.stream()
+            Map<Integer, List<SDeliveryList>> notInMergeListMap = deliveryLists.stream()
                     .collect(Collectors.groupingBy(SDeliveryList::getGuidDelivery));
 
             Map<Integer, SWorkitem> workItemMap = getWorkItemMap(workIds);
-            for (SDelivery delivery : deliveryList) {
+            for (SDelivery delivery : deliverys) {
                 DeliveryCheckResultDetail detail = new DeliveryCheckResultDetail();
                 detail.setDelivery(delivery);
                 detail.setWorkitem(workItemMap.get(delivery.getGuidWorkitem()));
@@ -186,6 +196,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             }
         }
         return result;
+
     }
 
 

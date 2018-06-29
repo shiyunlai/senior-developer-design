@@ -1,5 +1,6 @@
 package org.tis.senior.module.developer.controller;
 
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -27,10 +28,17 @@ public class SCheckController extends BaseController<SCheck>  {
     @Autowired
     private ISCheckService sCheckService;
 
+    /**
+     * 核对清单
+     * @param profileId
+     * @param packTiming
+     * @return
+     */
+    @RequiresRoles(value = "rct")
     @PostMapping("/profiles/{profileId}/packTiming/{packTiming}")
     public ResultVO add(@PathVariable @NotBlank(message = "环境ID不能为空") String profileId,
-                        @PathVariable @NotNull(message = "打包窗口不能为空") PackTime packTiming) {
-        CheckResultDetail detail = sCheckService.check(profileId, packTiming, getUser().getUserId());
+                        @PathVariable @NotNull(message = "打包窗口不能为空") String packTiming) {
+        CheckResultDetail detail = sCheckService.check(profileId, PackTime.what(packTiming), getUser().getUserId());
         return ResultVO.success(detail);
     }
     

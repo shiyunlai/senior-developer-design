@@ -1,6 +1,7 @@
 package org.tis.senior.module.developer.entity.enums;
 
 import org.tis.senior.module.core.entity.enums.BaseEnum;
+import org.tis.senior.module.developer.exception.DeveloperException;
 
 import java.io.Serializable;
 
@@ -22,6 +23,14 @@ public enum PackTime implements BaseEnum {
         this.value = value;
     }
 
+    public static PackTime what(String value) {
+        for (PackTime packTime : PackTime.values()) {
+            if (packTime.getValue().equals(value)) {
+                return packTime;
+            }
+        }
+        throw new DeveloperException("没有匹配的窗口！");
+    }
 
     @Override
     public Serializable deserialze() {

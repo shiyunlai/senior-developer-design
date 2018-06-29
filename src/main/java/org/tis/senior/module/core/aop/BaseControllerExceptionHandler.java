@@ -16,12 +16,12 @@ import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.tis.senior.module.core.exception.WebAppException;
 import org.tis.senior.module.core.web.vo.ResultVO;
+import org.tis.senior.module.developer.exception.DeveloperException;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -135,6 +135,12 @@ public class BaseControllerExceptionHandler {
         return ResultVO.failure(code, msg);
     }
 
+    @ExceptionHandler(DeveloperException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResultVO handleDeveloperException(DeveloperException ex) {
+        return ResultVO.failure("400", "错误的请求！" + ex.getMessage());
+    }
+
     /**
      * 未知异常
      * @param ex
@@ -143,7 +149,8 @@ public class BaseControllerExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResultVO handleUnexpectedServerError(Exception ex) {
-        return ResultVO.error(ex.getMessage());
+        ex.printStackTrace();
+        return ResultVO.error("内部错误！" + ex.getMessage());
     }
 
 }
