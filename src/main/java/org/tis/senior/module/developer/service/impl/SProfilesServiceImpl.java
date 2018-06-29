@@ -1,5 +1,6 @@
 package org.tis.senior.module.developer.service.impl;
 
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import org.tis.senior.module.developer.entity.SProfiles;
 import org.springframework.stereotype.Service;
 import org.tis.senior.module.developer.dao.SProfilesMapper;
@@ -29,7 +30,9 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
 
     @PostConstruct
     public void selectAll(){
-        this.spList = selectList(null);
+        EntityWrapper<SProfiles> spEntityWrapper = new EntityWrapper<>();
+        spEntityWrapper.eq(SProfiles.COLUMN_IS_ALLOW_DELIVERY,"1");
+        this.spList = selectList(spEntityWrapper);
     }
 }
 

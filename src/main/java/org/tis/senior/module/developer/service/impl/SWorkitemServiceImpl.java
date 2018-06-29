@@ -48,7 +48,7 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         sbmEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,workitemId);
         List<SBranchMapping> sbmList = branchMappingService.selectList(sbmEntityWrapper);
         if(sbmList.size() != 1){
-            throw new Exception("The length is not equal to 1");
+            throw new Exception("The object of the query does not exist or superfluous");
         }
         SBranchMapping branchMapping = sbmList.get(0);
 
