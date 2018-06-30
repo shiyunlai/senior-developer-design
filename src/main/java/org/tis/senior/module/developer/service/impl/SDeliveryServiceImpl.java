@@ -10,6 +10,7 @@ import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.dao.SDeliveryMapper;
 import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.BranchForWhat;
+import org.tis.senior.module.developer.entity.enums.DeliveryResult;
 import org.tis.senior.module.developer.entity.enums.DeliveryType;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
@@ -69,18 +70,8 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         // 补丁类型
         Map<String, Integer> patchCount = new HashMap<>(5);
         details.forEach(d -> d.getPatchType().forEach(p -> {
-            if (patchCount.get(p) != null) {
-                patchCount.put(p, 1);
-            } else {
-                patchCount.put(p, patchCount.get(p) + 1);
-            }
+            patchCount.merge(p, 1, (a, b) -> a + b);
         }));
-        // 投放合计
-//        Map<String, Integer> deliveryCount = new HashMap<>(3);
-//        deliveryCount.put(DeliveryDetail.TOTAL_FILE, sDeliveryLists.size());
-//        deliveryCount.put(DeliveryDetail.TOTAL_PATCH, patchCount.values().stream().reduce(0, Integer::sum));
-        // TODO 脚本数的统计
-        // deliveryCount.put(DeliveryDetail.TOTAL_SCRIPT, )
 
         DeliveryDetail deliveryDetail = new DeliveryDetail();
         deliveryDetail.setWorkitems(sWorkitems);
@@ -104,10 +95,12 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
             sDelivery.setPackTiming(p.getPackTiming());
             sDelivery.setDeliveryType(DeliveryType.MERGE);
             sDelivery.setMergeList(mergeDelivery.getMergeList().stream().reduce("", (r, s) -> r + "," + s));
-            sDelivery.setApplyAlias(deliveryList.stream()
-                    .map(SDelivery::getApplyAlias).reduce("合并投放", (r, s) -> r + "，" + s));
+            String appAlias = deliveryList.stream()
+                    .map(SDelivery::getApplyAlias).reduce("合并投放:", (r, s) -> r + s + "，");
+            sDelivery.setApplyAlias(appAlias.substring(0, appAlias.length() -1));
             sDelivery.setApplyTime(new Date());
             sDelivery.setProposer(userId);
+            sDelivery.setDeliveryResult(DeliveryResult.APPLYING);
             insert(sDelivery);
             sDeliveryLists.forEach(s -> s.setGuidDelivery(sDelivery.getGuid()));
             deliveryListService.insertBatch(sDeliveryLists);
