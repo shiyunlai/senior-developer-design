@@ -158,7 +158,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
 
         List<SDelivery> deliveryList = new ArrayList<>();
         SDliveryAddRequest dliveryAddRequest =  request.getDliveryAddRequest();
-        List<DeliveryProfileRequest> guidPro = dliveryAddRequest.getDeliveryProfileRequest();
+        List<DeliveryProfileRequest> guidPro = dliveryAddRequest.getProfiles();
         for (DeliveryProfileRequest req:guidPro){
             //组装投放申请
             SDelivery delivery = new SDelivery();
