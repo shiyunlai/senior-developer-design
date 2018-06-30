@@ -3,28 +3,26 @@ package org.tis.senior.module.developer.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.service.impl.ServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.tis.senior.module.developer.controller.request.*;
-import org.tis.senior.module.developer.entity.*;
-import org.tis.senior.module.developer.dao.SDeliveryListMapper;
 import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.service.impl.ServiceImpl;
+import org.springframework.transaction.annotation.Transactional;
+import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliveryAddRequest;
+import org.tis.senior.module.developer.controller.request.DeliveryProfileRequest;
+import org.tis.senior.module.developer.controller.request.SDliveryAddRequest;
+import org.tis.senior.module.developer.dao.SDeliveryListMapper;
+import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.CommitType;
 import org.tis.senior.module.developer.entity.enums.ConfirmStatus;
 import org.tis.senior.module.developer.entity.enums.DeliveryResult;
 import org.tis.senior.module.developer.entity.enums.DeliveryType;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
-import org.tis.senior.module.developer.entity.vo.SvnCommit;
 import org.tis.senior.module.developer.entity.vo.SvnFile;
-import org.tis.senior.module.developer.entity.vo.SvnPath;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
-import org.springframework.transaction.annotation.Transactional;
 import org.tis.senior.module.developer.util.DeveloperUtils;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -153,7 +151,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
 
         List<SDelivery> deliveryList = new ArrayList<>();
         SDliveryAddRequest dliveryAddRequest =  request.getDliveryAddRequest();
-        List<DeliveryProfileRequest> guidPro = dliveryAddRequest.getDeliveryProfileRequest();
+        List<DeliveryProfileRequest> guidPro = dliveryAddRequest.getProfiles();
         for (DeliveryProfileRequest req:guidPro){
             //组装投放申请
             SDelivery delivery = new SDelivery();
