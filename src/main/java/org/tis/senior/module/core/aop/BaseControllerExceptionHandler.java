@@ -92,8 +92,9 @@ public class BaseControllerExceptionHandler {
      */
     @ExceptionHandler(SQLException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResultVO handleSQLException() {
+    public ResultVO handleSQLException(SQLException e) {
         // SQL堆栈信息包含敏感信息，不返回前端，在日志中可以查看详细信息
+        e.printStackTrace();
         return ResultVO.error("内部服务发生了SQL错误！");
     }
 
@@ -102,8 +103,9 @@ public class BaseControllerExceptionHandler {
      */
     @ExceptionHandler(DataAccessException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResultVO handleDataAccessException() {
+    public ResultVO handleDataAccessException(DataAccessException e) {
         // SQL堆栈信息包含敏感信息，不返回前端，在日志中可以查看详细信息
+        e.printStackTrace();
         return ResultVO.error("内部服务发生了SQL错误！");
     }
 
