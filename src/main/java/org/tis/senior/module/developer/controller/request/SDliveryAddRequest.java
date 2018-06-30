@@ -16,7 +16,7 @@ public class SDliveryAddRequest {
     private String applyAlias;
 
     @NotEmpty(message = "投放的运行环境不能为空")
-    private List<DeliveryProfileRequest> deliveryProfileRequest;
+    private List<DeliveryProfileRequest> profiles;
 
     @NotBlank(message = "投放说明不能为空")
     private String deliveryDesc;

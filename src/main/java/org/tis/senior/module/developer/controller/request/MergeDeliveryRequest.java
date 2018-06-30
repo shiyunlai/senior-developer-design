@@ -26,7 +26,7 @@ public class MergeDeliveryRequest extends RestRequest {
 
     @Valid
     @NotEmpty(message = "环境信息不能为空！")
-    private List<ProfilesReq> profiles;
+    private List<DeliveryProfileRequest> profiles;
 
 }
 
