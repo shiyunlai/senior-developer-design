@@ -21,7 +21,7 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      *
      * @return
      */
-    List<DeliveryProjectDetail> assembleDelivery(String branchGuid);
+    List<DeliveryProjectDetail> assembleDelivery(String branchGuid) throws Exception;
 
     /**
      * 添加投放申请和投产代码清单

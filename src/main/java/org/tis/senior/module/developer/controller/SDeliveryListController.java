@@ -69,7 +69,7 @@ public class SDeliveryListController extends BaseController<SDeliveryList>  {
      * @return
      */
     @GetMapping("/{branchGuid}/history")
-    public ResultVO assembleDelivery(@PathVariable @NotBlank(message = "分支guid不能为空") String branchGuid){
+    public ResultVO assembleDelivery(@PathVariable @NotBlank(message = "分支guid不能为空") String branchGuid) throws Exception {
         List<DeliveryProjectDetail> deliveryProjectDetails = sDeliveryListService.assembleDelivery(branchGuid);
         return ResultVO.success("查询成功",deliveryProjectDetails);
     }
