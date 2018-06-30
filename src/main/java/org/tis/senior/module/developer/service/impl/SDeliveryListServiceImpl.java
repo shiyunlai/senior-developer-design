@@ -58,7 +58,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     private ISWorkitemService workitemService;
 
     @Override
-    public List<DeliveryProjectDetail> assembleDelivery(String branchGuid) {
+    public List<DeliveryProjectDetail> assembleDelivery(String branchGuid) throws Exception {
 
         SBranch branch = branchService.selectById(branchGuid);
         //查询所有的工程
@@ -73,15 +73,17 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         Map<String, List<SvnFile>> commitMap = svnCommits.stream().collect(Collectors.groupingBy(SvnFile::getNodeType));
         Set<String> ecdSet = new HashSet<>();
         if (!commitMap.get("dir").isEmpty()) {
-            commitMap.get("dir").forEach(f -> {
+            for (SvnFile f:commitMap.get("dir")){
                 String projectName = DeveloperUtils.getProjectName(f.getPath());
                 if (StringUtils.isNotBlank(projectName)) {
                     SProject project = projectMap.get(projectName);
+                    if(project == null){
+                        continue;
+                    }
                     JSONArray jsonArray = JSONArray.parseArray(project.getDeployConfig());
                     for (Object object : jsonArray) {
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
                         String exportType = jsonObject.getString("exportType");
-                        String deployType = jsonObject.getString("deployType");
                         if ("ecd".equals(exportType)) {
                             String eoe = DeveloperUtils.isEpdOrEcd(f.getPath());
                             if (StringUtils.isNoneBlank(eoe) && f.getType().equals(CommitType.ADDED)) {
@@ -94,9 +96,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                         }
                     }
                 }
-            });
+            }
         }
-        commitMap.get("file").forEach(svnFile -> {
+        for(SvnFile svnFile :commitMap.get("file")){
             SDeliveryList sdl = new SDeliveryList();
             sdl.setAuthor(svnFile.getAuthor());
             sdl.setCommitDate(svnFile.getData());
@@ -107,6 +109,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             sdl.setProgramName(programName);
             String projectName = DeveloperUtils.getProjectName(svnFile.getPath());
             SProject sProject = projectMap.get(projectName);
+            if(sProject == null){
+                continue;
+            }
             sdl.setPartOfProject(sProject.getProjectName());
             if("com.primeton.ibs.config".equals(sProject.getProjectName())){
 
@@ -133,7 +138,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 }
             }
             sdList.add(sdl);
-        });
+        }
         List<DeliveryProjectDetail> dpdLst = DeliveryProjectDetail.getDeliveryDetail(sdList);
         return dpdLst;
     }
