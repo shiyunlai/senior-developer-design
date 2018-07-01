@@ -1,16 +1,15 @@
 package org.tis.senior.module.developer.controller;
 
-import org.tis.senior.module.core.web.vo.ResultVO;
-import org.springframework.validation.annotation.Validated;
-import org.tis.senior.module.core.web.vo.SmartPage;
-import org.tis.senior.module.core.web.controller.BaseController;
+import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.tis.senior.module.core.web.controller.BaseController;
+import org.tis.senior.module.core.web.vo.ResultVO;
+import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
-import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 import org.tis.senior.module.developer.service.ISDeliveryService;
-import org.springframework.web.bind.annotation.*;
-import org.hibernate.validator.constraints.NotBlank;
 
 /**
  * sDelivery的Controller类
@@ -81,6 +80,7 @@ public class SDeliveryController extends BaseController<SDelivery>  {
         sDeliveryService.mergeDeliver(request, getUser().getUserId());
         return ResultVO.success("申请合并投放成功！");
     }
+
 
     
 }

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.CheckStatus;
+import org.tis.senior.module.developer.entity.enums.PackTime;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -119,7 +120,8 @@ public class SCheck implements Serializable {
     /**
      * 打包窗口
      */
-    private String packTiming;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private PackTime packTiming;
 
     /**
      * 核对时间
