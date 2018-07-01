@@ -2,6 +2,7 @@ package org.tis.senior.module.developer.service;
 
 import org.tis.senior.module.developer.entity.vo.SvnCommit;
 import org.tis.senior.module.developer.entity.vo.SvnFile;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ public interface ISSvnKitService {
      * @param startRevision 起始版本号
      * @return
      */
-    List<SvnCommit> loadSvnHistory(String url, int startRevision);
+    List<SvnCommit> loadSvnHistory(String url, int startRevision) throws SVNException;
 
     /**
      * 获取版本间的差异
@@ -21,13 +22,13 @@ public interface ISSvnKitService {
      * @param startRevision 起始版本号
      * @return
      */
-    List<SvnFile> getDiffStatus(String url, String startRevision);
+    List<SvnFile> getDiffStatus(String url, String startRevision) throws SVNException;
 
     /**
      * 获取最新版本
      * @param url
      * @return
      */
-    int getLastRevision(String url);
+    int getLastRevision(String url) throws SVNException;
 
 }

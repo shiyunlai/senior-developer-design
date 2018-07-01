@@ -16,9 +16,11 @@ import org.tis.senior.module.developer.entity.enums.PackTime;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tis.senior.module.developer.entity.vo.DeliveryCheckResultDetail;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
+import org.tis.senior.module.developer.entity.vo.SvnFile;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
 import org.tis.senior.module.developer.util.DeveloperUtils;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -59,7 +61,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
     private ISWorkitemService workitemService;
 
     @Override
-    public CheckResultDetail check(String profileId, PackTime packTiming, String userId) {
+    public CheckResultDetail check(String profileId, PackTime packTiming, String userId) throws SVNException {
         // 验证环境
         List<SProfiles> list = profilesService.selectProfilesAll().stream().filter(p ->
                 StringUtils.equals(p.getGuid().toString(), profileId) &&
@@ -89,7 +91,12 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
 
         // 获取环境分支下的代码
         List<SMergeList> mergeLists = new ArrayList<>();
-        svnKitService.getDiffStatus(sBranch.getFullPath(), sBranch.getCurrVersion().toString()).forEach(f -> {
+        List<SvnFile> svnFiles = svnKitService.getDiffStatus(sBranch.getFullPath(), sBranch.getCurrVersion().toString());
+        if (svnFiles.size() < 1) {
+            throw new DeveloperException("分支" + sBranch.getFullPath() + "从版本\"" +
+                    sBranch.getCurrVersion() + "\"开始没有文件变动！");
+        }
+        svnFiles.forEach(f -> {
             if ("file".equals(f.getNodeType())) {
                 SMergeList merge = new SMergeList();
                 merge.setAuthor(f.getAuthor());

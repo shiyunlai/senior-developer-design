@@ -1,9 +1,10 @@
 package org.tis.senior.module.developer.service;
 
+import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliveryAddRequest;
 import org.tis.senior.module.developer.entity.SDeliveryList;
-import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      *
      * @return
      */
-    List<DeliveryProjectDetail> assembleDelivery(String branchGuid) throws Exception;
+    List<DeliveryProjectDetail> assembleDelivery(String branchGuid) throws SVNException;
 
     /**
      * 添加投放申请和投产代码清单

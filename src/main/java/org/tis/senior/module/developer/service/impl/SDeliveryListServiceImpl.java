@@ -3,28 +3,27 @@ package org.tis.senior.module.developer.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.service.impl.ServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.tis.senior.module.developer.controller.request.*;
-import org.tis.senior.module.developer.entity.*;
-import org.tis.senior.module.developer.dao.SDeliveryListMapper;
 import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.service.impl.ServiceImpl;
+import org.springframework.transaction.annotation.Transactional;
+import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliveryAddRequest;
+import org.tis.senior.module.developer.controller.request.DeliveryProfileRequest;
+import org.tis.senior.module.developer.controller.request.SDliveryAddRequest;
+import org.tis.senior.module.developer.dao.SDeliveryListMapper;
+import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.CommitType;
 import org.tis.senior.module.developer.entity.enums.ConfirmStatus;
 import org.tis.senior.module.developer.entity.enums.DeliveryResult;
 import org.tis.senior.module.developer.entity.enums.DeliveryType;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
-import org.tis.senior.module.developer.entity.vo.SvnCommit;
 import org.tis.senior.module.developer.entity.vo.SvnFile;
-import org.tis.senior.module.developer.entity.vo.SvnPath;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
-import org.springframework.transaction.annotation.Transactional;
 import org.tis.senior.module.developer.util.DeveloperUtils;
+import org.tmatesoft.svn.core.SVNException;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -54,11 +53,8 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     @Autowired
     private ISBranchMappingService branchMappingService;
 
-    @Autowired
-    private ISWorkitemService workitemService;
-
     @Override
-    public List<DeliveryProjectDetail> assembleDelivery(String branchGuid) throws Exception {
+    public List<DeliveryProjectDetail> assembleDelivery(String branchGuid) throws SVNException {
 
         SBranch branch = branchService.selectById(branchGuid);
         //查询所有的工程
@@ -73,13 +69,10 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         Map<String, List<SvnFile>> commitMap = svnCommits.stream().collect(Collectors.groupingBy(SvnFile::getNodeType));
         Set<String> ecdSet = new HashSet<>();
         if (!commitMap.get("dir").isEmpty()) {
-            for (SvnFile f:commitMap.get("dir")){
+            commitMap.get("dir").forEach(f -> {
                 String projectName = DeveloperUtils.getProjectName(f.getPath());
                 if (StringUtils.isNotBlank(projectName)) {
                     SProject project = projectMap.get(projectName);
-                    if(project == null){
-                        continue;
-                    }
                     JSONArray jsonArray = JSONArray.parseArray(project.getDeployConfig());
                     for (Object object : jsonArray) {
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
@@ -96,9 +89,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                         }
                     }
                 }
-            }
+            });
         }
-        for(SvnFile svnFile :commitMap.get("file")){
+        commitMap.get("file").forEach(svnFile -> {
             SDeliveryList sdl = new SDeliveryList();
             sdl.setAuthor(svnFile.getAuthor());
             sdl.setCommitDate(svnFile.getData());
@@ -109,9 +102,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             sdl.setProgramName(programName);
             String projectName = DeveloperUtils.getProjectName(svnFile.getPath());
             SProject sProject = projectMap.get(projectName);
-            if(sProject == null){
-                continue;
-            }
             sdl.setPartOfProject(sProject.getProjectName());
             if("com.primeton.ibs.config".equals(sProject.getProjectName())){
 
@@ -138,13 +128,13 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 }
             }
             sdList.add(sdl);
-        }
+        });
         List<DeliveryProjectDetail> dpdLst = DeliveryProjectDetail.getDeliveryDetail(sdList);
         return dpdLst;
     }
 
     @Override
-    public void addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws Exception {
+    public void addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException {
 
         String guidBranch = request.getGuidBranch();
         SBranch branch = branchService.selectById(guidBranch);
@@ -152,7 +142,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         sbmEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH,branch.getGuid());
         List<SBranchMapping> sbmList = branchMappingService.selectList(sbmEntityWrapper);
         if(sbmList.size() != 1){
-            throw new Exception("根据分支guid获取的第三方的工作项为空或多条！");
+            throw new DeveloperException("根据分支guid获取的第三方的工作项为空或多条！");
         }
         SBranchMapping sbm = sbmList.get(0);
 

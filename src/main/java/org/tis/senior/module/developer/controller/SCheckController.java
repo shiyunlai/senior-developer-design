@@ -12,6 +12,7 @@ import org.tis.senior.module.developer.entity.SCheck;
 import org.tis.senior.module.developer.entity.enums.PackTime;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tis.senior.module.developer.service.ISCheckService;
+import org.tmatesoft.svn.core.SVNException;
 
 import javax.validation.constraints.NotNull;
 
@@ -37,7 +38,7 @@ public class SCheckController extends BaseController<SCheck>  {
     @RequiresRoles(value = "rct")
     @PostMapping("/profiles/{profileId}/packTiming/{packTiming}")
     public ResultVO add(@PathVariable @NotBlank(message = "环境ID不能为空") String profileId,
-                        @PathVariable @NotNull(message = "打包窗口不能为空") String packTiming) {
+                        @PathVariable @NotNull(message = "打包窗口不能为空") String packTiming) throws SVNException {
         CheckResultDetail detail = sCheckService.check(profileId, PackTime.what(packTiming), getUser().getUserId());
         return ResultVO.success(detail);
     }
