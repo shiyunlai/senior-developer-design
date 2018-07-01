@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.tis.senior.module.core.web.controller.BaseController;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.core.web.vo.SmartPage;
+import org.tis.senior.module.developer.controller.request.DeliveryProcessRequest;
 import org.tis.senior.module.developer.entity.SCheck;
 import org.tis.senior.module.developer.entity.enums.PackTime;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
@@ -57,16 +58,25 @@ public class SCheckController extends BaseController<SCheck>  {
     
     @GetMapping("/{id}")
     public ResultVO detail(@PathVariable @NotBlank(message = "id不能为空") String id) {
-        SCheck sCheck = sCheckService.selectById(id);
-        if (sCheckService == null) {
-            return ResultVO.error("404", "找不到对应记录或已经被删除！");
-        }
-        return ResultVO.success("查询成功", sCheck);
+        CheckResultDetail detail = sCheckService.detail(id);
+        return ResultVO.success("查询成功", detail);
     }
     
     @PostMapping("/list")
     public ResultVO list(@RequestBody @Validated SmartPage<SCheck> page) {
-        return  ResultVO.success("查询成功", sCheckService.selectPage(getPage(page), getCondition(page)));
+        return ResultVO.success("查询成功", sCheckService.selectPage(getPage(page), getCondition(page)));
+    }
+
+    /**
+     * 投放申请结果处理
+     * @param request
+     * @return
+     */
+    @PostMapping("/delivery")
+    @RequiresRoles("rct")
+    public ResultVO process(@RequestBody @Validated DeliveryProcessRequest request) {
+        sCheckService.process(request.getDeliveryGuid(), request.getResult(), request.getDesc(), getUser().getUserId());
+        return ResultVO.success("处理成功");
     }
     
 }

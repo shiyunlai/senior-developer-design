@@ -68,7 +68,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
                         Arrays.asList(p.getPackTiming().split(",")).contains(packTiming.getValue().toString()))
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(list)) {
-            throw new DeveloperException("环境或对应打包窗口不存在!");
+            throw new DeveloperException(profileId + packTiming.getValue() + "对应的环境或打包窗口不存在!");
         }
         SProfiles profiles = list.get(0);
         // 生成核对记录
@@ -77,7 +77,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         check.setCheckDate(new Date());
         check.setCheckUser(userId);
         check.setGuidProfiles(Integer.valueOf(profileId));
-        check.setPackTiming(packTiming.getValue().toString());
+        check.setPackTiming(packTiming);
         this.baseMapper.insert(check);
 
         // 获取环境分支信息
@@ -159,9 +159,9 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         updateDeliveryResult(deliveryGuids, DeliveryResult.SUCCESS);
         updateDeliveryListConfirmStatus(inMergeIds, ConfirmStatus.CONFIRM);
         // 不在投产代码中的合并清单
-        Collection<SMergeList> notInDelivery = filePathMergeListMap.values();
+        List<SMergeList> notInDelivery = new ArrayList<>(filePathMergeListMap.values());
         // 不在合并代码中的投放申请
-        deliveryList.removeIf(d -> deliveryGuids.contains(d.getGuid()));
+//        deliveryList.removeIf(d -> deliveryGuids.contains(d.getGuid()));
         // 插入合并清单
         mergeListService.insertBatch(mergeLists);
         // 变更分支版本
@@ -169,7 +169,54 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         branchService.updateById(sBranch);
 
         // 组装核对结果
-        return getCheckResultDetail((List<SMergeList>) notInDelivery, deliveryList, notInMerge);
+        return getCheckResultDetail(notInDelivery, deliveryList, notInMerge);
+    }
+
+
+    @Override
+    public CheckResultDetail detail(String checkGuid) {
+        SCheck check = selectById(checkGuid);
+        if (check == null) {
+            throw new DeveloperException(checkGuid + "对应核对记录不存在！");
+        }
+        // 获取当前核对中合并清单中有问题的清单列表
+        EntityWrapper<SMergeList> mergeWrapper = new EntityWrapper<>();
+        mergeWrapper.eq(SMergeList.COLUMN_CHECK_GUID, checkGuid);
+        mergeWrapper.eq(SMergeList.COLUMN_DEVELOPER_CONFIRM, ConfirmStatus.DISCUSS);
+        List<SMergeList> mergeLists = mergeListService.selectList(mergeWrapper);
+
+        // 获取该核对的环境中的投放申请
+        EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
+        deliveryWrapper.eq("to_days(" + SDelivery.COLUMN_DELIVERY_TIME + ")",
+                "to_days(" + check.getCheckDate() + ")")
+                .eq(SDelivery.COLUMN_PACK_TIMING, check.getPackTiming().getValue());
+        List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
+
+        //获取申请对应的有问题的投放清单
+        EntityWrapper<SDeliveryList> deliveryListWrapper = new EntityWrapper<>();
+        deliveryListWrapper.eq(SDeliveryList.COLUMN_DEVELOPER_CONFIRM, ConfirmStatus.DISCUSS)
+                .in(SDeliveryList.COLUMN_GUID_DELIVERY, deliveryList.stream().map(SDelivery::getGuid)
+                        .collect(Collectors.toList()));
+        List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListWrapper);
+
+        return getCheckResultDetail(mergeLists, deliveryList, deliveryLists);
+    }
+
+    @Override
+    public void process(String deliveryGuid, DeliveryResult result, String desc, String userId) {
+        SDelivery delivery = deliveryService.selectById(deliveryGuid);
+        if (delivery == null) {
+            throw new DeveloperException(deliveryGuid + "对应投放申请不存在！");
+        }
+        if (!delivery.getDeliveryResult().equals(DeliveryResult.APPLYING)) {
+            throw new DeveloperException(deliveryGuid + "对应的投放申请结果已经处理为" +
+                    delivery.getDeliveryResult().toString());
+        }
+        delivery.setDeliveryResult(result);
+        delivery.setDeliveryDesc(desc);
+        delivery.setDeliveryTime(new Date());
+        delivery.setDeliver(userId);
+        deliveryService.updateById(delivery);
     }
 
     /**
@@ -198,7 +245,10 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
                 DeliveryCheckResultDetail detail = new DeliveryCheckResultDetail();
                 detail.setDelivery(delivery);
                 detail.setWorkitem(workItemMap.get(delivery.getGuidWorkitem()));
-                detail.setDetailList(DeliveryProjectDetail.getDeliveryDetail(notInMergeListMap.get(delivery.getGuid())));
+                if (notInMergeListMap.get(delivery.getGuid()) != null) {
+                    detail.setDetailList(DeliveryProjectDetail.getDeliveryDetail(
+                            notInMergeListMap.get(delivery.getGuid())));
+                }
                 details.add(detail);
             }
         }
