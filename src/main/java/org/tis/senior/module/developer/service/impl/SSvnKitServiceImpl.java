@@ -8,7 +8,6 @@ import org.tis.senior.module.developer.entity.enums.CommitType;
 import org.tis.senior.module.developer.entity.vo.SvnCommit;
 import org.tis.senior.module.developer.entity.vo.SvnFile;
 import org.tis.senior.module.developer.entity.vo.SvnPath;
-import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISSvnKitService;
 import org.tmatesoft.svn.core.*;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
@@ -21,7 +20,10 @@ import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.*;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -38,36 +40,26 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
      * @return
      */
     @Override
-    public List<SvnCommit> loadSvnHistory(String url, int startRevision) {
+    public List<SvnCommit> loadSvnHistory(String url, int startRevision) throws SVNException {
 
         List<SvnCommit> scList = new ArrayList<>();
-        SVNRepository repository = null;
-        try {
-            repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(url));
-        } catch (SVNException svne) {
-            System.err.println("error while creating an SVNRepository for the location '" + url + "': " + svne.getMessage());
-        }
+        SVNRepository repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(url));
         repository.setAuthenticationManager(this.svnAuthenticationManager);
-        Collection logEntries = new LinkedList();
-        try {
-            repository.log(new String[] {""}, startRevision, -1, true, true,
-                    0, false, null, logEntry -> {
-                        if (logEntry.getRevision() != -1) {
-                            logEntries.add(logEntry);
-                        }
-                    });
-
-        } catch (SVNException svne) {
-            System.out.println("error while collecting log information for '" + url + "': " + svne.getMessage());
-        }
-        for (Iterator entries = logEntries.iterator(); entries.hasNext();) {
+        LinkedList logEntries = new LinkedList();
+        repository.log(new String[]{""}, startRevision, -1, true, true,
+                0, false, null, logEntry -> {
+                    if (logEntry.getRevision() != -1) {
+                        logEntries.add(logEntry);
+                    }
+                });
+        for (Object logEntry1 : logEntries) {
             /*
              * gets a next SVNLogEntry
              */
-            SVNLogEntry logEntry = (SVNLogEntry) entries.next();
+            SVNLogEntry logEntry = (SVNLogEntry) logEntry1;
 
             SvnCommit svnCommit = new SvnCommit();
-            svnCommit.setRevision((int)logEntry.getRevision());
+            svnCommit.setRevision((int) logEntry.getRevision());
             svnCommit.setAuthor(logEntry.getAuthor());
             svnCommit.setCommitDate(logEntry.getDate());
             svnCommit.setMessage(logEntry.getMessage());
@@ -76,18 +68,18 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
 
                 Set changedPathsSet = logEntry.getChangedPaths().keySet();
 
-                for (Iterator changedPaths = changedPathsSet.iterator(); changedPaths.hasNext();) {
+                for (Object aChangedPathsSet : changedPathsSet) {
 
-                    SVNLogEntryPath entryPath = logEntry.getChangedPaths().get(changedPaths.next());
+                    SVNLogEntryPath entryPath = logEntry.getChangedPaths().get(aChangedPathsSet);
 
                     SvnPath svnPath = new SvnPath();
 
                     String type = svnPath.getType().toString();
                     svnPath.setPath(entryPath.getPath());
                     svnPath.setType(CommitType.what(type));
-                    if(entryPath.getCopyPath() != null){
+                    if (entryPath.getCopyPath() != null) {
                         svnPath.setCopyPath(entryPath.getCopyPath());
-                        svnPath.setCopyRevision((int)entryPath.getCopyRevision());
+                        svnPath.setCopyRevision((int) entryPath.getCopyRevision());
                     }
                 }
             }
@@ -98,33 +90,19 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
     }
 
     @Override
-    public int getLastRevision(String url) {
-        try {
-            return (int) getLastRevision(SVNURL.parseURIEncoded(url)).getCommittedRevision().getNumber();
-        } catch (SVNException e) {
-            throw new DeveloperException("获取版本号发生错误", e);
-        }
+    public int getLastRevision(String url) throws SVNException {
+        return (int) getLastRevision(SVNURL.parseURIEncoded(url)).getCommittedRevision().getNumber();
     }
 
     @Override
-    public List<SvnFile> getDiffStatus(String url, String startRevision) {
+    public List<SvnFile> getDiffStatus(String url, String startRevision) throws SVNException {
         List<SvnFile> files = new ArrayList<>();
-        SVNURL svnurl = null;
+        SVNURL svnurl = SVNURL.parseURIEncoded(url);
         SVNRevision start = SVNRevision.create(Long.valueOf(startRevision));
-        try {
-            svnurl = SVNURL.parseURIEncoded(url);
-        } catch (SVNException svne) {
-            System.err.println("error while creating an SVNDiffClient for the location '" + url + "': " + svne.getMessage());
-        }
         DefaultSVNOptions defaultOptions = SVNWCUtil.createDefaultOptions(true);
         SVNDiffClient svnDiffClient = new SVNDiffClient(svnAuthenticationManager, defaultOptions);
-
         List<SVNDiffStatus> list = new LinkedList<>();
-        try {
-            svnDiffClient.doDiffStatus(svnurl, start, svnurl, SVNRevision.HEAD, SVNDepth.INFINITY, false, list::add);
-        } catch (SVNException e) {
-            e.printStackTrace();
-        }
+        svnDiffClient.doDiffStatus(svnurl, start, svnurl, SVNRevision.HEAD, SVNDepth.INFINITY, false, list::add);
         list.forEach(diff -> {
             SVNInfo lastRevision = getLastRevision(diff.getURL());
             SvnFile svnFile = new SvnFile();
@@ -152,7 +130,7 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
         DefaultSVNOptions defaultOptions = SVNWCUtil.createDefaultOptions(true);
         SVNWCClient svnwcClient = new SVNWCClient(svnAuthenticationManager, defaultOptions);
         try {
-            return  svnwcClient.doInfo(url, SVNRevision.HEAD, SVNRevision.HEAD);
+            return svnwcClient.doInfo(url, SVNRevision.HEAD, SVNRevision.HEAD);
         } catch (SVNException e) {
             e.printStackTrace();
         }

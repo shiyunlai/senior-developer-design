@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.tis.senior.module.core.exception.WebAppException;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.developer.exception.DeveloperException;
+import org.tmatesoft.svn.core.SVNException;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -141,6 +142,18 @@ public class BaseControllerExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResultVO handleDeveloperException(DeveloperException ex) {
         return ResultVO.failure("400", "错误的请求！" + ex.getMessage());
+    }
+
+    /**
+     * SVN异常
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(SVNException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResultVO handleSVNException(SVNException ex) {
+        ex.printStackTrace();
+        return ResultVO.error("SVN异常！" + ex.getMessage());
     }
 
     /**

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.entity.SCheck;
 import org.tis.senior.module.developer.entity.enums.PackTime;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
+import org.tmatesoft.svn.core.SVNException;
 
 /**
  * sCheck的Service接口类
@@ -19,6 +20,6 @@ public interface ISCheckService extends IService<SCheck>  {
      * @param packTiming 打包窗口
      * @return
      */
-    CheckResultDetail check(String profileId, PackTime packTiming, String userId);
+    CheckResultDetail check(String profileId, PackTime packTiming, String userId) throws SVNException;
 }
 

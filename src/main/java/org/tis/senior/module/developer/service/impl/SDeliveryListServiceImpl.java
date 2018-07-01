@@ -22,6 +22,7 @@ import org.tis.senior.module.developer.entity.vo.SvnFile;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
 import org.tis.senior.module.developer.util.DeveloperUtils;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,11 +53,8 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     @Autowired
     private ISBranchMappingService branchMappingService;
 
-    @Autowired
-    private ISWorkitemService workitemService;
-
     @Override
-    public List<DeliveryProjectDetail> assembleDelivery(String branchGuid) {
+    public List<DeliveryProjectDetail> assembleDelivery(String branchGuid) throws SVNException {
 
         SBranch branch = branchService.selectById(branchGuid);
         //查询所有的工程
@@ -137,7 +135,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     }
 
     @Override
-    public void addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws Exception {
+    public void addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException {
 
         String guidBranch = request.getGuidBranch();
         SBranch branch = branchService.selectById(guidBranch);
@@ -145,7 +143,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         sbmEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH,branch.getGuid());
         List<SBranchMapping> sbmList = branchMappingService.selectList(sbmEntityWrapper);
         if(sbmList.size() != 1){
-            throw new Exception("根据分支guid获取的第三方的工作项为空或多条！");
+            throw new DeveloperException("根据分支guid获取的第三方的工作项为空或多条！");
         }
         SBranchMapping sbm = sbmList.get(0);
 

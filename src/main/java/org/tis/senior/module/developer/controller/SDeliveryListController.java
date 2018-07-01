@@ -1,19 +1,19 @@
 package org.tis.senior.module.developer.controller;
 
+import org.hibernate.validator.constraints.NotBlank;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.tis.senior.module.core.web.controller.BaseController;
+import org.tis.senior.module.core.web.vo.ResultVO;
+import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliveryAddRequest;
 import org.tis.senior.module.developer.entity.SDeliveryList;
-import org.tis.senior.module.core.web.vo.ResultVO;
-import org.springframework.validation.annotation.Validated;
-import org.tis.senior.module.core.web.vo.SmartPage;
-import org.tis.senior.module.core.web.controller.BaseController;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.service.ISDeliveryListService;
-import org.hibernate.validator.constraints.NotBlank;
+import org.tmatesoft.svn.core.SVNException;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -69,7 +69,7 @@ public class SDeliveryListController extends BaseController<SDeliveryList>  {
      * @return
      */
     @GetMapping("/{branchGuid}/history")
-    public ResultVO assembleDelivery(@PathVariable @NotBlank(message = "分支guid不能为空") String branchGuid){
+    public ResultVO assembleDelivery(@PathVariable @NotBlank(message = "分支guid不能为空") String branchGuid) throws SVNException {
         List<DeliveryProjectDetail> deliveryProjectDetails = sDeliveryListService.assembleDelivery(branchGuid);
         return ResultVO.success("查询成功",deliveryProjectDetails);
     }
