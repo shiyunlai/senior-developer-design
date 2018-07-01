@@ -1,6 +1,5 @@
 package org.tis.senior.module.developer.controller;
 
-import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +13,7 @@ import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.service.ISDeliveryListService;
 import org.tmatesoft.svn.core.SVNException;
 
+import org.hibernate.validator.constraints.NotBlank;
 import java.util.List;
 
 /**
