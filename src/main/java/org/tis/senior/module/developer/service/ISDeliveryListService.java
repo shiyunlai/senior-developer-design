@@ -29,5 +29,14 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      * @param request
      */
     void addDeliveryList(DeliveryListAndDeliveryAddRequest request, String proposer) throws Exception;
+
+    /**
+     * 查询此工作项下需要导出成Excel文件的清单代码
+     *
+     * @param guidWorkitem
+     * @param guidProfiles
+     * @return
+     */
+    List<SDeliveryList> selectDeliveryListOutPutExcel(String guidWorkitem, String guidProfiles);
 }
 
