@@ -90,10 +90,7 @@ public class SDeliveryListController extends BaseController<SDeliveryList>  {
     }
 
 
-    public ResultVO inventoryOutPut(){
 
-        return ResultVO.success("导出成功");
-    }
     
 }
 

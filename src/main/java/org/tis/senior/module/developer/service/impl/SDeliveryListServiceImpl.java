@@ -57,6 +57,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     public List<DeliveryProjectDetail> assembleDelivery(String branchGuid) throws SVNException {
 
         SBranch branch = branchService.selectById(branchGuid);
+        if(branch == null){
+            throw  new DeveloperException("查询不到此分支！");
+        }
         //查询所有的工程
         Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
                 collect(Collectors.toMap(SProject::getProjectName, p -> p));
@@ -137,7 +140,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             }
             sdList.add(sdl);
         });
-        List<DeliveryProjectDetail> dpdLst = DeliveryProjectDetail.getDeliveryDetail(sdList);
+        List<DeliveryProjectDetail> dpdLst = DeliveryProjectDetail.getDeliveryDetail(sdList, projectService.selectProjectAll());
         return dpdLst;
     }
 
