@@ -88,6 +88,12 @@ public class SDeliveryListController extends BaseController<SDeliveryList>  {
         sDeliveryListService.addDeliveryList(request,sSvnAccount.getUserId());
         return ResultVO.success("添加成功");
     }
+
+
+    public ResultVO inventoryOutPut(){
+
+        return ResultVO.success("导出成功");
+    }
     
 }
 

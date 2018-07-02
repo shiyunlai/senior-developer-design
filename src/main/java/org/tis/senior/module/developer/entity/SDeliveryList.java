@@ -4,10 +4,13 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableId;
 import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
+import org.springframework.validation.annotation.Validated;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.CommitType;
 import org.tis.senior.module.developer.entity.enums.ConfirmStatus;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -212,6 +215,7 @@ public class SDeliveryList implements Serializable {
      * 提交类型:提交类型
      */
     @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    @NotNull(message = "提交类型不能为空!")
     private CommitType commitType;
 
     /**

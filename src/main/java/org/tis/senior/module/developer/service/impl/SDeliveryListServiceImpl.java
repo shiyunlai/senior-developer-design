@@ -103,8 +103,16 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             String projectName = DeveloperUtils.getProjectName(svnFile.getPath());
             SProject sProject = projectMap.get(projectName);
             sdl.setPartOfProject(sProject.getProjectName());
-            if("com.primeton.ibs.config".equals(sProject.getProjectName())){
-
+            if("S".equals(sProject.getProjectType())){
+                String deployConfig = sProject.getDeployConfig();
+                JSONArray jsonArray = JSONArray.parseArray(deployConfig);
+                for (Object object:jsonArray) {
+                    JSONObject jsonObject = JSONObject.parseObject(object.toString());
+                    String exportType = jsonObject.getString("exportType");
+                    String deployType = jsonObject.getString("deployType");
+                    sdl.setPatchType(exportType);
+                    sdl.setDeployWhere(deployType);
+                }
             }else{
                 String deployConfig = sProject.getDeployConfig();
                 JSONArray jsonArray = JSONArray.parseArray(deployConfig);
@@ -170,12 +178,12 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         for (SDelivery sDelivery:deliveryList){
 
             //组装投产代码清单
-            for (SDeliveryList dlar:request.getDdliveryList()){
+            for (SDeliveryList dlar:request.getDeliveryList()){
                 dlar.setGuid(null);
                 dlar.setGuidDelivery(sDelivery.getGuid());
                 dlar.setDeveloperConfirm(ConfirmStatus.WAIT);
             }
-            insertBatch(request.getDdliveryList());
+            insertBatch(request.getDeliveryList());
         }
 
         int revision = svnKitService.getLastRevision(branch.getFullPath());
@@ -183,6 +191,25 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         sb.setCurrVersion(revision);
         sb.setGuid(branch.getGuid());
         branchService.updateById(sb);
+    }
+
+    @Override
+    public List<SDeliveryList> selectDeliveryListOutPutExcel(String guidWorkitem, String guidProfiles) {
+
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,guidProfiles);
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,guidWorkitem);
+        List<SDelivery> sdList = deliveryService.selectList(deliveryEntityWrapper);
+
+        List<Integer> guidDelivery = new ArrayList<>();
+        for (SDelivery delivery:sdList){
+            guidDelivery.add(delivery.getGuid());
+        }
+
+        EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
+        deliveryListEntityWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY,guidDelivery);
+        List<SDeliveryList>sdlList = selectList(deliveryListEntityWrapper);
+        return sdlList;
     }
 
 }
