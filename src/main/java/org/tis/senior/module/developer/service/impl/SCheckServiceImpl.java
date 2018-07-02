@@ -71,6 +71,24 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             throw new DeveloperException(profileId + packTiming.getValue() + "对应的环境或打包窗口不存在!");
         }
         SProfiles profiles = list.get(0);
+
+        // 与投放申请核对
+        // 获取该环境打包窗口的全部投产代码
+        EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
+        deliveryWrapper.eq("to_days(" + SDelivery.COLUMN_DELIVERY_TIME + ")", "to_days(now())");
+        deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, profileId);
+        deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, packTiming.getValue());
+        List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
+
+        List<Integer> deliveryGuids = deliveryList.stream().map(SDelivery::getGuid).collect(Collectors.toList());
+        EntityWrapper<SDeliveryList> deliveryListWrapper = new EntityWrapper<>();
+        deliveryListWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, deliveryGuids);
+        List<SDeliveryList> sDeliveryLists = deliveryListService.selectList(deliveryListWrapper);
+
+        if (CollectionUtils.isEmpty(sDeliveryLists)) {
+            throw new DeveloperException(profileId + packTiming.getValue() + "对应的环境及打包窗口没有投产申请记录!");
+        }
+
         // 生成核对记录
         SCheck check = new SCheck();
         check.setCheckAlias(genCheckAlias(profiles, packTiming));
@@ -114,18 +132,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         Map<String, SMergeList> filePathMergeListMap = mergeLists.stream()
                 .collect(Collectors.toMap(me -> DeveloperUtils.getFilePath(me.getFullPath()), merge -> merge));
 
-        // 与投放申请核对
-        // 获取该环境打包窗口的全部投产代码
-        EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
-        deliveryWrapper.eq("to_days(" + SDelivery.COLUMN_DELIVERY_TIME + ")", "to_days(now())");
-        deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, profileId);
-        deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, packTiming.getValue());
-        List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
 
-        List<Integer> deliveryGuids = deliveryList.stream().map(SDelivery::getGuid).collect(Collectors.toList());
-        EntityWrapper<SDeliveryList> deliveryListWrapper = new EntityWrapper<>();
-        deliveryListWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, deliveryGuids);
-        List<SDeliveryList> sDeliveryLists = deliveryListService.selectList(deliveryListWrapper);
 
         // 不在合并清单中的投放清单
         List<SDeliveryList> notInMerge = new ArrayList<>();
@@ -187,7 +194,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
 
         // 获取该核对的环境中的投放申请
         EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
-        deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", %Y-%m-%d)",
+        deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
                   new SimpleDateFormat("YYYY-mm-dd").format(check.getCheckDate()))
                 .eq(SDelivery.COLUMN_PACK_TIMING, check.getPackTiming().getValue());
         List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
@@ -299,7 +306,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
         // 获取次数
         EntityWrapper<SCheck> wrapper = new EntityWrapper<>();
-        wrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", %Y-%m-%d)",
+        wrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
                 new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         wrapper.eq(SCheck.COLUMN_GUID_PROFILES, profiles.getGuid());
         wrapper.eq(SCheck.COLUMN_PACK_TIMING, packTime.getValue());
