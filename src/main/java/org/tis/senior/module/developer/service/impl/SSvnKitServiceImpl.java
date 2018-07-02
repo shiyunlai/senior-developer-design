@@ -109,7 +109,10 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
             svnFile.setAuthor(lastRevision.getAuthor());
             svnFile.setData(lastRevision.getCommittedDate());
             svnFile.setPath(diff.getURL().toString());
-            svnFile.setRevision(lastRevision.getCommittedRevision().getNumber());
+            // 已删除文件不获取版本号
+            if (!"deleted".equals(diff.getModificationType())) {
+                svnFile.setRevision(lastRevision.getCommittedRevision().getNumber());
+            }
             svnFile.setType(CommitType.what(diff.getModificationType().toString()));
             svnFile.setNodeType(diff.getKind().toString());
             files.add(svnFile);
