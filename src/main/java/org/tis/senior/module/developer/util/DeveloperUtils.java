@@ -65,7 +65,7 @@ public class DeveloperUtils {
      * @param path
      * @return
      */
-    public static String isEpdOrEcd(String path){
+    public static String getModule(String path){
 
         String[] pathSplit = path.split("/");
 
@@ -88,4 +88,16 @@ public class DeveloperUtils {
             return pathSplit[10];
         }
     }
+
+    /**
+     * 获取ECD的打包路径
+     * @param fullPath
+     * @return
+     */
+    public static String getEcdPath(String fullPath){
+        String project = getProjectName(fullPath);
+        String module = getModule(fullPath);
+        return project+"/"+module+"/src";
+    }
+
 }

@@ -38,8 +38,14 @@ public enum CommitType implements BaseEnum {
         if("added".equals(value)){
             return ADDED;
         }
+        if("modified".equals(value)){
+            return MODIFIED;
+        }
+        if("deleted".equals(value)){
+            return DELETED;
+        }
         for (CommitType type : CommitType.values()) {
-            if (type.getValue().equals(value)) {
+            if (type.getValue().equals(value) || type.toString().equals(value)) {
                 return type;
             }
         }
