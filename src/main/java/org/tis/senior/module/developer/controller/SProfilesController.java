@@ -1,13 +1,12 @@
 package org.tis.senior.module.developer.controller;
 
-import org.tis.senior.module.core.web.vo.ResultVO;
-import org.springframework.validation.annotation.Validated;
-import org.tis.senior.module.core.web.vo.SmartPage;
-import org.tis.senior.module.core.web.controller.BaseController;
-import org.tis.senior.module.developer.entity.SProfiles;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 import org.hibernate.validator.constraints.NotBlank;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.tis.senior.module.core.web.controller.BaseController;
+import org.tis.senior.module.core.web.vo.ResultVO;
+import org.tis.senior.module.developer.entity.SProfiles;
 import org.tis.senior.module.developer.service.ISProfilesService;
 
 /**
@@ -50,7 +49,7 @@ public class SProfilesController extends BaseController<SProfiles>  {
         return ResultVO.success("查询成功", sProfiles);
     }
     
-    @PostMapping("/list")
+    @GetMapping("/list")
     public ResultVO list() {
         return  ResultVO.success("查询成功", sProfilesService.selectProfilesAll());
     }
