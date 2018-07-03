@@ -1,6 +1,7 @@
 package org.tis.senior.module.developer.service.impl;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.tis.senior.module.developer.entity.SProfiles;
 import org.springframework.stereotype.Service;
 import org.tis.senior.module.developer.dao.SProfilesMapper;
@@ -28,7 +29,10 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         return this.spList;
     }
 
-    @PostConstruct
+    /**
+     * 查询所有的运行环境
+     */
+    @PostMapping("/list")
     public void selectAll(){
         EntityWrapper<SProfiles> spEntityWrapper = new EntityWrapper<>();
         spEntityWrapper.eq(SProfiles.COLUMN_IS_ALLOW_DELIVERY,"1");
