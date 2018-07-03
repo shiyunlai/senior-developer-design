@@ -1,5 +1,8 @@
 package org.tis.senior.module.developer.controller;
 
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +13,19 @@ import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.DeliveryProcessRequest;
 import org.tis.senior.module.developer.entity.SCheck;
+import org.tis.senior.module.developer.entity.SDeliveryList;
+import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.enums.PackTime;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tis.senior.module.developer.service.ISCheckService;
+import org.tis.senior.module.developer.service.ISDeliveryListService;
+import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
+import java.io.*;
+import java.util.List;
 
 /**
  * sCheck的Controller类
@@ -29,6 +39,9 @@ public class SCheckController extends BaseController<SCheck>  {
 
     @Autowired
     private ISCheckService sCheckService;
+
+    @Autowired
+    private ISDeliveryListService deliveryListService;
 
     /**
      * 核对清单
@@ -77,6 +90,71 @@ public class SCheckController extends BaseController<SCheck>  {
     public ResultVO process(@RequestBody @Validated DeliveryProcessRequest request) {
         sCheckService.process(request.getDeliveryGuid(), request.getResult(), request.getDesc(), getUser().getUserId());
         return ResultVO.success("处理成功");
+    }
+
+    /**
+     * Excel导出清单
+     *
+     * @return
+     */
+    @GetMapping("/workitem/{guidWorkitem}/profile/{guidProfiles}/excelDownload")
+    public ResultVO deliveryExportExcel(HttpServletResponse response,
+                                        @PathVariable @NotBlank(message = "工作项guid不能为空") String guidWorkitem,
+                                        @PathVariable @NotBlank(message = "运行环境guid不能为空") String guidProfiles) {
+
+//        SSvnAccount user = getUser();
+        List<SDeliveryList> sDeliveryLists = deliveryListService.selectDeliveryListOutPutExcel(guidWorkitem,guidProfiles);
+
+        OutputStream os = null;
+        InputStream is = null;
+        try {
+            is = new FileInputStream("D:\\text.xls");
+
+            HSSFWorkbook hssfWorkbook = new HSSFWorkbook(is);
+            HSSFSheet hssfSheet = hssfWorkbook.getSheetAt(0);
+
+            for (int i=0;i < sDeliveryLists.size();i++){
+                SDeliveryList sdl = sDeliveryLists.get(i);
+                HSSFRow row = null;
+                row = hssfSheet.createRow(i+2);
+                row.createCell(0).setCellValue(sdl.getPartOfProject());
+                row.createCell(1).setCellValue(sdl.getPatchType());
+                row.createCell(2).setCellValue("*." + sdl.getPatchType());
+                row.createCell(3).setCellValue(sdl.getDeployWhere());
+                if("ecd".equals(sdl.getPatchType())){
+                    row.createCell(4).setCellValue(sdl.getFullPath());
+                }else {
+                    row.createCell(4).setCellValue(DeveloperUtils.getFilePath(sdl.getFullPath()));
+                }
+                row.createCell(5).setCellValue("all");
+                row.createCell(6).setCellValue("all");
+//                row.createCell(6).setCellValue(user.getUserId());
+            }
+            String fileName = "南京同城";
+            response.setContentType("application/octet-stream");
+            response.setCharacterEncoding("utf-8");
+            response.setHeader("content-disposition", "attachment;filename=" + new String(fileName.getBytes(), "ISO8859-1") + ".xls");
+            os = response.getOutputStream();
+            hssfWorkbook.write(os);
+            os.flush();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                if(os != null){
+                    os.close();
+                }
+                if (is != null){
+                    is.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return ResultVO.success("导出成功");
     }
     
 }
