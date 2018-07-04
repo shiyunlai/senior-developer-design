@@ -81,7 +81,7 @@ public class SDeliveryListController extends BaseController<SDeliveryList>  {
      * @return
      * @throws Exception
      */
-    @PostMapping("/deliveryAnd")
+    @PostMapping("/deliveryAndDeliveryList")
     public ResultVO addDelivery(@RequestBody @Validated DeliveryListAndDeliveryAddRequest request) throws Exception {
 
         SSvnAccount sSvnAccount = getUser();

@@ -22,8 +22,10 @@ import org.tis.senior.module.developer.service.ISDeliveryListService;
 import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
+import javax.xml.crypto.dsig.XMLSignature;
 import java.io.*;
 import java.util.List;
 
@@ -97,26 +99,26 @@ public class SCheckController extends BaseController<SCheck>  {
      *
      * @return
      */
-    @GetMapping("/workitem/{guidWorkitem}/profile/{guidProfiles}/excelDownload")
+    @PostMapping("excel")
     public ResultVO deliveryExportExcel(HttpServletResponse response,
+                                        HttpServletRequest request,
                                         @PathVariable @NotBlank(message = "工作项guid不能为空") String guidWorkitem,
                                         @PathVariable @NotBlank(message = "运行环境guid不能为空") String guidProfiles) {
 
-//        SSvnAccount user = getUser();
+        SSvnAccount user = getUser();
         List<SDeliveryList> sDeliveryLists = deliveryListService.selectDeliveryListOutPutExcel(guidWorkitem,guidProfiles);
 
         OutputStream os = null;
         InputStream is = null;
         try {
-            is = new FileInputStream("D:\\text.xls");
+            System.out.println();
+            is = new FileInputStream("src\\main\\resources\\template\\excel.xls");
 
             HSSFWorkbook hssfWorkbook = new HSSFWorkbook(is);
             HSSFSheet hssfSheet = hssfWorkbook.getSheetAt(0);
-
             for (int i=0;i < sDeliveryLists.size();i++){
                 SDeliveryList sdl = sDeliveryLists.get(i);
-                HSSFRow row = null;
-                row = hssfSheet.createRow(i+2);
+                HSSFRow row = hssfSheet.createRow(i+2);
                 row.createCell(0).setCellValue(sdl.getPartOfProject());
                 row.createCell(1).setCellValue(sdl.getPatchType());
                 row.createCell(2).setCellValue("*." + sdl.getPatchType());
@@ -128,7 +130,7 @@ public class SCheckController extends BaseController<SCheck>  {
                 }
                 row.createCell(5).setCellValue("all");
                 row.createCell(6).setCellValue("all");
-//                row.createCell(6).setCellValue(user.getUserId());
+                row.createCell(6).setCellValue(user.getUserId());
             }
             String fileName = "南京同城";
             response.setContentType("application/octet-stream");
@@ -156,6 +158,7 @@ public class SCheckController extends BaseController<SCheck>  {
 
         return ResultVO.success("导出成功");
     }
+
     
 }
 
