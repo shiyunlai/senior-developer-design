@@ -79,15 +79,14 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, profileId);
         deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, packTiming.getValue());
         List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
+        if (CollectionUtils.isEmpty(deliveryList)) {
+            throw new DeveloperException(profileId + packTiming.getValue() + "对应的环境及打包窗口没有投产申请记录!");
+        }
 
         List<Integer> deliveryGuids = deliveryList.stream().map(SDelivery::getGuid).collect(Collectors.toList());
         EntityWrapper<SDeliveryList> deliveryListWrapper = new EntityWrapper<>();
         deliveryListWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, deliveryGuids);
         List<SDeliveryList> sDeliveryLists = deliveryListService.selectList(deliveryListWrapper);
-
-        if (CollectionUtils.isEmpty(sDeliveryLists)) {
-            throw new DeveloperException(profileId + packTiming.getValue() + "对应的环境及打包窗口没有投产申请记录!");
-        }
 
         // 生成核对记录
         SCheck check = new SCheck();
@@ -226,6 +225,31 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         deliveryService.updateById(delivery);
     }
 
+    @Override
+    public void confirm(boolean isDelivery, String id) {
+        if (isDelivery) {
+            SDeliveryList l = deliveryListService.selectById(id);
+            if (l == null) {
+                throw new DeveloperException("找不到" + id + "对应的投放清单！");
+            }
+            if (!l.getDeveloperConfirm().equals(ConfirmStatus.DISCUSS)) {
+                throw new DeveloperException("该投产清单已经被确认或所在投产申请尚未核对！");
+            }
+            l.setDeveloperConfirm(ConfirmStatus.CONFIRM);
+            deliveryListService.updateById(l);
+        } else {
+            SMergeList l = mergeListService.selectById(id);
+            if (l == null) {
+                throw new DeveloperException("找不到" + id + "对应的合并清单！");
+            }
+            if (!l.getDeveloperConfirm().equals(ConfirmStatus.DISCUSS)) {
+                throw new DeveloperException("该合并清单已经被确认！");
+            }
+            l.setDeveloperConfirm(ConfirmStatus.CONFIRM);
+            mergeListService.updateById(l);
+        }
+    }
+
     /**
      * 获取核对结果
      * @param mergeLists
@@ -306,7 +330,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
         // 获取次数
         EntityWrapper<SCheck> wrapper = new EntityWrapper<>();
-        wrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
+        wrapper.eq("DATE_FORMAT(" + SCheck.COLUMN_CHECK_DATE + ", '%Y-%m-%d')",
                 new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         wrapper.eq(SCheck.COLUMN_GUID_PROFILES, profiles.getGuid());
         wrapper.eq(SCheck.COLUMN_PACK_TIMING, packTime.getValue());

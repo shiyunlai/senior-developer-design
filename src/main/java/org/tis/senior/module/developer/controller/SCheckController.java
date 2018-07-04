@@ -14,7 +14,6 @@ import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.DeliveryProcessRequest;
 import org.tis.senior.module.developer.entity.SCheck;
 import org.tis.senior.module.developer.entity.SDeliveryList;
-import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.enums.PackTime;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tis.senior.module.developer.service.ISCheckService;
@@ -155,6 +154,18 @@ public class SCheckController extends BaseController<SCheck>  {
         }
 
         return ResultVO.success("导出成功");
+    }
+
+    @PutMapping("/deliveryList/{id}/confirm")
+    ResultVO confirmDelivery(@PathVariable @NotBlank String id) {
+        sCheckService.confirm(true, id);
+        return ResultVO.success("确认成功！");
+    }
+
+    @PutMapping("/mergeList/{id}/confirm")
+    ResultVO confirmMerge(@PathVariable @NotBlank String id) {
+        sCheckService.confirm(true, id);
+        return ResultVO.success("确认成功！");
     }
     
 }

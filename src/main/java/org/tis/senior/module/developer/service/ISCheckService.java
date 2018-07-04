@@ -39,5 +39,12 @@ public interface ISCheckService extends IService<SCheck>  {
      * @param userId
      */
     void process(String deliveryGuid, DeliveryResult result, String desc, String userId);
+
+    /**
+     * 确认文件
+      * @param isDelivery 是否为投放清单，false则为合并清单
+     * @param id 清单id
+     */
+    void confirm(boolean isDelivery, String id);
 }
 
