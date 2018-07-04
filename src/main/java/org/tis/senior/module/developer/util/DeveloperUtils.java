@@ -6,6 +6,7 @@ import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
 
 import java.io.UnsupportedEncodingException;
+import java.security.SecureRandom;
 
 public class DeveloperUtils {
 
@@ -23,19 +24,11 @@ public class DeveloperUtils {
             return "";
         }
         if (pathSplit[8].equals("Feature") || pathSplit[8].equals("Hotfix")) {
-            try {
-                pathSplit[10] = java.net.URLDecoder.decode(pathSplit[10],"utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            return pathSplit[10];
+
+            return getPathUTF(pathSplit[10]);
         } else {
-            try {
-                pathSplit[9] = java.net.URLDecoder.decode(pathSplit[9],"utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            return pathSplit[9];
+
+            return getPathUTF(pathSplit[9]);
         }
     }
 
@@ -48,7 +41,7 @@ public class DeveloperUtils {
     public static String getProgramName(String svnPath) {
 
         String[] pathSplit = svnPath.split("/");
-        return pathSplit[pathSplit.length - 1];
+        return getPathUTF(pathSplit[pathSplit.length - 1]);
     }
 
     /**
@@ -57,7 +50,7 @@ public class DeveloperUtils {
      * @return
      */
     public static String getFilePath(String svnPath)  {
-        return svnPath.substring(svnPath.indexOf(getProjectName(svnPath)));
+        return getPathUTF(svnPath.substring(svnPath.indexOf(getProjectName(svnPath))));
     }
 
     /**
@@ -73,19 +66,10 @@ public class DeveloperUtils {
             return "";
         }
         if (pathSplit[8].equals("Feature") || pathSplit[8].equals("Hotfix")) {
-            try {
-                pathSplit[11] = java.net.URLDecoder.decode(pathSplit[11],"utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            return pathSplit[11];
+
+            return getPathUTF(pathSplit[11]);
         } else {
-            try {
-                pathSplit[10] = java.net.URLDecoder.decode(pathSplit[10],"utf-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            return pathSplit[10];
+            return getPathUTF(pathSplit[10]);
         }
     }
 
@@ -98,6 +82,22 @@ public class DeveloperUtils {
         String project = getProjectName(fullPath);
         String module = getModule(fullPath);
         return project+"/"+module+"/src";
+    }
+
+    /**
+     * 转码
+     * @param path
+     * @return
+     */
+    public static String getPathUTF(String path){
+
+        String svnPath = path;
+        try {
+            svnPath = java.net.URLDecoder.decode(svnPath,"utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return svnPath;
     }
 
 }

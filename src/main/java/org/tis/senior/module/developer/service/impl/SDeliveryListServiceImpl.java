@@ -22,6 +22,7 @@ import org.tis.senior.module.developer.service.*;
 import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -101,7 +102,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             sdl.setCommitDate(svnFile.getData());
             sdl.setDeliveryVersion(svnFile.getRevision().intValue());
             sdl.setCommitType(svnFile.getType());
-            sdl.setFullPath(svnFile.getPath());
+            sdl.setFullPath(DeveloperUtils.getPathUTF(svnFile.getPath()));
             String programName = DeveloperUtils.getProgramName(svnFile.getPath());
             sdl.setProgramName(programName);
             String projectName = DeveloperUtils.getProjectName(svnFile.getPath());
@@ -214,6 +215,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         }
 
         EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
+        if(guidDelivery == null){
+            throw new DeveloperException("查询到的投放申请的guid集合为空");
+        }
         deliveryListEntityWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, guidDelivery);
         List<SDeliveryList> sdlList = selectList(deliveryListEntityWrapper);
 
