@@ -69,6 +69,7 @@ public class SCheckController extends BaseController<SCheck>  {
     }
     
     @GetMapping("/{id}")
+    @RequiresRoles(value = "rct")
     public ResultVO detail(@PathVariable @NotBlank(message = "id不能为空") String id) {
         CheckResultDetail detail = sCheckService.detail(id);
         return ResultVO.success("查询成功", detail);
@@ -84,10 +85,11 @@ public class SCheckController extends BaseController<SCheck>  {
      * @param request
      * @return
      */
-    @PostMapping("/delivery")
+    @PostMapping("/delivery/{id}/result")
     @RequiresRoles("rct")
-    public ResultVO process(@RequestBody @Validated DeliveryProcessRequest request) {
-        sCheckService.process(request.getDeliveryGuid(), request.getResult(), request.getDesc(), getUser().getUserId());
+    public ResultVO process(@PathVariable @NotBlank(message = "投放申请ID不能为空！") String id,
+                            @RequestBody @Validated DeliveryProcessRequest request) {
+        sCheckService.process(id, request.getResult(), request.getDesc(), getUser().getUserId());
         return ResultVO.success("处理成功");
     }
 
@@ -96,6 +98,7 @@ public class SCheckController extends BaseController<SCheck>  {
      *
      * @return
      */
+    @RequiresRoles(value = "rct")
     @GetMapping("/workitem/{guidWorkitem}/profile/{guidProfiles}/excelDownload")
     public ResultVO deliveryExportExcel(HttpServletResponse response,
                                         @PathVariable @NotBlank(message = "工作项guid不能为空") String guidWorkitem,
@@ -156,17 +159,31 @@ public class SCheckController extends BaseController<SCheck>  {
         return ResultVO.success("导出成功");
     }
 
+    /**
+     * 确认投放清单明细
+     * @param id
+     * @return
+     */
+    @RequiresRoles(value = "rct")
     @PutMapping("/deliveryList/{id}/confirm")
     ResultVO confirmDelivery(@PathVariable @NotBlank String id) {
         sCheckService.confirm(true, id);
         return ResultVO.success("确认成功！");
     }
 
+    /**
+     * 确认合并清单明细
+     * @param id
+     * @return
+     */
+    @RequiresRoles(value = "rct")
     @PutMapping("/mergeList/{id}/confirm")
     ResultVO confirmMerge(@PathVariable @NotBlank String id) {
         sCheckService.confirm(true, id);
         return ResultVO.success("确认成功！");
     }
-    
+
+
+
 }
 

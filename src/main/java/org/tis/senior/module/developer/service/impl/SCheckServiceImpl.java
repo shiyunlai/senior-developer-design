@@ -9,10 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.tis.senior.module.developer.dao.SCheckMapper;
 import org.tis.senior.module.developer.entity.*;
-import org.tis.senior.module.developer.entity.enums.BranchForWhat;
-import org.tis.senior.module.developer.entity.enums.ConfirmStatus;
-import org.tis.senior.module.developer.entity.enums.DeliveryResult;
-import org.tis.senior.module.developer.entity.enums.PackTime;
+import org.tis.senior.module.developer.entity.enums.*;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tis.senior.module.developer.entity.vo.DeliveryCheckResultDetail;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
@@ -94,6 +91,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         check.setCheckDate(new Date());
         check.setCheckUser(userId);
         check.setGuidProfiles(Integer.valueOf(profileId));
+        check.setCheckStatus(CheckStatus.WAIT);
         check.setPackTiming(packTiming);
         this.baseMapper.insert(check);
 
@@ -130,8 +128,6 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         });
         Map<String, SMergeList> filePathMergeListMap = mergeLists.stream()
                 .collect(Collectors.toMap(me -> DeveloperUtils.getFilePath(me.getFullPath()), merge -> merge));
-
-
 
         // 不在合并清单中的投放清单
         List<SDeliveryList> notInMerge = new ArrayList<>();
