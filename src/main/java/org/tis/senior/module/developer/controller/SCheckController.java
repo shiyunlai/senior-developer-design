@@ -14,6 +14,7 @@ import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.DeliveryProcessRequest;
 import org.tis.senior.module.developer.entity.SCheck;
 import org.tis.senior.module.developer.entity.SDeliveryList;
+import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.enums.PackTime;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
@@ -22,11 +23,12 @@ import org.tis.senior.module.developer.service.ISDeliveryListService;
 import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
-import javax.xml.crypto.dsig.XMLSignature;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
