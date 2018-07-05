@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotations.TableName;
 import java.util.Date;
 import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
+import org.springframework.cache.annotation.Cacheable;
+import org.tis.senior.module.core.entity.cascade.CommonCascadeSerializer;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.DeliveryResult;
 import org.tis.senior.module.developer.entity.enums.DeliveryType;
@@ -178,11 +180,13 @@ public class SDelivery implements Serializable {
     /**
      * 工作项GUID:唯一标示某条数据（自增长）
      */
+    @JSONField(serializeUsing = CommonCascadeSerializer.class)
     private Integer guidWorkitem;
 
     /**
      * 运行环境GUID:唯一标示某条数据（自增长）
      */
+    @JSONField(serializeUsing = CommonCascadeSerializer.class)
     private Integer guidProfiles;
 
     /**

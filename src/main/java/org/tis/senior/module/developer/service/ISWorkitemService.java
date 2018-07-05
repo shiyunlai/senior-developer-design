@@ -24,5 +24,7 @@ public interface ISWorkitemService extends IService<SWorkitem>  {
     List<SWorkitem> selectWorkitemByUser(String userName);
 
     SBranch selectBranchByWorkitemId(String workitemId) throws Exception;
+
+    SWorkitem selectOneById(String workitemId);
 }
 

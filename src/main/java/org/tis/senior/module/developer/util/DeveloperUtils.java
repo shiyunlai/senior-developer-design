@@ -1,12 +1,7 @@
 package org.tis.senior.module.developer.util;
 
 
-import com.alibaba.fastjson.JSON;
-import org.tmatesoft.svn.core.SVNException;
-import org.tmatesoft.svn.core.SVNURL;
-
 import java.io.UnsupportedEncodingException;
-import java.security.SecureRandom;
 
 public class DeveloperUtils {
 
@@ -98,6 +93,26 @@ public class DeveloperUtils {
             e.printStackTrace();
         }
         return svnPath;
+    }
+
+    /**
+     * 下划线命名转为驼峰命名
+     *
+     * @param para
+     * @return
+     */
+    public static String UnderlineToHump(String para){
+        StringBuilder result=new StringBuilder();
+        String a[]=para.split("_");
+        for(String s:a){
+            if(result.length()==0){
+                result.append(s.toLowerCase());
+            }else{
+                result.append(s.substring(0, 1).toUpperCase());
+                result.append(s.substring(1).toLowerCase());
+            }
+        }
+        return result.toString();
     }
 
 }
