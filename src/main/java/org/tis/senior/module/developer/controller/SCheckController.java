@@ -17,6 +17,7 @@ import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.enums.PackTime;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
+import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISCheckService;
 import org.tis.senior.module.developer.service.ISDeliveryListService;
 import org.tis.senior.module.developer.util.DeveloperUtils;
@@ -27,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import javax.xml.crypto.dsig.XMLSignature;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
@@ -99,9 +101,8 @@ public class SCheckController extends BaseController<SCheck>  {
      *
      * @return
      */
-    @PostMapping("excel")
+    @PostMapping("/excel")
     public ResultVO deliveryExportExcel(HttpServletResponse response,
-                                        HttpServletRequest request,
                                         @PathVariable @NotBlank(message = "工作项guid不能为空") String guidWorkitem,
                                         @PathVariable @NotBlank(message = "运行环境guid不能为空") String guidProfiles) {
 
@@ -132,18 +133,16 @@ public class SCheckController extends BaseController<SCheck>  {
                 row.createCell(6).setCellValue("all");
                 row.createCell(6).setCellValue(user.getUserId());
             }
-            String fileName = "南京同城";
+            String fileName = "清单"+ new SimpleDateFormat("");
             response.setContentType("application/octet-stream");
             response.setCharacterEncoding("utf-8");
             response.setHeader("content-disposition", "attachment;filename=" + new String(fileName.getBytes(), "ISO8859-1") + ".xls");
             os = response.getOutputStream();
             hssfWorkbook.write(os);
             os.flush();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }finally {
+        } catch (Exception e) {
+            throw new DeveloperException("导出清单异常！");
+        } finally {
             try {
                 if(os != null){
                     os.close();
@@ -152,7 +151,7 @@ public class SCheckController extends BaseController<SCheck>  {
                     is.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new DeveloperException("输出流或输入流为空！");
             }
         }
 
