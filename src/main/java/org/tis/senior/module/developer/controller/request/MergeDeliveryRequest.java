@@ -5,7 +5,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.tis.senior.module.core.entity.request.RestRequest;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Future;
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 
@@ -21,7 +21,7 @@ public class MergeDeliveryRequest extends RestRequest {
     @NotEmpty(message = "合并清单不能为空！")
     private List<String> mergeList;
 
-    @Future(message = "投产时间不正确！")
+    @NotNull(message = "投产时间不能为空！")
     private Date deliveryTime;
 
     @Valid

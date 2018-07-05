@@ -14,7 +14,9 @@ public enum CheckStatus implements BaseEnum {
 
     FAILURE("F", "核对错误"),
 
-    SUCCESS("S", "核对正确");
+    SUCCESS("S", "核对正确"),
+
+    WAIT("W", "待确认");
 
     private final String value;
 
