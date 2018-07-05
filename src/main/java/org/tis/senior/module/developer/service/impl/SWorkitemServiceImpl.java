@@ -13,7 +13,9 @@ import org.tis.senior.module.developer.service.ISBranchService;
 import org.tis.senior.module.developer.service.ISWorkitemService;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * sWorkitem的Service接口实现类
@@ -30,6 +32,8 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
 
     @Autowired
     private ISBranchMappingService branchMappingService;
+
+    private Map<String, SWorkitem> workitems = new HashMap<>();
 
     @Override
     public List<SWorkitem> selectWorkitemByUser(String userId) {
@@ -54,6 +58,18 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
 
         SBranch sBranch = branchService.selectById(branchMapping.getGuidBranch());
         return sBranch;
+    }
+
+    @Override
+    public SWorkitem selectOneById(String workitemId) {
+
+        SWorkitem workitem = this.workitems.get(workitemId);
+        if(workitem != null){
+            return workitem;
+        }
+        workitem = selectById(workitemId);
+        this.workitems.put(workitem.getGuid().toString(),workitem);
+        return workitem;
     }
 
 }

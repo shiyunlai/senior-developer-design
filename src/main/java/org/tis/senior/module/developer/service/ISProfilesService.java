@@ -18,5 +18,7 @@ public interface ISProfilesService extends IService<SProfiles>  {
      * @return
      */
     List<SProfiles> selectProfilesAll();
+
+    SProfiles selectOneById(String guidProfile);
 }
 
