@@ -48,7 +48,12 @@ public class SProfilesController extends BaseController<SProfiles>  {
         }
         return ResultVO.success("查询成功", sProfiles);
     }
-    
+
+    /**
+     * 查询所有运行环境
+     *
+     * @return
+     */
     @GetMapping("/list")
     public ResultVO list() {
         return  ResultVO.success("查询成功", sProfilesService.selectProfilesAll());

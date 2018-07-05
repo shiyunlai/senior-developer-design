@@ -28,6 +28,16 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         return this.spList;
     }
 
+    @Override
+    public SProfiles selectOneById(String guidProfile) {
+        for (SProfiles sProfiles : selectProfilesAll()) {
+            if(guidProfile.equals(sProfiles.getGuid().toString())){
+                return sProfiles;
+            }
+        }
+        return null;
+    }
+
     /**
      * 查询所有的运行环境
      */
