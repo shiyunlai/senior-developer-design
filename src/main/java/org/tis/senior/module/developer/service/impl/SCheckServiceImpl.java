@@ -72,7 +72,8 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         // 与投放申请核对
         // 获取该环境打包窗口的全部投产代码
         EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
-        deliveryWrapper.eq("to_days(" + SDelivery.COLUMN_DELIVERY_TIME + ")", "to_days(now())");
+        deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
+                new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, profileId);
         deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, packTiming.getValue());
         List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
@@ -191,7 +192,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         // 获取该核对的环境中的投放申请
         EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
         deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
-                  new SimpleDateFormat("YYYY-mm-dd").format(check.getCheckDate()))
+                  new SimpleDateFormat("yyyy-MM-dd").format(check.getCheckDate()))
                 .eq(SDelivery.COLUMN_PACK_TIMING, check.getPackTiming().getValue());
         List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
 
