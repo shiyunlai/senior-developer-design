@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableId;
 import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
+import org.tis.senior.module.core.entity.cascade.CommonCascadeSerializer;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.CheckStatus;
 import org.tis.senior.module.developer.entity.enums.PackTime;
@@ -115,6 +116,7 @@ public class SCheck implements Serializable {
     /**
      * 运行环境GUID:唯一标示某条数据（自增长）
      */
+    @JSONField(serializeUsing = CommonCascadeSerializer.class)
     private Integer guidProfiles;
 
     /**

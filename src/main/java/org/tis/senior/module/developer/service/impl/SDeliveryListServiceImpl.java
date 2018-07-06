@@ -194,11 +194,11 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             insertBatch(request.getDeliveryList());
         }
 
-        int revision = svnKitService.getLastRevision(branch.getFullPath());
-        SBranch sb = new SBranch();
-        sb.setCurrVersion(revision);
-        sb.setGuid(branch.getGuid());
-        branchService.updateById(sb);
+//        int revision = svnKitService.getLastRevision(branch.getFullPath());
+//        SBranch sb = new SBranch();
+//        sb.setCurrVersion(revision);
+//        sb.setGuid(branch.getGuid());
+//        branchService.updateById(sb);
     }
 
     @Override
