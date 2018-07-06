@@ -49,7 +49,8 @@ public enum CommitType implements BaseEnum {
                 return type;
             }
         }
-        throw new DeveloperException("没有" + value + "对应的提交类型！");
+        return null;
+//        throw new DeveloperException("没有" + value + "对应的提交类型！");
     }
 
 
