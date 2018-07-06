@@ -77,7 +77,8 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, packTiming.getValue());
         List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
         if (CollectionUtils.isEmpty(deliveryList)) {
-            throw new DeveloperException(profileId + packTiming.getValue() + "对应的环境及打包窗口没有投产申请记录!");
+            throw new DeveloperException("当天环境" +  profiles.getProfilesName() + "的打包窗口" + packTiming.getValue() +
+                    "没有投产申请记录!");
         }
 
         List<Integer> deliveryGuids = deliveryList.stream().map(SDelivery::getGuid).collect(Collectors.toList());
