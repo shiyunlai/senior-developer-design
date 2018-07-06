@@ -174,7 +174,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             delivery.setDeliveryType(DeliveryType.GENERAL);
             delivery.setProposer(userId);
             delivery.setApplyTime(new Date());
-            delivery.setDeliveryDesc(dliveryAddRequest.getDeliveryDesc());
             delivery.setPackTiming(req.getPackTiming());
             delivery.setDeliveryTime(dliveryAddRequest.getDeliveryTime());
             delivery.setDeliveryResult(DeliveryResult.APPLYING);
