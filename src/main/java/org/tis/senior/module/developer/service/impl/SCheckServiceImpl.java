@@ -168,8 +168,8 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
 //        deliveryList.removeIf(d -> deliveryGuids.contains(d.getGuid()));
         // 插入合并清单
         mergeListService.insertBatch(mergeLists);
-        // 变更分支版本
-        sBranch.setCurrVersion(svnKitService.getLastRevision(sBranch.getFullPath()));
+        // 变更分支版本 TODO 需要确认投放时再更新分支版本
+//        sBranch.setCurrVersion(svnKitService.getLastRevision(sBranch.getFullPath()));
         branchService.updateById(sBranch);
 
         // 组装核对结果
@@ -284,7 +284,6 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         return result;
 
     }
-
 
     private Map<Integer, SWorkitem> getWorkItemMap(List<Integer> list) {
         EntityWrapper<SWorkitem> wrapper = new EntityWrapper<>();
