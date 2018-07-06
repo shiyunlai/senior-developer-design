@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,6 @@ import org.tis.senior.module.developer.service.*;
 import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -70,7 +68,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         List<SDeliveryList> sdList = new ArrayList<>();
         Map<String, List<SvnFile>> commitMap = svnCommits.stream().collect(Collectors.groupingBy(SvnFile::getNodeType));
         Set<String> ecdSet = new HashSet<>();
-        if (!commitMap.get("dir").isEmpty()) {
+        if (commitMap.get("dir") != null) {
             commitMap.get("dir").forEach(f -> {
                 String projectName = DeveloperUtils.getProjectName(f.getPath());
                 if (StringUtils.isNotBlank(projectName)) {
@@ -96,57 +94,58 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 }
             });
         }
-        commitMap.get("file").forEach(svnFile -> {
-            SDeliveryList sdl = new SDeliveryList();
-            sdl.setAuthor(svnFile.getAuthor());
-            sdl.setCommitDate(svnFile.getData());
-            sdl.setDeliveryVersion(svnFile.getRevision().intValue());
-            sdl.setCommitType(svnFile.getType());
-            sdl.setFullPath(DeveloperUtils.getPathUTF(svnFile.getPath()));
-            String programName = DeveloperUtils.getProgramName(svnFile.getPath());
-            sdl.setProgramName(programName);
-            String projectName = DeveloperUtils.getProjectName(svnFile.getPath());
-            SProject sProject = projectMap.get(projectName);
-            if (sProject == null) {
-                sProject = projectMap.get("default");
-            }
-            sdl.setPartOfProject(sProject.getProjectName());
-            if ("S".equals(sProject.getProjectType())) {
-                String deployConfig = sProject.getDeployConfig();
-                JSONArray jsonArray = JSONArray.parseArray(deployConfig);
-                for (Object object : jsonArray) {
-                    JSONObject jsonObject = JSONObject.parseObject(object.toString());
-                    String exportType = jsonObject.getString("exportType");
-                    String deployType = jsonObject.getString("deployType");
-                    sdl.setPatchType(exportType);
-                    sdl.setDeployWhere(deployType);
+        if (commitMap.get("file") != null) {
+            commitMap.get("file").forEach(svnFile -> {
+                SDeliveryList sdl = new SDeliveryList();
+                sdl.setAuthor(svnFile.getAuthor());
+                sdl.setCommitDate(svnFile.getData());
+                sdl.setDeliveryVersion(svnFile.getRevision().intValue());
+                sdl.setCommitType(svnFile.getType());
+                sdl.setFullPath(DeveloperUtils.getPathUTF(svnFile.getPath()));
+                String programName = DeveloperUtils.getProgramName(svnFile.getPath());
+                sdl.setProgramName(programName);
+                String projectName = DeveloperUtils.getProjectName(svnFile.getPath());
+                SProject sProject = projectMap.get(projectName);
+                if (sProject == null) {
+                    sProject = projectMap.get("default");
                 }
-            } else {
-                String deployConfig = sProject.getDeployConfig();
-                JSONArray jsonArray = JSONArray.parseArray(deployConfig);
-                for (Object object : jsonArray) {
-                    JSONObject jsonObject = JSONObject.parseObject(object.toString());
-                    String exportType = jsonObject.getString("exportType");
-                    String deployType = jsonObject.getString("deployType");
-                    if (exportType.equals("ecd")) {
-                        if (ecdSet.size() > 0) {
-                            for (String ecd : ecdSet) {
-                                if (svnFile.getPath().contains(ecd)) {
-                                    sdl.setPatchType(exportType);
-                                    sdl.setDeployWhere(deployType);
-                                }
-                            }
-                        }
-                    } else {
+                sdl.setPartOfProject(sProject.getProjectName());
+                if ("S".equals(sProject.getProjectType())) {
+                    String deployConfig = sProject.getDeployConfig();
+                    JSONArray jsonArray = JSONArray.parseArray(deployConfig);
+                    for (Object object : jsonArray) {
+                        JSONObject jsonObject = JSONObject.parseObject(object.toString());
+                        String exportType = jsonObject.getString("exportType");
+                        String deployType = jsonObject.getString("deployType");
                         sdl.setPatchType(exportType);
                         sdl.setDeployWhere(deployType);
                     }
+                } else {
+                    String deployConfig = sProject.getDeployConfig();
+                    JSONArray jsonArray = JSONArray.parseArray(deployConfig);
+                    for (Object object : jsonArray) {
+                        JSONObject jsonObject = JSONObject.parseObject(object.toString());
+                        String exportType = jsonObject.getString("exportType");
+                        String deployType = jsonObject.getString("deployType");
+                        if (exportType.equals("ecd")) {
+                            if (ecdSet.size() > 0) {
+                                for (String ecd : ecdSet) {
+                                    if (svnFile.getPath().contains(ecd)) {
+                                        sdl.setPatchType(exportType);
+                                        sdl.setDeployWhere(deployType);
+                                    }
+                                }
+                            }
+                        } else {
+                            sdl.setPatchType(exportType);
+                            sdl.setDeployWhere(deployType);
+                        }
+                    }
                 }
-            }
-            sdList.add(sdl);
-        });
-        List<DeliveryProjectDetail> dpdLst = DeliveryProjectDetail.getDeliveryDetail(sdList, projectService.selectProjectAll());
-        return dpdLst;
+                sdList.add(sdl);
+            });
+        }
+        return DeliveryProjectDetail.getDeliveryDetail(sdList, projectService.selectProjectAll());
     }
 
     @Override
