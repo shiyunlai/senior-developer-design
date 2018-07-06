@@ -83,9 +83,10 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                         if ("ecd".equals(exportType)) {
                             String eoe = DeveloperUtils.getModule(f.getPath());
                             if (StringUtils.isNoneBlank(eoe) && f.getType().equals(CommitType.ADDED)) {
-                                //如果是工程下的模块，以最后一个 . 截取，获取是否与工程名相等
-                                String module = StringUtils.substringBeforeLast(eoe, ".");
-                                if (module.equals(DeveloperUtils.getProjectName(f.getPath()))) {
+
+                                String path = f.getPath();
+                                String subPath = path.substring(0,path.indexOf(path) + path.length());
+                                if(subPath.equals(f.getPath())){
                                     ecdSet.add(eoe);
                                 }
                             }
