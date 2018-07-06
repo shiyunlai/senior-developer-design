@@ -212,10 +212,11 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         if (delivery == null) {
             throw new DeveloperException(deliveryGuid + "对应投放申请不存在！");
         }
-        if (!delivery.getDeliveryResult().equals(DeliveryResult.APPLYING)) {
-            throw new DeveloperException(deliveryGuid + "对应的投放申请结果已经处理为" +
-                    delivery.getDeliveryResult().toString());
-        }
+        // 核对时处理的状态不限制手动处理
+//        if (!delivery.getDeliveryResult().equals(DeliveryResult.APPLYING)) {
+//            throw new DeveloperException(deliveryGuid + "对应的投放申请结果已经处理为" +
+//                    delivery.getDeliveryResult().toString());
+//        }
         delivery.setDeliveryResult(result);
         delivery.setDeliveryDesc(desc);
         delivery.setDeliveryTime(new Date());
