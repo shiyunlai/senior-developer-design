@@ -20,9 +20,6 @@ public class SDliveryAddRequest {
     @NotEmpty(message = "投放的运行环境不能为空")
     private List<DeliveryProfileRequest> profiles;
 
-    @NotBlank(message = "投放说明不能为空")
-    private String deliveryDesc;
-
     @NotNull(message = "投放时间不能为空")
     private Date deliveryTime;
 }
