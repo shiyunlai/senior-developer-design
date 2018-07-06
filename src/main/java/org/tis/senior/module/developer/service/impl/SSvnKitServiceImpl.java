@@ -20,10 +20,7 @@ import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.*;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -104,14 +101,14 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
         List<SVNDiffStatus> list = new LinkedList<>();
         svnDiffClient.doDiffStatus(svnurl, start, svnurl, SVNRevision.HEAD, SVNDepth.INFINITY, false, list::add);
         list.forEach(diff -> {
-            SVNInfo lastRevision = getLastRevision(diff.getURL());
+//            SVNInfo lastRevision = getLastRevision(diff.getURL());
             SvnFile svnFile = new SvnFile();
-            svnFile.setAuthor(lastRevision.getAuthor());
-            svnFile.setData(lastRevision.getCommittedDate());
+            svnFile.setAuthor("admin");
+            svnFile.setData(new Date());
             svnFile.setPath(diff.getURL().toString());
-            // 已删除文件不获取版本号
+//             已删除文件不获取版本号
             if (!"deleted".equals(diff.getModificationType())) {
-                svnFile.setRevision(lastRevision.getCommittedRevision().getNumber());
+                svnFile.setRevision(1L);
             }
             svnFile.setType(CommitType.what(diff.getModificationType().toString()));
             svnFile.setNodeType(diff.getKind().toString());

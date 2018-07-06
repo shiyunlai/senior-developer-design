@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.authc.FormAuthenticationFilter;
 import org.apache.shiro.web.util.WebUtils;
+import org.springframework.http.HttpStatus;
 import org.tis.senior.module.core.web.vo.ResultVO;
 
 import javax.servlet.ServletRequest;
@@ -31,6 +32,7 @@ public class ShiroFormAuthenticationFilter extends FormAuthenticationFilter {
             ((HttpServletResponse)response).setHeader("Access-Control-Allow-Origin",
                     ((HttpServletRequest) request).getHeader("Origin"));
             ((HttpServletResponse)response).setHeader("Access-Control-Allow-Headers", "Content-Type,token,Authorization");
+            ((HttpServletResponse)response).setStatus(HttpStatus.UNAUTHORIZED.value());
             ajax((HttpServletResponse) response, jsonString);
             return false;
         } else {
