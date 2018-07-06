@@ -1,17 +1,18 @@
 package org.tis.senior.module.developer.service.impl;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.tis.senior.module.developer.dao.SWorkitemMapper;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SBranchMapping;
 import org.tis.senior.module.developer.entity.SWorkitem;
-import org.tis.senior.module.developer.dao.SWorkitemMapper;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.service.impl.ServiceImpl;
+import org.tis.senior.module.developer.entity.enums.BranchForWhat;
 import org.tis.senior.module.developer.service.ISBranchMappingService;
 import org.tis.senior.module.developer.service.ISBranchService;
 import org.tis.senior.module.developer.service.ISWorkitemService;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +50,8 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
     public SBranch selectBranchByWorkitemId(String workitemId) throws Exception {
 
         EntityWrapper<SBranchMapping> sbmEntityWrapper = new EntityWrapper<>();
-        sbmEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,workitemId);
+        sbmEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS, workitemId)
+                .eq(SBranchMapping.COLUMN_FOR_WHAT, BranchForWhat.WORKITEM.getValue());
         List<SBranchMapping> sbmList = branchMappingService.selectList(sbmEntityWrapper);
         if(sbmList.size() != 1){
             throw new Exception("The object of the query does not exist or superfluous");
