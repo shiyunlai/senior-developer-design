@@ -48,6 +48,11 @@ public class SCheck implements Serializable {
     public static final String COLUMN_GUID_PROFILES = "guid_profiles";
 
     /**
+     * deliveryTime对应表字段
+     */
+    public static final String COLUMN_DELIVERY_TIME = "delivery_time";
+
+    /**
      * packTiming对应表字段
      */
     public static final String COLUMN_PACK_TIMING = "pack_timing";
@@ -81,6 +86,11 @@ public class SCheck implements Serializable {
      * guidProfiles逻辑名
      */
     public static final String NAME_GUID_PROFILES = "运行环境GUID";
+
+    /**
+     * deliveryTime逻辑名
+     */
+    public static final String NAME_DELIVERY_TIME = "投放时间";
 
     /**
      * packTiming逻辑名
@@ -118,6 +128,11 @@ public class SCheck implements Serializable {
      */
     @JSONField(serializeUsing = CommonCascadeSerializer.class)
     private Integer guidProfiles;
+
+    /**
+     * 投放时间
+     */
+    private Date deliveryTime;
 
     /**
      * 打包窗口

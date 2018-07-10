@@ -85,8 +85,8 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                             if (StringUtils.isNoneBlank(eoe) && f.getType().equals(CommitType.ADDED)) {
 
                                 String path = f.getPath();
-                                String subPath = path.substring(0,path.indexOf(path) + path.length());
-                                if(subPath.equals(f.getPath())){
+                                String subPath = path.substring(0, path.indexOf(path) + path.length());
+                                if (subPath.equals(f.getPath())) {
                                     ecdSet.add(eoe);
                                 }
                             }
@@ -214,7 +214,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         }
 
         EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
-        if(guidDelivery == null){
+        if (guidDelivery == null) {
             throw new DeveloperException("查询到的投放申请的guid集合为空");
         }
         deliveryListEntityWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, guidDelivery);
@@ -227,16 +227,16 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 list.stream().collect(Collectors.groupingBy(SDeliveryList::getPartOfProject,
                         Collectors.groupingBy(dl -> DeveloperUtils.getModule(dl.getFullPath()))))
                         .forEach((pj, m) -> m.forEach((module, l) -> {
-                             // 导出ecd 的同工程清单
-                             String[] deployWhereSplit = l.get(0).getDeployWhere().split(",");
-                             for (String deployWhere : deployWhereSplit) {
-                                 SDeliveryList sdl = new SDeliveryList();
-                                 sdl.setPatchType(l.get(0).getPatchType());
-                                 sdl.setDeployWhere(deployWhere);
-                                 sdl.setPartOfProject(pj);
-                                 sdl.setFullPath(DeveloperUtils.getEcdPath(l.get(0).getFullPath()));
-                                 deliveryLists.add(sdl);
-                             }
+                            // 导出ecd 的同工程清单
+                            String[] deployWhereSplit = l.get(0).getDeployWhere().split(",");
+                            for (String deployWhere : deployWhereSplit) {
+                                SDeliveryList sdl = new SDeliveryList();
+                                sdl.setPatchType(l.get(0).getPatchType());
+                                sdl.setDeployWhere(deployWhere);
+                                sdl.setPartOfProject(pj);
+                                sdl.setFullPath(DeveloperUtils.getEcdPath(l.get(0).getFullPath()));
+                                deliveryLists.add(sdl);
+                            }
                         }));
             } else {
                 for (SDeliveryList sd : list) {
@@ -258,6 +258,14 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         });
         return deliveryLists;
     }
+
+    private List<SvnFile> getDiffStatus(String fullPath, String startRevision) {
+
+        List<SvnFile> svnCommits = svnKitService.getDiffStatus(branch.getFullPath(), branch.getCurrVersion().toString());
+
+    }
+
+
 
 }
 
