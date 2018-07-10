@@ -25,6 +25,14 @@ public interface ISSvnKitService {
     List<SvnFile> getDiffStatus(String url, String startRevision) throws SVNException;
 
     /**
+     * 获取路径下版本间的差异
+     * @param url svn路径
+     * @param startRevision 起始版本号
+     * @return
+     */
+    List<SvnFile> getDirDiffStatus(String url, String startRevision) throws SVNException;
+
+    /**
      * 获取最新版本
      * @param url
      * @return
