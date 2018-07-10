@@ -1,5 +1,6 @@
 package org.tis.senior.module.developer.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,8 @@ import org.tmatesoft.svn.core.wc.*;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+
+import static org.tmatesoft.svn.core.wc.SVNStatusType.STATUS_NONE;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -93,36 +96,44 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
 
     @Override
     public List<SvnFile> getDiffStatus(String url, String startRevision) throws SVNException {
-        List<SvnFile> files = new ArrayList<>();
         SVNURL svnurl = SVNURL.parseURIEncoded(url);
-        SVNRevision start = SVNRevision.create(Long.valueOf(startRevision));
-        DefaultSVNOptions defaultOptions = SVNWCUtil.createDefaultOptions(true);
-        SVNDiffClient svnDiffClient = new SVNDiffClient(svnAuthenticationManager, defaultOptions);
-        List<SVNDiffStatus> list = new LinkedList<>();
-        svnDiffClient.doDiffStatus(svnurl, start, svnurl, SVNRevision.HEAD, SVNDepth.INFINITY, false, list::add);
-        list.forEach(diff -> {
-//            SVNInfo lastRevision = getLastRevision(diff.getURL());
-            SvnFile svnFile = new SvnFile();
-            svnFile.setAuthor("admin");
-            svnFile.setData(new Date());
-            svnFile.setPath(diff.getURL().toString());
-//             已删除文件不获取版本号
-            if (!"deleted".equals(diff.getModificationType().toString())) {
-                svnFile.setRevision(1L);
-            }
-            CommitType what = CommitType.what(diff.getModificationType().toString());
-            if (what != null) {
-                svnFile.setType(what);
-                svnFile.setNodeType(diff.getKind().toString());
-                files.add(svnFile);
-            }
-        });
-        return files;
+        return doDiffStatus(svnurl,startRevision, null);
     }
 
     @Override
-    public List<SvnFile> getDirDiffStatus(String url, String startRevision) throws SVNException {
-        return null;
+    public List<SvnFile> getBranchDiffStatus(String url, String startRevision) throws SVNException {
+        List<SvnFile> list = new ArrayList<>();
+        SVNRepository repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(url));
+        repository.setAuthenticationManager(this.svnAuthenticationManager);
+        Collection entries = repository.getDir("", -1, null, (Collection) null);
+        for (Object entry1 : entries) {
+            SVNDirEntry entry = (SVNDirEntry) entry1;
+            if (entry.getKind() == SVNNodeKind.DIR) {
+                SVNRepository svnRepository = SVNRepositoryFactory.create(entry.getURL());
+                svnRepository.setAuthenticationManager(this.svnAuthenticationManager);
+                svnRepository.log(new String[] {""}, Long.valueOf(startRevision), repository.getLatestRevision(), true, true,
+                        1, false, null, logEntry -> {
+                    boolean isCopy = false;
+                    if (logEntry.getChangedPaths().size() > 0) {
+                        Set<String> changedPathsSet = logEntry.getChangedPaths().keySet();
+                        for (String aChangedPathsSet : changedPathsSet) {
+                            SVNLogEntryPath p = logEntry.getChangedPaths().get(aChangedPathsSet);
+                            if (p.getCopyPath() != null) {
+                                isCopy=true;
+                                break;
+                            }
+                        }
+                        if (isCopy) {
+                            list.addAll(doDiffStatus(entry.getURL(), Long.toString(logEntry.getRevision()), null));
+                        } else {
+                            list.addAll(doDiffStatus(entry.getRepositoryRoot(),
+                                    Long.toString(logEntry.getRevision() -1), entry.getURL().getPath()));
+                        }
+                    }
+                });
+            }
+        }
+        return list;
     }
 
     @PostConstruct
@@ -143,6 +154,30 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private List<SvnFile> doDiffStatus(SVNURL url, String startRevision, String filter) throws SVNException {
+        List<SvnFile> files = new ArrayList<>();
+        SVNRevision start = SVNRevision.create(Long.valueOf(startRevision));
+        DefaultSVNOptions defaultOptions = SVNWCUtil.createDefaultOptions(true);
+        SVNDiffClient svnDiffClient = new SVNDiffClient(svnAuthenticationManager, defaultOptions);
+        SVNRepository repository = SVNRepositoryFactory.create(url);
+        repository.setAuthenticationManager(svnAuthenticationManager);
+        svnDiffClient.doDiffStatus(url, start, url, SVNRevision.HEAD, SVNDepth.INFINITY, false, diff -> {
+            if (!diff.getModificationType().equals(STATUS_NONE) ) {
+                if (StringUtils.isBlank(filter) || diff.getURL().getPath().startsWith(filter)) {
+                    SvnFile svnFile = new SvnFile();
+                    svnFile.setPath(diff.getURL().toString());
+                    CommitType what = CommitType.what(diff.getModificationType().toString());
+                    if (what != null) {
+                        svnFile.setType(what);
+                        svnFile.setNodeType(diff.getKind().toString());
+                        files.add(svnFile);
+                    }
+                }
+            }
+        });
+        return files;
     }
 
 
