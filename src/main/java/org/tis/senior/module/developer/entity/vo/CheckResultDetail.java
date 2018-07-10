@@ -1,7 +1,7 @@
 package org.tis.senior.module.developer.entity.vo;
 
 import lombok.Data;
-import org.tis.senior.module.developer.entity.SMergeList;
+import org.tis.senior.module.developer.entity.SCheckList;
 
 import java.util.List;
 
@@ -16,5 +16,5 @@ public class CheckResultDetail {
 
     private List<DeliveryCheckResultDetail> deliveryDetails;
 
-    private List<SMergeList> mergeLists;
+    private List<SCheckList> mergeLists;
 }

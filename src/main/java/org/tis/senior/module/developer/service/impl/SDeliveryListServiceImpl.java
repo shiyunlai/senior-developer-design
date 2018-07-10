@@ -13,7 +13,10 @@ import org.tis.senior.module.developer.controller.request.DeliveryProfileRequest
 import org.tis.senior.module.developer.controller.request.SDliveryAddRequest;
 import org.tis.senior.module.developer.dao.SDeliveryListMapper;
 import org.tis.senior.module.developer.entity.*;
-import org.tis.senior.module.developer.entity.enums.*;
+import org.tis.senior.module.developer.entity.enums.CommitType;
+import org.tis.senior.module.developer.entity.enums.DeliveryResult;
+import org.tis.senior.module.developer.entity.enums.DeliveryType;
+import org.tis.senior.module.developer.entity.enums.PatchType;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.entity.vo.SvnFile;
 import org.tis.senior.module.developer.exception.DeveloperException;
@@ -98,9 +101,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         if (commitMap.get("file") != null) {
             commitMap.get("file").forEach(svnFile -> {
                 SDeliveryList sdl = new SDeliveryList();
-                sdl.setAuthor(svnFile.getAuthor());
-                sdl.setCommitDate(svnFile.getData());
-                sdl.setDeliveryVersion(svnFile.getRevision().intValue());
                 sdl.setCommitType(svnFile.getType());
                 sdl.setFullPath(DeveloperUtils.getPathUTF(svnFile.getPath()));
                 String programName = DeveloperUtils.getProgramName(svnFile.getPath());
@@ -188,7 +188,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             for (SDeliveryList dlar : request.getDeliveryList()) {
                 dlar.setGuid(null);
                 dlar.setGuidDelivery(sDelivery.getGuid());
-                dlar.setDeveloperConfirm(ConfirmStatus.WAIT);
             }
             insertBatch(request.getDeliveryList());
         }
@@ -261,8 +260,8 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
 
     private List<SvnFile> getDiffStatus(String fullPath, String startRevision) {
 
-        List<SvnFile> svnCommits = svnKitService.getDiffStatus(branch.getFullPath(), branch.getCurrVersion().toString());
-
+//        List<SvnFile> svnCommits = svnKitService.getDiffStatus(branch.getFullPath(), branch.getCurrVersion().toString());
+            return null;
     }
 
 

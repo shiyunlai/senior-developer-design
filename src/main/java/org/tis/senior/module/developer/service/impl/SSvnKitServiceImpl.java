@@ -120,6 +120,11 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
         return files;
     }
 
+    @Override
+    public List<SvnFile> getDirDiffStatus(String url, String startRevision) throws SVNException {
+        return null;
+    }
+
     @PostConstruct
     private void svnAuthenticationManagerInit() {
         setupLibrary();

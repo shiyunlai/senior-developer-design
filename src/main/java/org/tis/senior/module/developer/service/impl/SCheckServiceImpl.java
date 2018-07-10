@@ -52,7 +52,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
     private ISDeliveryListService deliveryListService;
 
     @Autowired
-    private ISMergeListService mergeListService;
+    private ISCheckListService checkListService;
 
     @Autowired
     private ISWorkitemService workitemService;
@@ -107,7 +107,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         SBranch sBranch = branchService.selectOne(branchWrapper);
 
         // 获取环境分支下的代码
-        List<SMergeList> mergeLists = new ArrayList<>();
+        List<SCheckList> mergeLists = new ArrayList<>();
         List<SvnFile> svnFiles = svnKitService.getDiffStatus(sBranch.getFullPath(), sBranch.getCurrVersion().toString());
         if (svnFiles.size() < 1) {
             throw new DeveloperException("分支" + sBranch.getFullPath() + "从版本\"" +
@@ -115,20 +115,17 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         }
         svnFiles.forEach(f -> {
             if ("file".equals(f.getNodeType())) {
-                SMergeList merge = new SMergeList();
-                merge.setAuthor(f.getAuthor());
-                merge.setCheckGuid(check.getGuid());
+                SCheckList merge = new SCheckList();
+                merge.setGuidCheck(check.getGuid());
                 merge.setProgramName(f.getProgramName());
-                merge.setMergeVersion(f.getRevision().intValue());
                 merge.setFullPath(f.getPath());
-                merge.setMergeDate(f.getData());
-                merge.setMergeType(f.getType());
+                merge.setCommitType(f.getType());
                 merge.setPartOfProject(f.getProjectName());
-                merge.setDeveloperConfirm(ConfirmStatus.WAIT);
+                merge.setConfirmStatus(ConfirmStatus.WAIT);
                 mergeLists.add(merge);
             }
         });
-        Map<String, SMergeList> filePathMergeListMap = mergeLists.stream()
+        Map<String, SCheckList> filePathMergeListMap = mergeLists.stream()
                 .collect(Collectors.toMap(me -> DeveloperUtils.getFilePath(me.getFullPath()), merge -> merge));
 
         // 不在合并清单中的投放清单
@@ -142,14 +139,14 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             String fp = DeveloperUtils.getFilePath(d.getFullPath());
             if (filePathMergeListMap.containsKey(fp)) {
                 inMergeIds.add(d.getGuid());
-                filePathMergeListMap.get(fp).setDeveloperConfirm(ConfirmStatus.CONFIRM);
+                filePathMergeListMap.get(fp).setConfirmStatus(ConfirmStatus.CONFIRM);
                 filePathMergeListMap.remove(fp);
             } else {
                 notInMergeIds.add(d.getGuid());
                 notInMerge.add(d);
             }
         }
-        filePathMergeListMap.forEach( (s,m) -> m.setDeveloperConfirm(ConfirmStatus.DISCUSS));
+        filePathMergeListMap.forEach( (s,m) -> m.setConfirmStatus(ConfirmStatus.DISCUSS));
 
         // 如果投产清单中有代码不在合并清单中
         if (notInMerge.size() > 0) {
@@ -163,11 +160,11 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         updateDeliveryResult(deliveryGuids, DeliveryResult.SUCCESS);
         updateDeliveryListConfirmStatus(inMergeIds, ConfirmStatus.CONFIRM);
         // 不在投产代码中的合并清单
-        List<SMergeList> notInDelivery = new ArrayList<>(filePathMergeListMap.values());
+        List<SCheckList> notInDelivery = new ArrayList<>(filePathMergeListMap.values());
         // 不在合并代码中的投放申请
 //        deliveryList.removeIf(d -> deliveryGuids.contains(d.getGuid()));
         // 插入合并清单
-        mergeListService.insertBatch(mergeLists);
+        checkListService.insertBatch(mergeLists);
         // 变更分支版本 TODO 需要确认投放时再更新分支版本
 //        sBranch.setCurrVersion(svnKitService.getLastRevision(sBranch.getFullPath()));
         branchService.updateById(sBranch);
@@ -184,10 +181,10 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             throw new DeveloperException(checkGuid + "对应核对记录不存在！");
         }
         // 获取当前核对中合并清单中有问题的清单列表
-        EntityWrapper<SMergeList> mergeWrapper = new EntityWrapper<>();
-        mergeWrapper.eq(SMergeList.COLUMN_CHECK_GUID, checkGuid);
-        mergeWrapper.eq(SMergeList.COLUMN_DEVELOPER_CONFIRM, ConfirmStatus.DISCUSS);
-        List<SMergeList> mergeLists = mergeListService.selectList(mergeWrapper);
+        EntityWrapper<SCheckList> mergeWrapper = new EntityWrapper<>();
+        mergeWrapper.eq(SCheckList.COLUMN_GUID_CHECK, checkGuid);
+        mergeWrapper.eq(SCheckList.COLUMN_CONFIRM_STATUS, ConfirmStatus.DISCUSS);
+        List<SCheckList> mergeLists = checkListService.selectList(mergeWrapper);
 
         // 获取该核对的环境中的投放申请
         EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
@@ -198,8 +195,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
 
         //获取申请对应的有问题的投放清单
         EntityWrapper<SDeliveryList> deliveryListWrapper = new EntityWrapper<>();
-        deliveryListWrapper.eq(SDeliveryList.COLUMN_DEVELOPER_CONFIRM, ConfirmStatus.DISCUSS)
-                .in(SDeliveryList.COLUMN_GUID_DELIVERY, deliveryList.stream().map(SDelivery::getGuid)
+        deliveryListWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, deliveryList.stream().map(SDelivery::getGuid)
                         .collect(Collectors.toList()));
         List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListWrapper);
 
@@ -231,21 +227,21 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             if (l == null) {
                 throw new DeveloperException("找不到" + id + "对应的投放清单！");
             }
-            if (!l.getDeveloperConfirm().equals(ConfirmStatus.DISCUSS)) {
-                throw new DeveloperException("该投产清单已经被确认或所在投产申请尚未核对！");
-            }
-            l.setDeveloperConfirm(ConfirmStatus.CONFIRM);
+//            if (!l.getDeveloperConfirm().equals(ConfirmStatus.DISCUSS)) {
+//                throw new DeveloperException("该投产清单已经被确认或所在投产申请尚未核对！");
+//            }
+//            l.setDeveloperConfirm(ConfirmStatus.CONFIRM);
             deliveryListService.updateById(l);
         } else {
-            SMergeList l = mergeListService.selectById(id);
+            SCheckList l = checkListService.selectById(id);
             if (l == null) {
                 throw new DeveloperException("找不到" + id + "对应的合并清单！");
             }
-            if (!l.getDeveloperConfirm().equals(ConfirmStatus.DISCUSS)) {
-                throw new DeveloperException("该合并清单已经被确认！");
-            }
-            l.setDeveloperConfirm(ConfirmStatus.CONFIRM);
-            mergeListService.updateById(l);
+//            if (!l.getDeveloperConfirm().equals(ConfirmStatus.DISCUSS)) {
+//                throw new DeveloperException("该合并清单已经被确认！");
+//            }
+//            l.setDeveloperConfirm(ConfirmStatus.CONFIRM);
+            checkListService.updateById(l);
         }
     }
 
@@ -256,7 +252,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
      * @param deliveryLists
      * @return
      */
-    private CheckResultDetail getCheckResultDetail(List<SMergeList> mergeLists, List<SDelivery> deliverys,
+    private CheckResultDetail getCheckResultDetail(List<SCheckList> mergeLists, List<SDelivery> deliverys,
                                                    List<SDeliveryList> deliveryLists) {
         CheckResultDetail result = new CheckResultDetail();
         result.setMergeLists(mergeLists);
@@ -318,7 +314,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             return;
         }
         SDeliveryList d = new SDeliveryList();
-        d.setDeveloperConfirm(status);
+//        d.setDeveloperConfirm(status);
         EntityWrapper<SDeliveryList> wrapper = new EntityWrapper<>();
         wrapper.in(SDeliveryList.COLUMN_GUID, list);
         deliveryListService.update(d, wrapper);

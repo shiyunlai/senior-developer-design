@@ -43,11 +43,11 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/logout", "logout");
         // 配置不会被拦截的链接 顺序判断
         filterChainDefinitionMap.put("/login", "anon");
-//        if (enable) {
+        if (enable) {
             filterChainDefinitionMap.put("/**", "authc2");
-//        } else {
-//            filterChainDefinitionMap.put("/**", "anon");
-//        }
+        } else {
+            filterChainDefinitionMap.put("/**", "anon");
+        }
         //配置shiro默认登录界面地址，前后端分离中登录界面跳转应由前端路由控制，后台仅返回json数据
         shiroFilterFactoryBean.setLoginUrl("/unauth");
         // 登录成功后要跳转的链接
@@ -137,9 +137,10 @@ public class ShiroConfig {
 
     /**
      * 保证实现了Shiro内部lifecycle函数的bean执行
+     * 此处需要使用static方法，否则无法获取配件文件中的值
      */
     @Bean
-    public LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
+    public static LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
         return new LifecycleBeanPostProcessor();
     }
 
