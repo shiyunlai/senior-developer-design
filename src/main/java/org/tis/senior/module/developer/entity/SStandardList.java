@@ -1,24 +1,20 @@
 package org.tis.senior.module.developer.entity;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableId;
 import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
-import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
-import org.tis.senior.module.developer.entity.enums.CommitType;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
- * sDeliveryList（开发人员提出）投放申请，其中包括哪些程序文件
- *
+ * sStandardList
+ * 
  * @author Auto Generate Tools
  * @date 2018/07/10
  */
 @Data
-@TableName("s_delivery_list")
-public class SDeliveryList implements Serializable {
+@TableName("s_standard_list")
+public class SStandardList implements Serializable {
 
     /**
      * serialVersionUID.
@@ -28,7 +24,7 @@ public class SDeliveryList implements Serializable {
     /**
      * 模型名称
      */
-    public static final String NAME = "投产代码清单";
+    public static final String NAME = "标准清单";
 
     /**
      * guid对应表字段
@@ -36,9 +32,9 @@ public class SDeliveryList implements Serializable {
     public static final String COLUMN_GUID = "guid";
 
     /**
-     * guidDelivery对应表字段
+     * guidWorkitem对应表字段
      */
-    public static final String COLUMN_GUID_DELIVERY = "guid_delivery";
+    public static final String COLUMN_GUID_WORKITEM = "guid_workitem";
 
     /**
      * programName对应表字段
@@ -76,9 +72,9 @@ public class SDeliveryList implements Serializable {
     public static final String NAME_GUID = "数据id";
 
     /**
-     * guidDelivery逻辑名
+     * guidWorkitem逻辑名
      */
-    public static final String NAME_GUID_DELIVERY = "投放申请GUID";
+    public static final String NAME_GUID_WORKITEM = "工作项GUID";
 
     /**
      * programName逻辑名
@@ -117,12 +113,12 @@ public class SDeliveryList implements Serializable {
     private Integer guid;
 
     /**
-     * 投放申请GUID:唯一标示某条数据（自增长）
+     * 工作项GUID:唯一标示某条数据（自增长）
      */
-    private Integer guidDelivery;
+    private Integer guidWorkitem;
 
     /**
-     * 程序名称:记录程序名称
+     * 程序名称:冗余设计
      */
     private String programName;
 
@@ -141,7 +137,7 @@ public class SDeliveryList implements Serializable {
     private String deployWhere;
 
     /**
-     * 代码全路径:冗余设计
+     * 代码全路径
      */
     private String fullPath;
 
@@ -154,9 +150,7 @@ public class SDeliveryList implements Serializable {
     /**
      * 提交类型:提交类型
      */
-    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
-    @NotNull(message = "提交类型不能为空!")
-    private CommitType commitType;
+    private String commitType;
 
 }
 

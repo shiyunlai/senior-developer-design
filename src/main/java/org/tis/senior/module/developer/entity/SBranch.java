@@ -1,14 +1,12 @@
 package org.tis.senior.module.developer.entity;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import com.baomidou.mybatisplus.annotations.TableName;
-import java.util.Date;
-import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
-import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
+import com.baomidou.mybatisplus.annotations.TableName;
+import lombok.Data;
 import org.tis.senior.module.developer.entity.enums.BranchType;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * sBranch开发分支
@@ -70,6 +68,11 @@ public class SBranch implements Serializable {
     public static final String COLUMN_CURR_VERSION = "curr_version";
 
     /**
+     * lastVersion对应表字段
+     */
+    public static final String COLUMN_LAST_VERSION = "last_version";
+
+    /**
      * guid逻辑名
      */
     public static final String NAME_GUID = "数据id";
@@ -105,6 +108,11 @@ public class SBranch implements Serializable {
     public static final String NAME_CURR_VERSION = "分支当前版本";
 
     /**
+     * lastVersion逻辑名
+     */
+    public static final String NAME_LAST_VERSION = "分支上次投产版本";
+
+    /**
      * 数据id:唯一标示某条数据（自增长）
      */
     @TableId
@@ -115,7 +123,6 @@ public class SBranch implements Serializable {
      * H hot分支，修复生产bug，或开发紧急投产内容的分支
      * R release分支
      */
-    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
     private BranchType branchType;
 
     /**
@@ -139,9 +146,14 @@ public class SBranch implements Serializable {
     private String branchFor;
 
     /**
-     * 分支当前版本:分支的当前版本号
+     * 分支当前版本:分支的当前版本号,提交投放申请时保存此时版本号
      */
     private Integer currVersion;
+
+    /**
+     * 分支上次投产版本:对于环境分支，保存每次投产版本，对于工作分支，保存新建分支时的初始版本
+     */
+    private Integer lastVersion;
 
 }
 
