@@ -1,6 +1,10 @@
 package org.tis.senior.module.developer.controller;
 
+import lombok.Builder;
+import org.springframework.beans.BeanUtils;
+import org.tis.senior.module.developer.controller.request.BranchAddAndUpdateRequest;
 import org.tis.senior.module.developer.entity.SBranch;
+import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.service.ISBranchService;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.springframework.validation.annotation.Validated;
@@ -9,6 +13,10 @@ import org.tis.senior.module.core.web.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.hibernate.validator.constraints.NotBlank;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.groups.Default;
+import java.util.Date;
 
 /**
  * sBranch的Controller类
@@ -23,27 +31,35 @@ public class SBranchController extends BaseController<SBranch>  {
     @Autowired
     private ISBranchService sBranchService;
 
-    @PostMapping("/add")
-    public ResultVO add(@RequestBody @Validated SBranch sBranch) {
+    @PostMapping
+    public ResultVO add(@RequestBody @Validated({BranchAddAndUpdateRequest.add.class,Default.class})BranchAddAndUpdateRequest request) {
+        SSvnAccount user = getUser();
+        SBranch sBranch = new SBranch();
+        BeanUtils.copyProperties(request,sBranch);
+        sBranch.setCreater(user.getUserId());
+        sBranch.setCreateTime(new Date());
+        sBranch.setCurrVersion(request.getLastVersion());
         sBranchService.insert(sBranch);
         return ResultVO.success("新增成功！");
     }
     
     @PutMapping
-    public ResultVO update(@RequestBody @Validated SBranch sBranch) {
+    public ResultVO update(@RequestBody @Validated({BranchAddAndUpdateRequest.update.class})BranchAddAndUpdateRequest request) {
+        SBranch sBranch = new SBranch();
+        BeanUtils.copyProperties(request,sBranch);
         sBranchService.updateById(sBranch);
         return ResultVO.success("修改成功！");
     }
     
-    @DeleteMapping("/{id}")
-    public ResultVO delete(@PathVariable @NotBlank(message = "id不能为空") String id) {
-        sBranchService.deleteById(id);
+    @DeleteMapping("/{guid}")
+    public ResultVO delete(@PathVariable @NotNull(message = "guid不能为空") Integer guid) {
+        sBranchService.deleteBranchAndMapping(guid);
         return ResultVO.success("删除成功");
     }
     
-    @GetMapping("/{id}")
-    public ResultVO detail(@PathVariable @NotBlank(message = "id不能为空") String id) {
-        SBranch sBranch = sBranchService.selectById(id);
+    @GetMapping("/{guid}")
+    public ResultVO detail(@PathVariable @NotNull(message = "id不能为空") Integer guid) {
+        SBranch sBranch = sBranchService.selectById(guid);
         if (sBranchService == null) {
             return ResultVO.error("404", "找不到对应记录或已经被删除！");
         }
@@ -53,6 +69,11 @@ public class SBranchController extends BaseController<SBranch>  {
     @PostMapping("/list")
     public ResultVO list(@RequestBody @Validated SmartPage<SBranch> page) {
         return  ResultVO.success("查询成功", sBranchService.selectPage(getPage(page), getCondition(page)));
+    }
+
+    @GetMapping("/notAllot")
+    public ResultVO notAllot() {
+        return  ResultVO.success("查询成功", sBranchService.selectNotAllotBranch());
     }
     
 }

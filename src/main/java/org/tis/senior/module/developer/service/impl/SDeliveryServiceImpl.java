@@ -17,10 +17,7 @@ import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -108,6 +105,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
 
     }
 
+
     /**
      * 判断是否允许合并投放，返回合并申请信息集合
      *
@@ -136,6 +134,21 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         return sDeliveries;
     }
 
+    @Override
+    public List<String> selectDeliveryProName(String guidDelivery) {
+        List<String> projectNameList = new ArrayList<>();
+        SDelivery delivery = selectById(guidDelivery);
+
+        EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
+        deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY,delivery.getGuid());
+        List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListEntityWrapper);
+        Set<String> str = new HashSet<>();
+        for (SDeliveryList deliveryList:deliveryLists){
+            str.add(deliveryList.getPartOfProject());
+        }
+        projectNameList.addAll(str);
+        return projectNameList;
+    }
 
 }
 

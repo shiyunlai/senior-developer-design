@@ -2,13 +2,25 @@ package org.tis.senior.module.developer.service.impl;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.tis.senior.module.developer.controller.request.ProfileAndBranchAddRequest;
 import org.tis.senior.module.developer.dao.SProfilesMapper;
+import org.tis.senior.module.developer.entity.SBranch;
+import org.tis.senior.module.developer.entity.SBranchMapping;
 import org.tis.senior.module.developer.entity.SProfiles;
+import org.tis.senior.module.developer.entity.enums.BranchForWhat;
+import org.tis.senior.module.developer.entity.enums.BranchMappingStatus;
+import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
+import org.tis.senior.module.developer.exception.DeveloperException;
+import org.tis.senior.module.developer.service.ISBranchMappingService;
+import org.tis.senior.module.developer.service.ISBranchService;
 import org.tis.senior.module.developer.service.ISProfilesService;
 
 import javax.annotation.PostConstruct;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -23,6 +35,12 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
 
     private List<SProfiles> spList;
 
+    @Autowired
+    private ISBranchService branchService;
+
+    @Autowired
+    private ISBranchMappingService branchMappingService;
+
     @Override
     public List<SProfiles> selectProfilesAll() {
         return this.spList;
@@ -36,6 +54,51 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
             }
         }
         return null;
+    }
+
+    @Override
+    public void insertProfileAndBranch(ProfileAndBranchAddRequest request) {
+        SProfiles profiles = new SProfiles();
+        BeanUtils.copyProperties(request.getProfileAddRequest(),profiles);
+        profiles.setProfilesCode(profiles.getProfilesName());
+        profiles.setIsAllowDelivery(IsAllowDelivery.ALLOW);
+        insert(profiles);
+
+        SBranch branch = new SBranch();
+        BeanUtils.copyProperties(request.getBranchAddRequest(),branch);
+        branchService.insert(branch);
+
+        SBranchMapping branchMapping = new SBranchMapping();
+        branchMapping.setGuidBranch(branch.getGuid());
+        branchMapping.setForWhat(BranchForWhat.WORKITEM);
+        branchMapping.setGuidOfWhats(profiles.getGuid());
+        branchMapping.setAllotTime(new Date());
+        branchMapping.setStatus(BranchMappingStatus.TAKE);
+        branchMappingService.insert(branchMapping);
+    }
+
+    @Override
+    public void deleteProfileAndBranchMapping(Integer profileGuid) {
+
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,profileGuid);
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT, BranchForWhat.RELEASE);
+        List<SBranchMapping> sBranchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+        if (sBranchMappings.size() > 0) {
+            SBranchMapping sbm = sBranchMappings.get(0);
+
+            //删除对应的第三张关联表
+            branchMappingService.deleteById(sbm.getGuid());
+        }
+        //删除guid对应的运行环境对象
+        deleteById(profileGuid);
+    }
+
+    @Override
+    public void updateProfileStatus(Integer profileGuid) {
+        SProfiles profiles = selectById(profileGuid);
+        profiles.setIsAllowDelivery(IsAllowDelivery.NOTALLOW);
+        updateById(profiles);
     }
 
     /**

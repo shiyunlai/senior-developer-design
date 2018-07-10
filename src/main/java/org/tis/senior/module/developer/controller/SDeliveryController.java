@@ -81,6 +81,17 @@ public class SDeliveryController extends BaseController<SDelivery>  {
         return ResultVO.success("申请合并投放成功！");
     }
 
+    /**
+     * 查询一条投放申请中的工程名
+     * @param guidDelivery
+     * @return
+     */
+    @GetMapping("/{guidDelivery}/projectName")
+    public ResultVO projectName(@PathVariable @NotBlank(message = "id不能为空") String guidDelivery){
+
+        return ResultVO.success("查询成功",sDeliveryService.selectDeliveryProName(guidDelivery));
+    }
+
 
     
 }
