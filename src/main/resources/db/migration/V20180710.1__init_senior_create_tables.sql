@@ -4,19 +4,17 @@ SET SESSION FOREIGN_KEY_CHECKS=0;
 
 DROP TABLE IF EXISTS s_branch_mapping;
 DROP TABLE IF EXISTS s_branch;
+DROP TABLE IF EXISTS s_check_list;
+DROP TABLE IF EXISTS s_check;
 DROP TABLE IF EXISTS s_delivery_list;
-DROP TABLE IF EXISTS s_merge_list;
 DROP TABLE IF EXISTS s_patch;
 DROP TABLE IF EXISTS s_delivery;
 DROP TABLE IF EXISTS s_notice;
 DROP TABLE IF EXISTS s_profiles;
 DROP TABLE IF EXISTS s_project;
+DROP TABLE IF EXISTS s_standard_list;
 DROP TABLE IF EXISTS s_svn_account;
 DROP TABLE IF EXISTS s_workitem;
--- 程序文件
-DROP TABLE IF EXISTS s_program;
--- 代码提交历史
-DROP TABLE IF EXISTS s_program_commit;
 
 
 
@@ -25,8 +23,7 @@ DROP TABLE IF EXISTS s_program_commit;
 
 -- 分支 : 开发分支
 -- 1、某个工作项对应唯一的开发分支
--- 2、某个环境根据需要可以更换分支（如：SIT曾经使用过3个分支）
---
+-- 2、某个环境根据需要可以更换分支（如：SIT曾经使用过3个分支
 CREATE TABLE s_branch
 (
 	-- 唯一标示某条数据（自增长）
@@ -46,12 +43,13 @@ R release分支',
 	branch_for varchar(1024) NOT NULL COMMENT '分支作用说明 : 创建这个分支的目的说明',
 	-- 分支的当前版本号
 	curr_version int(8) NOT NULL COMMENT '分支当前版本 : 分支的当前版本号',
+	-- 对于环境分支，保存每次投产版本，对于工作分支，保存新建分支时的初始版本
+	last_version int(8) COMMENT '分支上次投产版本 : 对于环境分支，保存每次投产版本，对于工作分支，保存新建分支时的初始版本',
 	PRIMARY KEY (guid),
 	UNIQUE (guid)
 ) COMMENT = '分支 : 开发分支
 1、某个工作项对应唯一的开发分支
-2、某个环境根据需要可以更换分支（如：SIT曾经使用过3个分支）
-';
+2、某个环境根据需要可以更换分支（如：SIT曾经使用过3个分支';
 
 
 -- 分支用途对照 : 记录了分支与开发目的之间的对应关系
@@ -80,8 +78,73 @@ R   为运行环境发版（Release）',
 每次指定记录为一条记录';
 
 
+-- 投产核对
+CREATE TABLE s_check
+(
+	-- 唯一标示某条数据（自增长）
+	guid int(11) NOT NULL COMMENT '数据id : 唯一标示某条数据（自增长）',
+	-- 每次核对后由服务端生成，如201806270900第一次核对，日期+窗口+第N次核对
+	check_alias varchar(256) NOT NULL COMMENT '核对别名 : 每次核对后由服务端生成，如201806270900第一次核对，日期+窗口+第N次核对',
+	-- 唯一标示某条数据（自增长）
+	guid_profiles int(11) NOT NULL COMMENT '运行环境GUID : 唯一标示某条数据（自增长）',
+	delivery_time timestamp NOT NULL COMMENT '投放时间',
+	pack_timing varchar(64) NOT NULL COMMENT '打包窗口',
+	check_date timestamp NOT NULL COMMENT '核对时间',
+	-- F 核对错误
+	-- S 核对成功
+	check_status char NOT NULL COMMENT '核对状态 : F 核对错误
+S 核对成功',
+	check_user varchar(32) NOT NULL COMMENT '核对人员',
+	PRIMARY KEY (guid),
+	UNIQUE (guid)
+) COMMENT = '投产核对';
+
+
+-- 核查代码清单 : 核对异常的代码清单，包括申请清单和发版清单
+CREATE TABLE s_check_list
+(
+	-- 唯一标示某条数据（自增长）
+	guid int(11) NOT NULL AUTO_INCREMENT COMMENT '数据id : 唯一标示某条数据（自增长）',
+	-- 唯一标示某条数据（自增长）
+	guid_check int(11) NOT NULL COMMENT '核对GUID : 唯一标示某条数据（自增长）',
+	-- D 申请清单异常
+	-- M 合并清单异常
+	error_type char NOT NULL COMMENT '错误类型 : D 申请清单异常
+M 合并清单异常',
+	-- 冗余设计
+	program_name varchar(256) NOT NULL COMMENT '程序名称 : 冗余设计',
+	full_path varchar(1024) NOT NULL COMMENT '代码全路径',
+	-- 记录该代码所在的工程名称（s_project.project_name）
+	-- 冗余设计
+	part_of_project varchar(256) NOT NULL COMMENT '代码所在工程 : 记录该代码所在的工程名称（s_project.project_name）
+冗余设计',
+	-- A  新增 Add
+	-- U  修改 Update
+	-- D  删除 Delete
+	--
+	--
+	commit_type char NOT NULL COMMENT '操作类型 : A  新增 Add
+U  修改 Update
+D  删除 Delete
+
+',
+	-- 合并后的代码都需要开发人员进行确认
+	-- 0 待确认
+	-- 1 确认
+	-- 2 有异议（代码合并有问题，需要线下手工处理）
+	confirm_status char NOT NULL COMMENT '确认状态 : 合并后的代码都需要开发人员进行确认
+0 待确认
+1 确认
+2 有异议（代码合并有问题，需要线下手工处理）',
+	-- 对应投产代码ID
+	guid_delivery int(11) COMMENT '投产代码GUID : 对应投产代码ID',
+	PRIMARY KEY (guid),
+	UNIQUE (guid)
+) COMMENT = '核查代码清单 : 核对异常的代码清单，包括申请清单和发版清单';
+
+
 -- 投放申请 : 记录某个工作项的投放记录
--- 每次投放唯一对应一个投放申请（不对申请重复处理，但是可以提供 复制投放申请功能）
+-- 每次投放唯一对应一个投放申请（不对申请重复处理，但是可以提供 复制投放申请功能
 CREATE TABLE s_delivery
 (
 	-- 唯一标示某条数据（自增长）
@@ -92,11 +155,15 @@ CREATE TABLE s_delivery
 	guid_workitem int(11) NOT NULL COMMENT '工作项GUID : 投放了那个功能',
 	-- 投放到了哪个环境
 	guid_profiles int(11) NOT NULL COMMENT '运行环境GUID : 投放到了哪个环境',
+	-- G 普通申请
+	-- M 合并申请
+	delivery_type char(1) NOT NULL COMMENT '投放类型 : G 普通申请
+M 合并申请',
 	-- 提出投放申请的开发人员
 	proposer varchar(32) NOT NULL COMMENT '投放申请人 : 提出投放申请的开发人员',
 	apply_time timestamp NOT NULL COMMENT '提出申请时间',
 	-- 对投放结果的说明，如：因为合并代码与申请中投放代码数量不符，RCT投放失败，此处说明该原因
-	delivery_desc varchar(1024) NOT NULL COMMENT '投放说明 : 对投放结果的说明，如：因为合并代码与申请中投放代码数量不符，RCT投放失败，此处说明该原因',
+	delivery_desc varchar(1024) COMMENT '投放说明 : 对投放结果的说明，如：因为合并代码与申请中投放代码数量不符，RCT投放失败，此处说明该原因',
 	-- 谁处理了这个投放申请，一般记录RCT小组成员
 	deliver varchar(32) COMMENT '投放处理人 : 谁处理了这个投放申请，一般记录RCT小组成员',
 	-- 本环境对应的打包窗口时间，用业务字典来实现
@@ -114,10 +181,12 @@ S 成功
 F 失败
 C 取消投放（功能没有投放）
 ',
+	-- 合并投放申请的id集合，以，分割
+	merge_list varchar(512) COMMENT '合并清单 : 合并投放申请的id集合，以，分割',
 	PRIMARY KEY (guid),
 	UNIQUE (guid)
 ) COMMENT = '投放申请 : 记录某个工作项的投放记录
-每次投放唯一对应一个投放申请（不对申请重复处理，但是可以提供 复制投放申请功能）';
+每次投放唯一对应一个投放申请（不对申请重复处理，但是可以提供 复制投放申请功能';
 
 
 -- 投产代码清单 : （开发人员提出）投放申请，其中包括哪些程序文件
@@ -131,14 +200,6 @@ CREATE TABLE s_delivery_list
 ',
 	-- 记录程序名称
 	program_name varchar(256) NOT NULL COMMENT '程序名称 : 记录程序名称',
-	-- 分支创建好时的版本
-	start_version int(8) NOT NULL COMMENT '起始版本 : 分支创建好时的版本',
-	-- 经过开发后的当前版本
-	curr_version int(8) NOT NULL COMMENT '当前最新版本 : 经过开发后的当前版本',
-	-- 投放时该代码的svn版本
-	-- 可以投当前版本，也可以投开发过程中的某个版本
-	delivery_version int(8) NOT NULL COMMENT '投放版本 : 投放时该代码的svn版本
-可以投当前版本，也可以投开发过程中的某个版本',
 	-- JAR 输出为jar包
 	-- ECD 输出为ecd包
 	-- EPD 输出为epd
@@ -149,62 +210,18 @@ ECD 输出为ecd包
 EPD 输出为epd
 CFG 作为配置文件
 DBV 作为数据库脚本（SQL、DDL等数据库版本脚本）',
+	deploy_where varchar(256) NOT NULL COMMENT '部署到',
 	-- 冗余设计
-	full_path varchar(1024) COMMENT '代码全路径 : 冗余设计',
+	full_path varchar(1024) NOT NULL COMMENT '代码全路径 : 冗余设计',
 	-- 记录该代码所在的工程名称（s_project.project_name）
 	-- 冗余设计
-	part_of_project varchar(256) COMMENT '代码所在工程 : 记录该代码所在的工程名称（s_project.project_name）
+	part_of_project varchar(256) NOT NULL COMMENT '代码所在工程 : 记录该代码所在的工程名称（s_project.project_name）
 冗余设计',
+	-- 提交类型
+	commit_type char NOT NULL COMMENT '提交类型 : 提交类型',
 	PRIMARY KEY (guid),
 	UNIQUE (guid)
 ) COMMENT = '投产代码清单 : （开发人员提出）投放申请，其中包括哪些程序文件';
-
-
--- 合并代码清单 : （RCT人员合并开发分支）其中合并了哪些程序文件
-CREATE TABLE s_merge_list
-(
-	-- 唯一标示某条数据（自增长）
-	guid int(11) NOT NULL AUTO_INCREMENT COMMENT '数据id : 唯一标示某条数据（自增长）',
-	-- 唯一标示某条数据（自增长）
-	guid_delivery int(11) NOT NULL COMMENT '投放申请GUID : 唯一标示某条数据（自增长）',
-	-- 来源分支
-	guid_from_branch int(11) NOT NULL COMMENT '被合并分支 : 来源分支',
-	-- 冗余字段，减少查询关联
-	from_branch_path varchar(128) COMMENT '被合并分支路径 : 冗余字段，减少查询关联',
-	-- 代码合并入分支
-	guid_to_branch int(11) NOT NULL COMMENT '接收合并分支 : 代码合并入分支',
-	-- 冗余字段，减少查询关联
-	to_branch_path varchar(128) COMMENT '接受合并分支路径 : 冗余字段，减少查询关联',
-	-- 冗余设计
-	program_name varchar(256) NOT NULL COMMENT '程序名称 : 冗余设计',
-	-- 记录开发人员的svn账号
-	developer varchar(64) NOT NULL COMMENT '开发人员 : 记录开发人员的svn账号',
-	merge_time timestamp NOT NULL COMMENT '合并时间',
-	-- A  新增 Add
-	-- U  修改 Update
-	-- D  删除 Delete
-	--
-	--
-	merge_operator char(1) NOT NULL COMMENT '合并操作类型 : A  新增 Add
-U  修改 Update
-D  删除 Delete
-
-',
-	-- 记录代码在合并前的历史版本号（svn版本号）
-	old_version int(8) NOT NULL COMMENT '提交前代码版本 : 记录代码在合并前的历史版本号（svn版本号）',
-	-- 合并成功后，代码的新版本号
-	new_version int(8) NOT NULL COMMENT '提交后新版本号 : 合并成功后，代码的新版本号',
-	-- 合并后的代码都需要开发人员进行确认
-	-- 0 待确认
-	-- 1 确认
-	-- 2 有异议（代码合并有问题，需要线下手工处理）
-	developer_confirm char(1) NOT NULL COMMENT '开发确认 : 合并后的代码都需要开发人员进行确认
-0 待确认
-1 确认
-2 有异议（代码合并有问题，需要线下手工处理）',
-	PRIMARY KEY (guid),
-	UNIQUE (guid)
-) COMMENT = '合并代码清单 : （RCT人员合并开发分支）其中合并了哪些程序文件';
 
 
 -- 通知记录 : 记录开发过程中，各工作项流转过程中的各种通知记录
@@ -283,7 +300,7 @@ CREATE TABLE s_profiles
 	-- 唯一标示某条数据（自增长）
 	guid int(11) NOT NULL AUTO_INCREMENT COMMENT '数据id : 唯一标示某条数据（自增长）',
 	-- 建议大写字母，如：:SIT、SIT_DEV、UAT
-	profiles_code varchar(8) NOT NULL COMMENT '环境代码 : 建议大写字母，如：:SIT、SIT_DEV、UAT',
+	profiles_code varchar(16) NOT NULL COMMENT '环境代码 : 建议大写字母，如：:SIT、SIT_DEV、UAT',
 	profiles_name varchar(64) NOT NULL COMMENT '环境名称',
 	-- 环境对应的服务器IP地址
 	host_ip varchar(64) NOT NULL COMMENT '主机ip : 环境对应的服务器IP地址',
@@ -317,17 +334,46 @@ CREATE TABLE s_project
 	--
 	project_name varchar(256) NOT NULL COMMENT '工程名称 :
 ',
-	-- 该工程以什么样的形式部署到系统中
-	-- 如： jar、war、ecd、epd
-	deploy_type char(8) NOT NULL COMMENT '部署类型 : 该工程以什么样的形式部署到系统中
-如： jar、war、ecd、epd',
+	project_type char NOT NULL COMMENT '工程类型',
 	-- 该工程可以部署到哪些子系统
 	-- 用json的方式存储，前端解析后，提供多选
-	deploy_where varchar(512) NOT NULL COMMENT '部署到哪里 : 该工程可以部署到哪些子系统
+	deploy_config varchar(1024) NOT NULL COMMENT '部署配置 : 该工程可以部署到哪些子系统
 用json的方式存储，前端解析后，提供多选',
 	PRIMARY KEY (guid),
 	UNIQUE (guid)
 ) COMMENT = '工程 : 记录了TIP中所有的工程，以及布丁形式，和可部署的位置信息';
+
+
+-- 标准清单
+CREATE TABLE s_standard_list
+(
+	-- 唯一标示某条数据（自增长）
+	guid int(11) NOT NULL AUTO_INCREMENT COMMENT '数据id : 唯一标示某条数据（自增长）',
+	-- 唯一标示某条数据（自增长）
+	guid_workitem int(11) NOT NULL COMMENT '工作项GUID : 唯一标示某条数据（自增长）',
+	-- 冗余设计
+	program_name varchar(256) NOT NULL COMMENT '程序名称 : 冗余设计',
+	-- JAR 输出为jar包
+	-- ECD 输出为ecd包
+	-- EPD 输出为epd
+	-- CFG 作为配置文件
+	-- DBV 作为数据库脚本（SQL、DDL等数据库版本脚本）
+	patch_type char(8) NOT NULL COMMENT '补丁类型 : JAR 输出为jar包
+ECD 输出为ecd包
+EPD 输出为epd
+CFG 作为配置文件
+DBV 作为数据库脚本（SQL、DDL等数据库版本脚本）',
+	deploy_where varchar(256) NOT NULL COMMENT '部署到',
+	full_path varchar(1024) NOT NULL COMMENT '代码全路径',
+	-- 记录该代码所在的工程名称（s_project.project_name）
+	-- 冗余设计
+	part_of_project varchar(256) NOT NULL COMMENT '代码所在工程 : 记录该代码所在的工程名称（s_project.project_name）
+冗余设计',
+	-- 提交类型
+	commit_type char NOT NULL COMMENT '提交类型 : 提交类型',
+	PRIMARY KEY (guid),
+	UNIQUE (guid)
+) COMMENT = '标准清单';
 
 
 -- svn账号
@@ -388,15 +434,15 @@ ALTER TABLE s_branch_mapping
 ;
 
 
-ALTER TABLE s_delivery_list
-	ADD FOREIGN KEY (guid_delivery)
-	REFERENCES s_delivery (guid)
+ALTER TABLE s_check_list
+	ADD FOREIGN KEY (guid_check)
+	REFERENCES s_check (guid)
 	ON UPDATE RESTRICT
 	ON DELETE RESTRICT
 ;
 
 
-ALTER TABLE s_merge_list
+ALTER TABLE s_delivery_list
 	ADD FOREIGN KEY (guid_delivery)
 	REFERENCES s_delivery (guid)
 	ON UPDATE RESTRICT
@@ -412,6 +458,14 @@ ALTER TABLE s_patch
 ;
 
 
+ALTER TABLE s_check
+	ADD FOREIGN KEY (guid_profiles)
+	REFERENCES s_profiles (guid)
+	ON UPDATE RESTRICT
+	ON DELETE RESTRICT
+;
+
+
 ALTER TABLE s_delivery
 	ADD FOREIGN KEY (guid_profiles)
 	REFERENCES s_profiles (guid)
@@ -421,6 +475,14 @@ ALTER TABLE s_delivery
 
 
 ALTER TABLE s_delivery
+	ADD FOREIGN KEY (guid_workitem)
+	REFERENCES s_workitem (guid)
+	ON UPDATE RESTRICT
+	ON DELETE RESTRICT
+;
+
+
+ALTER TABLE s_standard_list
 	ADD FOREIGN KEY (guid_workitem)
 	REFERENCES s_workitem (guid)
 	ON UPDATE RESTRICT
