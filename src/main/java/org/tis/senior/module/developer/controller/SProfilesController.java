@@ -29,7 +29,7 @@ public class SProfilesController extends BaseController<SProfiles>  {
     @Autowired
     private ISProfilesService sProfilesService;
 
-    @PostMapping("/add")
+    @PostMapping
     public ResultVO add(@RequestBody @Validated({ProfileAddAndUpdateRequest.add.class, Default.class}) ProfileAddAndUpdateRequest request) {
         SProfiles sProfiles = new SProfiles();
         BeanUtils.copyProperties(request,sProfiles);
