@@ -1,1 +1,0 @@
-ALTER TABLE s_profiles MODIFY profiles_code varchar(16) NOT NULL COMMENT '环境代码 : 建议大写字母，如：:SIT、SIT_DEV、UAT';
