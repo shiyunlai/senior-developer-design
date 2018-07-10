@@ -64,7 +64,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
                 collect(Collectors.toMap(SProject::getProjectName, p -> p));
 
-        List<SvnFile> svnCommits = svnKitService.getDiffStatus(branch.getFullPath(), branch.getCurrVersion().toString());
+        List<SvnFile> svnCommits = svnKitService.getBranchDiffStatus(branch.getFullPath(), branch.getCurrVersion().toString());
         if (svnCommits.size() < 1) {
             throw new DeveloperException("该清单已被整理或没有最新的提交记录!");
         }

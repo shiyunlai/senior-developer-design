@@ -30,7 +30,7 @@ public interface ISSvnKitService {
      * @param startRevision 起始版本号
      * @return
      */
-    List<SvnFile> getDirDiffStatus(String url, String startRevision) throws SVNException;
+    List<SvnFile> getBranchDiffStatus(String url, String startRevision) throws SVNException;
 
     /**
      * 获取最新版本
