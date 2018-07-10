@@ -1,10 +1,13 @@
 package org.tis.senior.module.developer.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableName;
 import java.util.Date;
 import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
 import lombok.Value;
+import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
+import org.tis.senior.module.developer.entity.enums.ItemStatus;
 
 import java.io.Serializable;
 
@@ -195,7 +198,8 @@ public class SWorkitem implements Serializable {
      * 1 已投产 （ 不能再提交投放申请）
      * 2 已取消 （新建后，不再使用）
      */
-    private String itemStatus;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private ItemStatus itemStatus;
 
 }
 

@@ -2,18 +2,26 @@ package org.tis.senior.module.developer.service.impl;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRequest;
+import org.tis.senior.module.developer.controller.request.WorkitemAndBranchAddRequest;
 import org.tis.senior.module.developer.dao.SWorkitemMapper;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SBranchMapping;
+import org.tis.senior.module.developer.entity.SProfiles;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import org.tis.senior.module.developer.entity.enums.BranchForWhat;
+import org.tis.senior.module.developer.entity.enums.BranchMappingStatus;
+import org.tis.senior.module.developer.entity.enums.ItemStatus;
+import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISBranchMappingService;
 import org.tis.senior.module.developer.service.ISBranchService;
 import org.tis.senior.module.developer.service.ISWorkitemService;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,8 +48,8 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
     public List<SWorkitem> selectWorkitemByUser(String userId) {
 
         EntityWrapper<SWorkitem> sWorkitemEntityWrapper = new EntityWrapper<>();
-        sWorkitemEntityWrapper.like(SWorkitem.COLUMN_DEVELOPERS,userId);
-        sWorkitemEntityWrapper.eq(SWorkitem.COLUMN_ITEM_STATUS,"0");
+        sWorkitemEntityWrapper.like(SWorkitem.COLUMN_OWNER,userId);
+        sWorkitemEntityWrapper.eq(SWorkitem.COLUMN_ITEM_STATUS,ItemStatus.DEVELOP);
         List<SWorkitem> swList = selectList(sWorkitemEntityWrapper);
         return swList;
     }
@@ -72,6 +80,60 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         workitem = selectById(workitemId);
         this.workitems.put(workitem.getGuid().toString(),workitem);
         return workitem;
+    }
+
+    @Override
+    public void insertWorkitemAndBranch(WorkitemAndBranchAddRequest request) {
+
+        SWorkitem workitem = new SWorkitem();
+        BeanUtils.copyProperties(request.getWorkitemUpdateRequest(),workitem);
+        workitem.setItemStatus(ItemStatus.DEVELOP);
+        insert(workitem);
+
+        SBranch branch = new SBranch();
+        BeanUtils.copyProperties(request.getBranchAddRequest(),branch);
+        branchService.insert(branch);
+
+        SBranchMapping branchMapping = new SBranchMapping();
+        branchMapping.setGuidBranch(branch.getGuid());
+        branchMapping.setForWhat(BranchForWhat.WORKITEM);
+        branchMapping.setGuidOfWhats(workitem.getGuid());
+        branchMapping.setAllotTime(new Date());
+        branchMapping.setStatus(BranchMappingStatus.TAKE);
+        branchMappingService.insert(branchMapping);
+    }
+
+    @Override
+    public void insertWorkitemAndBranchMapping(WorkitemAddAndUpdateRequest request, Integer guidBranch) {
+        SWorkitem workitem = new SWorkitem();
+        BeanUtils.copyProperties(request,workitem);
+        workitem.setItemStatus(ItemStatus.DEVELOP);
+        insert(workitem);
+
+        SBranchMapping branchMapping = new SBranchMapping();
+        branchMapping.setGuidBranch(guidBranch);
+        branchMapping.setForWhat(BranchForWhat.WORKITEM);
+        branchMapping.setGuidOfWhats(workitem.getGuid());
+        branchMapping.setAllotTime(new Date());
+        branchMapping.setStatus(BranchMappingStatus.TAKE);
+        branchMappingService.insert(branchMapping);
+    }
+
+    @Override
+    public void deleteWorkitemAndBranchMapping(Integer guidWorkitem) {
+
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,guidWorkitem);
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT, BranchForWhat.WORKITEM);
+        List<SBranchMapping> sBranchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+        if (sBranchMappings.size() > 0) {
+            SBranchMapping sbm = sBranchMappings.get(0);
+
+            //删除对应的第三张关联表
+            branchMappingService.deleteById(sbm.getGuid());
+        }
+        //删除guid对应的工作项
+        deleteById(guidWorkitem);
     }
 
 }

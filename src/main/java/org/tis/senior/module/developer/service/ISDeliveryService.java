@@ -5,6 +5,8 @@ import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 
+import java.util.List;
+
 /**
  * sDelivery的Service接口类
  * 
@@ -27,6 +29,13 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      * @param userId
      */
     void mergeDeliver(MergeDeliveryRequest mergeDelivery, String userId);
+
+    /**
+     * 查询一条投放申请中的工程名
+     * @param guidDelivery
+     * @return
+     */
+    List<String> selectDeliveryProName(String guidDelivery);
 
 }
 

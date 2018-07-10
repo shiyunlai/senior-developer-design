@@ -1,8 +1,12 @@
 package org.tis.senior.module.developer.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
+import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
+import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
+
 import java.io.Serializable;
 
 /**
@@ -166,7 +170,8 @@ public class SProfiles implements Serializable {
      * 1 允许向本环境提交投放申请
      * 0 不允许
      */
-    private String isAllowDelivery;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private IsAllowDelivery isAllowDelivery;
 
     /**
      * 环境管理人员
