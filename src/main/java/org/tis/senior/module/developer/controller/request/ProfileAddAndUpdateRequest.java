@@ -39,9 +39,4 @@ public class ProfileAddAndUpdateRequest {
 
     @NotBlank(message = "运行环境的打包窗口不能空")
     private String packTiming;
-
-    @Null(message = "分支的是否允许投放必须为空！", groups = {ProfileAddAndUpdateRequest.add.class})
-    @NotNull(message = "分支的是否允许投放不能为空！", groups = {ProfileAddAndUpdateRequest.update.class})
-    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
-    private IsAllowDelivery isAllowDelivery;
 }

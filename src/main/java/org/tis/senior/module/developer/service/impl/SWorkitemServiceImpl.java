@@ -115,7 +115,7 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH,guidBranch);
         List<SBranchMapping> sbmList = branchMappingService.selectList(branchMappingEntityWrapper);
         if(sbmList.size() > 0){
-            throw new DeveloperException("次分支已被指配，请重新选择分支！");
+            throw new DeveloperException("此分支已被指配，请重新选择分支！");
         }
 
         SBranchMapping branchMapping = new SBranchMapping();
@@ -163,6 +163,31 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
             request.setBranch(branch);
         }
         return request;
+    }
+
+    @Override
+    public void workitemRelevanceBranch(Integer guidWorkitem, Integer guidBranch) {
+
+        SBranchMapping branchMapping = new SBranchMapping();
+        branchMapping.setGuidBranch(guidBranch);
+        branchMapping.setForWhat(BranchForWhat.WORKITEM);
+        branchMapping.setGuidOfWhats(guidWorkitem);
+        branchMapping.setAllotTime(new Date());
+        branchMapping.setStatus(BranchMappingStatus.TAKE);
+        branchMappingService.insert(branchMapping);
+    }
+
+    @Override
+    public void workitemCancelBranch(Integer guidWorkitem) {
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,guidWorkitem);
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
+        List<SBranchMapping> sbmList = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(sbmList.size() != 1){
+            throw new DeveloperException("此工作项没有分配分支！");
+        }
+        SBranchMapping branchMapping = sbmList.get(0);
+        branchMappingService.deleteById(branchMapping.getGuid());
     }
 
 }

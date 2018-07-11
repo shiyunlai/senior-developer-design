@@ -9,6 +9,7 @@ import org.tis.senior.module.core.web.controller.BaseController;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.ProfileAddAndUpdateRequest;
+import org.tis.senior.module.developer.controller.request.ProfileUpdateStatusRequest;
 import org.tis.senior.module.developer.entity.SProfiles;
 import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
 import org.tis.senior.module.developer.service.ISProfilesService;
@@ -34,6 +35,7 @@ public class SProfilesController extends BaseController<SProfiles>  {
     public ResultVO add(@RequestBody @Validated({ProfileAddAndUpdateRequest.add.class, Default.class}) ProfileAddAndUpdateRequest request) {
         SProfiles sProfiles = new SProfiles();
         BeanUtils.copyProperties(request,sProfiles);
+        sProfiles.setProfilesCode(sProfiles.getProfilesName());
         sProfiles.setIsAllowDelivery(IsAllowDelivery.ALLOW);
         sProfilesService.insert(sProfiles);
         return ResultVO.success("新增成功！");
@@ -84,13 +86,37 @@ public class SProfilesController extends BaseController<SProfiles>  {
     }
 
     /**
-     * 修改运行环境状态为不允许投放
-     * @param profileGuid
+     * 修改运行环境状态
+     * @param request
      */
-    @PutMapping("/{profileGuid}/status")
-    public ResultVO updateStatus(@PathVariable @NotNull(message = "id不能为空") Integer profileGuid){
-        sProfilesService.updateProfileStatus(profileGuid);
+    @PutMapping("/status")
+    public ResultVO updateStatus(@RequestBody @Validated ProfileUpdateStatusRequest request){
+        sProfilesService.updateProfileStatus(request.getGuid(), request.getIsAllowDelivery());
         return ResultVO.success("修改成功！");
+    }
+
+    /**
+     * 关联分支
+     * @param profileGuid
+     * @param guidBranch
+     * @return
+     */
+    @GetMapping("/{profileGuid}/branch/{guidBranch}")
+    public ResultVO relevanceBranch(@PathVariable @NotNull(message = "工作项guid不能为空")Integer profileGuid,
+                                    @PathVariable @NotNull(message = "分支guid不能为空")Integer guidBranch){
+        sProfilesService.profileRelevanceBranch(profileGuid,guidBranch);
+        return ResultVO.success("关联成功！");
+    }
+
+    /**
+     * 取消关联分支
+     * @param profileGuid
+     * @return
+     */
+    @GetMapping("/{profileGuid}/cancel")
+    public ResultVO cancelBranch(@PathVariable @NotNull(message = "工作项id不能为空")Integer profileGuid){
+        sProfilesService.profileCancelBranch(profileGuid);
+        return ResultVO.success("取消分支成功！");
     }
 }
 
