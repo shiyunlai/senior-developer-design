@@ -4,6 +4,7 @@ import org.springframework.beans.BeanUtils;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRequest;
 import org.tis.senior.module.developer.entity.SBranch;
+import org.tis.senior.module.developer.entity.SBranchMapping;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import org.springframework.validation.annotation.Validated;
@@ -27,21 +28,24 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/sWorkitem")
+@Validated
 public class SWorkitemController extends BaseController<SWorkitem>  {
 
     @Autowired
     private ISWorkitemService sWorkitemService;
 
 
-    @PostMapping("/branch/{guidBranch}")
-    public ResultVO add(@PathVariable @NotNull(message = "guid不能为空") Integer guidBranch,
-            @RequestBody @Validated({WorkitemAddAndUpdateRequest.add.class, Default.class}) WorkitemAddAndUpdateRequest request) {
-        sWorkitemService.insertWorkitemAndBranchMapping(request,guidBranch);
+    @PostMapping
+    public ResultVO add(@RequestBody @Validated({WorkitemAddAndUpdateRequest.add.class, Default.class}) WorkitemAddAndUpdateRequest request) {
+        SWorkitem workitem = new SWorkitem();
+        BeanUtils.copyProperties(request,workitem);
+        workitem.setItemStatus(ItemStatus.DEVELOP);
+        sWorkitemService.insert(workitem);
         return ResultVO.success("新增成功！");
     }
     
     @PutMapping
-    public ResultVO update(@RequestBody @Validated({WorkitemAddAndUpdateRequest.update.class}) WorkitemAddAndUpdateRequest request) {
+    public ResultVO update(@RequestBody @Validated({WorkitemAddAndUpdateRequest.update.class, Default.class}) WorkitemAddAndUpdateRequest request) {
         SWorkitem sWorkitem = new SWorkitem();
         BeanUtils.copyProperties(request,sWorkitem);
         sWorkitemService.updateById(sWorkitem);
@@ -54,13 +58,13 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
         return ResultVO.success("删除成功");
     }
     
-    @GetMapping("/{guid}")
-    public ResultVO detail(@PathVariable @NotNull(message = "id不能为空") Integer guid) {
-        SWorkitem sWorkitem = sWorkitemService.selectById(guid);
-        if (sWorkitemService == null) {
+    @GetMapping("/{guidWorkitem}")
+    public ResultVO detail(@PathVariable @NotNull(message = "id不能为空") Integer guidWorkitem) {
+        SWorkitem workitem = sWorkitemService.selectById(guidWorkitem);
+        if (workitem == null) {
             return ResultVO.error("404", "找不到对应记录或已经被删除！");
         }
-        return ResultVO.success("查询成功", sWorkitem);
+        return ResultVO.success("查询成功", workitem);
     }
     
     @PostMapping("/list")

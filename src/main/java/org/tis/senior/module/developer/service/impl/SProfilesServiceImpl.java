@@ -6,6 +6,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.tis.senior.module.developer.controller.request.ProfileAddAndUpdateRequest;
 import org.tis.senior.module.developer.controller.request.ProfileAndBranchAddRequest;
 import org.tis.senior.module.developer.dao.SProfilesMapper;
 import org.tis.senior.module.developer.entity.SBranch;
@@ -99,6 +100,28 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         SProfiles profiles = selectById(profileGuid);
         profiles.setIsAllowDelivery(IsAllowDelivery.NOTALLOW);
         updateById(profiles);
+    }
+
+    @Override
+    public void insertProfileBranchMapping(ProfileAddAndUpdateRequest request, Integer guidBranch) {
+        SProfiles sProfiles = new SProfiles();
+        BeanUtils.copyProperties(request,sProfiles);
+        sProfiles.setIsAllowDelivery(IsAllowDelivery.ALLOW);
+        insert(sProfiles);
+
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH,guidBranch);
+        List<SBranchMapping> sbmList = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(sbmList.size() > 0){
+            throw new DeveloperException("次分支已被指配，请重新选择分支！");
+        }
+        SBranchMapping branchMapping = new SBranchMapping();
+        branchMapping.setGuidBranch(guidBranch);
+        branchMapping.setForWhat(BranchForWhat.RELEASE);
+        branchMapping.setGuidOfWhats(sProfiles.getGuid());
+        branchMapping.setAllotTime(new Date());
+        branchMapping.setStatus(BranchMappingStatus.TAKE);
+        branchMappingService.insert(branchMapping);
     }
 
     /**

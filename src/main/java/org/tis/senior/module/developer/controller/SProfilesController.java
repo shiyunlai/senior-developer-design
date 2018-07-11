@@ -24,6 +24,7 @@ import javax.validation.groups.Default;
  */
 @RestController
 @RequestMapping("/sProfiles")
+@Validated
 public class SProfilesController extends BaseController<SProfiles>  {
 
     @Autowired
@@ -39,7 +40,7 @@ public class SProfilesController extends BaseController<SProfiles>  {
     }
     
     @PutMapping
-    public ResultVO update(@RequestBody @Validated({ProfileAddAndUpdateRequest.update.class}) ProfileAddAndUpdateRequest request) {
+    public ResultVO update(@RequestBody @Validated({ProfileAddAndUpdateRequest.update.class, Default.class}) ProfileAddAndUpdateRequest request) {
         SProfiles sProfiles = new SProfiles();
         BeanUtils.copyProperties(request,sProfiles);
         sProfiles.setProfilesCode(sProfiles.getProfilesName());

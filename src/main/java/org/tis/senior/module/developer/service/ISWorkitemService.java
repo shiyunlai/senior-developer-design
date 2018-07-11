@@ -2,6 +2,7 @@ package org.tis.senior.module.developer.service;
 
 import org.tis.senior.module.developer.controller.request.WorkitemAndBranchAddRequest;
 import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRequest;
+import org.tis.senior.module.developer.controller.request.WorkitemBranchDetailRequest;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import com.baomidou.mybatisplus.service.IService;
@@ -43,5 +44,7 @@ public interface ISWorkitemService extends IService<SWorkitem>  {
     void insertWorkitemAndBranchMapping(WorkitemAddAndUpdateRequest request,Integer guidBranch);
 
     void deleteWorkitemAndBranchMapping(Integer guidWorkitem);
+
+    WorkitemBranchDetailRequest workitemDetail(Integer guidWorkitem);
 }
 

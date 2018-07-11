@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRequest;
 import org.tis.senior.module.developer.controller.request.WorkitemAndBranchAddRequest;
+import org.tis.senior.module.developer.controller.request.WorkitemBranchDetailRequest;
 import org.tis.senior.module.developer.dao.SWorkitemMapper;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SBranchMapping;
@@ -110,6 +111,13 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         workitem.setItemStatus(ItemStatus.DEVELOP);
         insert(workitem);
 
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH,guidBranch);
+        List<SBranchMapping> sbmList = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(sbmList.size() > 0){
+            throw new DeveloperException("次分支已被指配，请重新选择分支！");
+        }
+
         SBranchMapping branchMapping = new SBranchMapping();
         branchMapping.setGuidBranch(guidBranch);
         branchMapping.setForWhat(BranchForWhat.WORKITEM);
@@ -134,6 +142,27 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         }
         //删除guid对应的工作项
         deleteById(guidWorkitem);
+    }
+
+    @Override
+    public WorkitemBranchDetailRequest workitemDetail(Integer guidWorkitem) {
+        WorkitemBranchDetailRequest request = new WorkitemBranchDetailRequest();
+
+        SWorkitem sWorkitem = selectById(guidWorkitem);
+        request.setWorkitem(sWorkitem);
+
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,sWorkitem.getGuid());
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
+        List<SBranchMapping> sbmList = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(sbmList.size() != 1){
+            request.setBranch(null);
+        }else {
+            SBranchMapping branchMapping = sbmList.get(0);
+            SBranch branch = branchService.selectById(branchMapping.getGuidBranch());
+            request.setBranch(branch);
+        }
+        return request;
     }
 
 }

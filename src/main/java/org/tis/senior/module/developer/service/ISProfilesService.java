@@ -1,5 +1,6 @@
 package org.tis.senior.module.developer.service;
 
+import org.tis.senior.module.developer.controller.request.ProfileAddAndUpdateRequest;
 import org.tis.senior.module.developer.controller.request.ProfileAndBranchAddRequest;
 import org.tis.senior.module.developer.entity.SProfiles;
 import com.baomidou.mybatisplus.service.IService;
@@ -39,5 +40,12 @@ public interface ISProfilesService extends IService<SProfiles>  {
      * @param profileGuid
      */
     void updateProfileStatus(Integer profileGuid);
+
+    /**
+     * 新增运行环境及分支关联表
+     * @param request
+     * @param guidBranch
+     */
+    void insertProfileBranchMapping(ProfileAddAndUpdateRequest request,Integer guidBranch);
 }
 
