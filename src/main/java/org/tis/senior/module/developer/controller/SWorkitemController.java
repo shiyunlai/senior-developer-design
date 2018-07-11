@@ -103,11 +103,36 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
      * @return
      */
     @PutMapping("/{workitemGuid}/status")
-    public ResultVO updateItemStatus(@PathVariable @NotBlank(message = "工作项id不能为空")String workitemGuid){
+    public ResultVO updateItemStatus(@PathVariable @NotNull(message = "工作项id不能为空")Integer workitemGuid){
         SWorkitem workitem = sWorkitemService.selectById(workitemGuid);
         workitem.setItemStatus(ItemStatus.CANCEL);
         sWorkitemService.updateById(workitem);
         return ResultVO.success("修改成功！");
+    }
+
+
+    /**
+     * 关联分支
+     * @param workitemGuid
+     * @param guidBranch
+     * @return
+     */
+    @GetMapping("/{workitemGuid}/branch/{guidBranch}")
+    public ResultVO relevanceBranch(@PathVariable @NotNull(message = "工作项guid不能为空")Integer workitemGuid,
+                                    @PathVariable @NotNull(message = "分支guid不能为空")Integer guidBranch){
+        sWorkitemService.workitemRelevanceBranch(workitemGuid,guidBranch);
+        return ResultVO.success("关联成功！");
+    }
+
+    /**
+     * 取消关联分支
+     * @param workitemGuid
+     * @return
+     */
+    @GetMapping("/{workitemGuid}/cancel")
+    public ResultVO cancelBranch(@PathVariable @NotNull(message = "工作项id不能为空")Integer workitemGuid){
+        sWorkitemService.workitemCancelBranch(workitemGuid);
+        return ResultVO.success("取消分支成功！");
     }
     
 }

@@ -45,6 +45,25 @@ public interface ISWorkitemService extends IService<SWorkitem>  {
 
     void deleteWorkitemAndBranchMapping(Integer guidWorkitem);
 
+    /**
+     *
+     * @param guidWorkitem
+     * @return
+     */
     WorkitemBranchDetailRequest workitemDetail(Integer guidWorkitem);
+
+    /**
+     * 工作项关联分支
+     *
+     * @param guidWorkitem
+     * @param guidBranch
+     */
+    void workitemRelevanceBranch(Integer guidWorkitem, Integer guidBranch);
+
+    /**
+     * 取消关联分支
+     * @param guidWorkitem
+     */
+    void workitemCancelBranch(Integer guidWorkitem);
 }
 
