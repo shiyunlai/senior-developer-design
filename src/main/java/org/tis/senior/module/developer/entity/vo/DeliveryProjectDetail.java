@@ -1,8 +1,11 @@
 package org.tis.senior.module.developer.entity.vo;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
+import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SProject;
+import org.tis.senior.module.developer.entity.enums.ProjectType;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,7 +27,8 @@ public class DeliveryProjectDetail {
     /**
      * 工程类型
      */
-    private String projectType;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private ProjectType projectType;
 
     /**
      * 编译为
@@ -53,7 +57,7 @@ public class DeliveryProjectDetail {
                 .forEach((p, l) -> {
                     DeliveryProjectDetail detail = new DeliveryProjectDetail();
                     if (pjMap.get(p) == null) {
-                        detail.setProjectType("S");
+                        detail.setProjectType(ProjectType.SPECIAL);
                     } else {
                         detail.setProjectType(pjMap.get(p).getProjectType());
                     }
