@@ -22,10 +22,10 @@ public class ProjectAddAndUpdateRequest {
     @NotBlank(message = "工程名不能为空！")
     private String projectName;
 
-    @NotBlank(message = "工程类型不能为空！")
+    @NotNull(message = "工程类型不能为空！")
     @JSONField(deserializeUsing = CommonEnumDeserializer.class)
     private ProjectType projectType;
 
-    @NotNull(message = "工程的导出类型和部署类型不能为空！")
+    @NotBlank(message = "工程的导出类型和部署类型不能为空！")
     private String deployConfig;
 }

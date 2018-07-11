@@ -26,6 +26,7 @@ import java.util.Date;
  */
 @RestController
 @RequestMapping("/sBranch")
+@Validated
 public class SBranchController extends BaseController<SBranch>  {
 
     @Autowired
@@ -44,7 +45,7 @@ public class SBranchController extends BaseController<SBranch>  {
     }
     
     @PutMapping
-    public ResultVO update(@RequestBody @Validated({BranchAddAndUpdateRequest.update.class})BranchAddAndUpdateRequest request) {
+    public ResultVO update(@RequestBody @Validated({BranchAddAndUpdateRequest.update.class,Default.class})BranchAddAndUpdateRequest request) {
         SBranch sBranch = new SBranch();
         BeanUtils.copyProperties(request,sBranch);
         sBranchService.updateById(sBranch);

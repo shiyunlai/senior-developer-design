@@ -54,6 +54,15 @@ public class SSvnAccountController extends BaseController<SSvnAccount>  {
     public ResultVO list(@RequestBody @Validated SmartPage<SSvnAccount> page) {
         return  ResultVO.success("查询成功", sSvnAccountService.selectPage(getPage(page), getCondition(page)));
     }
+
+    /**
+     * 查询所有用户不分页
+     * @return
+     */
+    @PostMapping("/all")
+    public ResultVO all() {
+        return  ResultVO.success("查询成功", sSvnAccountService.selectList(null));
+    }
     
 }
 

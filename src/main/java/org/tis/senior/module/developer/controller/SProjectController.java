@@ -25,6 +25,7 @@ import javax.validation.groups.Default;
  */
 @RestController
 @RequestMapping("/sProject")
+@Validated
 public class SProjectController extends BaseController<SProject>  {
 
     @Autowired
@@ -39,7 +40,7 @@ public class SProjectController extends BaseController<SProject>  {
     }
     
     @PutMapping
-    public ResultVO update(@RequestBody @Validated({ProjectAddAndUpdateRequest.update.class})ProjectAddAndUpdateRequest request) {
+    public ResultVO update(@RequestBody @Validated({ProjectAddAndUpdateRequest.update.class, Default.class})ProjectAddAndUpdateRequest request) {
         SProject sProject = new SProject();
         BeanUtils.copyProperties(request,sProject);
         sProjectService.updateById(sProject);
