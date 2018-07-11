@@ -18,7 +18,7 @@ public interface ISWorkitemService extends IService<SWorkitem>  {
 
 
     /**
-     *
+     * 查询登录用户的工作项
      *
      * @param userName
      * @return

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import org.tis.senior.module.core.web.controller.BaseController;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.core.web.vo.SmartPage;
+import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.service.ISDeliveryService;
@@ -92,7 +93,16 @@ public class SDeliveryController extends BaseController<SDelivery>  {
         return ResultVO.success("查询成功",sDeliveryService.selectDeliveryProName(guidDelivery));
     }
 
-
+    /**
+     * 判断此次投放申请的之前是否有相同的投放申请未必处理
+     *
+     * @return
+     */
+    @PostMapping("/putDelivery")
+    public ResultVO putDelivery(@RequestBody @Validated IsPutDeliveryRequest request){
+        sDeliveryService.whetherPutDelivery(request);
+        return ResultVO.success("可以投放！");
+    }
     
 }
 

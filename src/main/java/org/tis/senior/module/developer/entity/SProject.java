@@ -1,8 +1,12 @@
 package org.tis.senior.module.developer.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
+import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
+import org.tis.senior.module.developer.entity.enums.ProjectType;
+
 import java.io.Serializable;
 
 /**
@@ -79,7 +83,8 @@ public class SProject implements Serializable {
     /**
      * 工程类型
      */
-    private String projectType;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private ProjectType projectType;
 
     /**
      * 部署配置:该工程可以部署到哪些子系统

@@ -49,13 +49,13 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
     }
     
     @DeleteMapping("/{guid}")
-    public ResultVO delete(@PathVariable @NotBlank(message = "id不能为空") String guid) {
+    public ResultVO delete(@PathVariable @NotNull(message = "id不能为空") Integer guid) {
         sWorkitemService.deleteById(guid);
         return ResultVO.success("删除成功");
     }
     
     @GetMapping("/{guid}")
-    public ResultVO detail(@PathVariable @NotBlank(message = "id不能为空") String guid) {
+    public ResultVO detail(@PathVariable @NotNull(message = "id不能为空") Integer guid) {
         SWorkitem sWorkitem = sWorkitemService.selectById(guid);
         if (sWorkitemService == null) {
             return ResultVO.error("404", "找不到对应记录或已经被删除！");

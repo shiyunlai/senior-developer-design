@@ -14,6 +14,7 @@ import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SProject;
 import org.tis.senior.module.developer.service.ISProjectService;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.groups.Default;
 
 /**
@@ -46,13 +47,13 @@ public class SProjectController extends BaseController<SProject>  {
     }
     
     @DeleteMapping("/{guid}")
-    public ResultVO delete(@PathVariable @NotBlank(message = "guid不能为空") String guid) {
+    public ResultVO delete(@PathVariable @NotNull(message = "guid不能为空") Integer guid) {
         sProjectService.deleteById(guid);
         return ResultVO.success("删除成功");
     }
     
     @GetMapping("/{guid}")
-    public ResultVO detail(@PathVariable @NotBlank(message = "id不能为空") String guid) {
+    public ResultVO detail(@PathVariable @NotNull(message = "id不能为空") Integer guid) {
         SProject sProject = sProjectService.selectById(guid);
         if (sProjectService == null) {
             return ResultVO.error("404", "找不到对应记录或已经被删除！");
