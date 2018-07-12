@@ -1,7 +1,6 @@
 package org.tis.senior.module.developer.entity.vo;
 
 import lombok.Data;
-import org.tis.senior.module.developer.entity.SDeliveryList;
 
 import java.util.List;
 
@@ -24,5 +23,5 @@ public class DeliveryPatchDetail {
     /**
      * 投放清单
      */
-    private List<SDeliveryList> fileList;
+    private List fileList;
 }
