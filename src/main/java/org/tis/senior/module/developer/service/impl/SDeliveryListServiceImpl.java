@@ -271,6 +271,35 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         return DeliveryProjectDetail.getDeliveryDetail(deliveryLists, projectService.selectProjectAll());
     }
 
+    @Override
+    public void fillDeliveryList(String path, SDeliveryList deliveryList) {
+        Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
+                collect(Collectors.toMap(SProject::getProjectName, p -> p));
+
+        String projectName = DeveloperUtils.getProjectName(path);
+
+        SProject project = projectMap.get(projectName);
+        if(project == null ){
+            throw new DeveloperException("找不到此工程");
+        }
+        String exportType = "";
+        String deployType = "";
+        JSONArray jsonArray = JSONArray.parseArray(project.getDeployConfig());
+        for (Object object : jsonArray) {
+            JSONObject jsonObject = JSONObject.parseObject(object.toString());
+            if(exportType == ""){
+                exportType = jsonObject.getString("exportType");
+            }else{
+                exportType = exportType + "," + jsonObject.getString("exportType");
+            }
+
+            deployType = jsonObject.getString("deployType");
+        }
+        deliveryList.setPatchType(exportType);
+        deliveryList.setDeployWhere(deployType);
+
+    }
+
 
 }
 
