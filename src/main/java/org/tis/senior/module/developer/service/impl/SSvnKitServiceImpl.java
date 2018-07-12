@@ -97,7 +97,13 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
     @Override
     public List<SvnFile> getDiffStatus(String url, String startRevision) throws SVNException {
         SVNURL svnurl = SVNURL.parseURIEncoded(url);
-        return doDiffStatus(svnurl,startRevision, null);
+        return doDiffStatus(svnurl, startRevision, true);
+    }
+
+    @Override
+    public List<SvnFile> getDiffStatus(String url, String startRevision, boolean includeDir) throws SVNException {
+        SVNURL svnurl = SVNURL.parseURIEncoded(url);
+        return doDiffStatus(svnurl, startRevision, includeDir);
     }
 
     @Override
@@ -124,9 +130,9 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
                             }
                         }
                         if (isCopy) {
-                            list.addAll(doDiffStatus(entry.getURL(), Long.toString(logEntry.getRevision()), null));
+                            list.addAll(doBranchDiffStatus(entry.getURL(), Long.toString(logEntry.getRevision()), null));
                         } else {
-                            list.addAll(doDiffStatus(entry.getRepositoryRoot(),
+                            list.addAll(doBranchDiffStatus(entry.getRepositoryRoot(),
                                     Long.toString(logEntry.getRevision() -1), entry.getURL().getPath()));
                         }
                     }
@@ -156,7 +162,7 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
         return null;
     }
 
-    private List<SvnFile> doDiffStatus(SVNURL url, String startRevision, String filter) throws SVNException {
+    private List<SvnFile> doBranchDiffStatus(SVNURL url, String startRevision, String filter) throws SVNException {
         List<SvnFile> files = new ArrayList<>();
         SVNRevision start = SVNRevision.create(Long.valueOf(startRevision));
         DefaultSVNOptions defaultOptions = SVNWCUtil.createDefaultOptions(true);
@@ -175,6 +181,25 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
                         files.add(svnFile);
                     }
                 }
+            }
+        });
+        return files;
+    }
+
+    private List<SvnFile> doDiffStatus(SVNURL svnurl, String startRevision, boolean includeDir) throws SVNException {
+        List<SvnFile> files = new ArrayList<>();
+        SVNRevision start = SVNRevision.create(Long.valueOf(startRevision));
+        DefaultSVNOptions defaultOptions = SVNWCUtil.createDefaultOptions(true);
+        SVNDiffClient svnDiffClient = new SVNDiffClient(svnAuthenticationManager, defaultOptions);
+        SVNDepth depth = includeDir ? SVNDepth.INFINITY : SVNDepth.FILES;
+        svnDiffClient.doDiffStatus(svnurl, start, svnurl, SVNRevision.HEAD, depth, false, diff -> {
+            SvnFile svnFile = new SvnFile();
+            svnFile.setPath(diff.getURL().toString());
+            CommitType what = CommitType.what(diff.getModificationType().toString());
+            if (what != null) {
+                svnFile.setType(what);
+                svnFile.setNodeType(diff.getKind().toString());
+                files.add(svnFile);
             }
         });
         return files;
