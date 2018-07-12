@@ -129,8 +129,8 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
      */
     @GetMapping("/{workitemGuid}/branchDetail")
     public ResultVO selectBranchDetail(@PathVariable @NotNull(message = "运行环境id不能为空")Integer workitemGuid){
-        sWorkitemService.selectBranchByWorkitemGuid(workitemGuid);
-        return ResultVO.success("查询成功！");
+
+        return ResultVO.success("查询成功！",sWorkitemService.selectBranchByWorkitemGuid(workitemGuid));
     }
     
 }
