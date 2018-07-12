@@ -14,11 +14,7 @@ import org.tis.senior.module.developer.controller.request.DeliveryProfileRequest
 import org.tis.senior.module.developer.controller.request.SDliveryAddRequest;
 import org.tis.senior.module.developer.dao.SDeliveryListMapper;
 import org.tis.senior.module.developer.entity.*;
-import org.tis.senior.module.developer.entity.enums.CommitType;
-import org.tis.senior.module.developer.entity.enums.DeliveryResult;
-import org.tis.senior.module.developer.entity.enums.DeliveryType;
-import org.tis.senior.module.developer.entity.enums.PatchType;
-import org.tis.senior.module.developer.entity.vo.DeliveryListFromType;
+import org.tis.senior.module.developer.entity.enums.*;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.entity.vo.SvnFile;
 import org.tis.senior.module.developer.exception.DeveloperException;
@@ -155,7 +151,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     @Override
     public List<DeliveryProjectDetail> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException {
 
-        String guidBranch = request.getGuidBranch();
+        Integer guidBranch = request.getGuidBranch();
         SBranch branch = branchService.selectById(guidBranch);
         EntityWrapper<SBranchMapping> sbmEntityWrapper = new EntityWrapper<>();
         sbmEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH, branch.getGuid());

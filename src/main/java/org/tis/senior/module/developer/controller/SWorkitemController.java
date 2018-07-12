@@ -4,6 +4,7 @@ import org.springframework.beans.BeanUtils;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRequest;
 import org.tis.senior.module.developer.entity.SBranch;
+import org.tis.senior.module.developer.entity.SBranchMapping;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import org.springframework.validation.annotation.Validated;
@@ -132,6 +133,6 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
 
         return ResultVO.success("查询成功！",sWorkitemService.selectBranchByWorkitemGuid(workitemGuid));
     }
-    
+
 }
 

@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.CommitType;
-import org.tis.senior.module.developer.entity.vo.DeliveryListFromType;
+import org.tis.senior.module.developer.entity.enums.DeliveryListFromType;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
