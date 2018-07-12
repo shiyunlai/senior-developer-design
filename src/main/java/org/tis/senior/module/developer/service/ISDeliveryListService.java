@@ -3,6 +3,7 @@ package org.tis.senior.module.developer.service;
 import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliveryAddRequest;
 import org.tis.senior.module.developer.controller.request.DeliveryListSuperadditionRequest;
+import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tmatesoft.svn.core.SVNException;
@@ -45,5 +46,12 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      * @param request
      */
     List<DeliveryProjectDetail> addToDeliveryList(DeliveryListSuperadditionRequest request);
+
+    /**
+     * 填充对象
+     * @param path
+     * @param deliveryList
+     */
+    void fillDeliveryList(String path, SDeliveryList deliveryList);
 }
 
