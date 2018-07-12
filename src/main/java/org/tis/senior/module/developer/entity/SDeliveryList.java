@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.CommitType;
+import org.tis.senior.module.developer.entity.vo.DeliveryListFromType;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -71,6 +72,11 @@ public class SDeliveryList implements Serializable {
     public static final String COLUMN_COMMIT_TYPE = "commit_type";
 
     /**
+     * fromType对应表字段
+     */
+    public static final String COLUMN_FROM_TYPE = "from_type";
+
+    /**
      * guid逻辑名
      */
     public static final String NAME_GUID = "数据id";
@@ -109,6 +115,11 @@ public class SDeliveryList implements Serializable {
      * commitType逻辑名
      */
     public static final String NAME_COMMIT_TYPE = "提交类型";
+
+    /**
+     * fromType来源类型
+     */
+    public static final String NAME_FROM_TYPE = "来源类型";
 
     /**
      * 数据id:唯一标示某条数据（自增长）
@@ -158,5 +169,10 @@ public class SDeliveryList implements Serializable {
     @NotNull(message = "提交类型不能为空!")
     private CommitType commitType;
 
+    /**
+     * 来源类型
+     */
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private DeliveryListFromType fromType;
 }
 

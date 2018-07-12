@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotations.TableId;
 import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
+import org.tis.senior.module.developer.entity.enums.CheckErrorType;
 import org.tis.senior.module.developer.entity.enums.CommitType;
 import org.tis.senior.module.developer.entity.enums.ConfirmStatus;
 
@@ -76,6 +77,16 @@ public class SCheckList implements Serializable {
     public static final String COLUMN_GUID_DELIVERY = "guid_delivery";
 
     /**
+     * patchType对应表字段
+     */
+    public static final String COLUMN_PATCH_TYPE = "patch_type";
+
+    /**
+     * deployWhere对应表字段
+     */
+    public static final String COLUMN_DEPLOY_WHERE = "deploy_where";
+
+    /**
      * guid逻辑名
      */
     public static final String NAME_GUID = "数据id";
@@ -121,6 +132,16 @@ public class SCheckList implements Serializable {
     public static final String NAME_GUID_DELIVERY = "投产代码GUID";
 
     /**
+     * patchType逻辑名
+     */
+    public static final String NAME_PATCH_TYPE = "补丁类型";
+
+    /**
+     * deployWhere逻辑名
+     */
+    public static final String NAME_DEPLOY_WHERE = "部署到";
+
+    /**
      * 数据id:唯一标示某条数据（自增长）
      */
     @TableId
@@ -135,7 +156,8 @@ public class SCheckList implements Serializable {
      * 错误类型:D 申请清单异常
      * M 合并清单异常
      */
-    private String errorType;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private CheckErrorType errorType;
 
     /**
      * 程序名称:冗余设计
@@ -174,6 +196,20 @@ public class SCheckList implements Serializable {
      * 投产代码GUID:对应投产代码ID
      */
     private Integer guidDelivery;
+
+    /**
+     * 补丁类型:JAR 输出为jar包
+     * ECD 输出为ecd包
+     * EPD 输出为epd
+     * CFG 作为配置文件
+     * DBV 作为数据库脚本（SQL、DDL等数据库版本脚本）
+     */
+    private String patchType;
+
+    /**
+     * 部署到
+     */
+    private String deployWhere;
 
 }
 
