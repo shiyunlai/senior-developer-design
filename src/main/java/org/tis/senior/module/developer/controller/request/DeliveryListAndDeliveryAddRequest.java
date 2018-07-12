@@ -20,6 +20,6 @@ public class DeliveryListAndDeliveryAddRequest {
     @NotEmpty(message = "投产清单代码不能为空")
     private List<SDeliveryList> deliveryList;
 
-    @NotBlank(message = "分支的guid不能为空")
-    private String guidBranch;
+    @NotNull(message = "分支的guid不能为空")
+    private Integer guidBranch;
 }
