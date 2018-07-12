@@ -6,6 +6,7 @@ import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 
+import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -43,6 +44,13 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      * @param request
      */
     void whetherPutDelivery(IsPutDeliveryRequest request);
+
+    /**
+     * 查询工作项所要追加的投放申请集合
+     * @param workitemGuid
+     * @return
+     */
+    List<SDelivery> selectAddToDelivery(Integer workitemGuid) throws ParseException;
 
 }
 

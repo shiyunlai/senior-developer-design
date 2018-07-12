@@ -4,7 +4,6 @@ import org.springframework.beans.BeanUtils;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRequest;
 import org.tis.senior.module.developer.entity.SBranch;
-import org.tis.senior.module.developer.entity.SBranchMapping;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import org.springframework.validation.annotation.Validated;
@@ -87,18 +86,6 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
     }
 
     /**
-     * 查询工作项的开发分支
-     *
-     * @return
-     */
-    @GetMapping("/{workitemGuid}/branchDetail")
-    public ResultVO loadBranchDetail(@PathVariable @NotBlank(message = "工作项id不能为空")String workitemGuid) throws Exception {
-
-        SBranch branch = sWorkitemService.selectBranchByWorkitemId(workitemGuid);
-        return ResultVO.success("查询成功",branch);
-    }
-
-    /**
      * 修改工作项状态为已取消
      * @return
      */
@@ -133,6 +120,17 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
     public ResultVO cancelBranch(@PathVariable @NotNull(message = "工作项id不能为空")Integer workitemGuid){
         sWorkitemService.workitemCancelBranch(workitemGuid);
         return ResultVO.success("取消分支成功！");
+    }
+
+    /**
+     * 根据运行环境guid查询分支信息
+     * @param workitemGuid
+     * @return
+     */
+    @GetMapping("/{workitemGuid}/branchDetail")
+    public ResultVO selectBranchDetail(@PathVariable @NotNull(message = "运行环境id不能为空")Integer workitemGuid){
+        sWorkitemService.selectBranchByWorkitemGuid(workitemGuid);
+        return ResultVO.success("查询成功！");
     }
     
 }

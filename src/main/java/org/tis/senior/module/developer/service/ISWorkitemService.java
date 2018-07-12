@@ -26,8 +26,6 @@ public interface ISWorkitemService extends IService<SWorkitem>  {
      */
     List<SWorkitem> selectWorkitemByUser(String userName);
 
-    SBranch selectBranchByWorkitemId(String workitemId) throws Exception;
-
     SWorkitem selectOneById(String workitemId);
 
     /**
@@ -65,5 +63,12 @@ public interface ISWorkitemService extends IService<SWorkitem>  {
      * @param guidWorkitem
      */
     void workitemCancelBranch(Integer guidWorkitem);
+
+    /**
+     * 根本运行环境guid查询分支信息
+     * @param workitemGuid
+     * @return
+     */
+    SBranch selectBranchByWorkitemGuid(Integer workitemGuid);
 }
 

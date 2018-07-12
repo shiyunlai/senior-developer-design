@@ -2,6 +2,7 @@ package org.tis.senior.module.developer.service;
 
 import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliveryAddRequest;
+import org.tis.senior.module.developer.controller.request.DeliveryListSuperadditionRequest;
 import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tmatesoft.svn.core.SVNException;
@@ -28,15 +29,21 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      * 添加投放申请和投产代码清单
      * @param request
      */
-    void addDeliveryList(DeliveryListAndDeliveryAddRequest request, String proposer) throws Exception;
+    List<DeliveryProjectDetail> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String proposer) throws Exception;
 
     /**
      * 查询此工作项下需要导出成Excel文件的清单代码
      *
-     * @param guidWorkitem
-     * @param guidProfiles
+     * @param guidWorkitem 工作项guid
+     * @param guidProfiles 运行环境guid
      * @return
      */
     List<SDeliveryList> selectDeliveryListOutPutExcel(String guidWorkitem, String guidProfiles);
+
+    /**
+     * 追加投放申请
+     * @param request
+     */
+    List<DeliveryProjectDetail> addToDeliveryList(DeliveryListSuperadditionRequest request);
 }
 

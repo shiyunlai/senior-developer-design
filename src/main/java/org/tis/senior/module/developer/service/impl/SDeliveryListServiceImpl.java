@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliveryAddRequest;
+import org.tis.senior.module.developer.controller.request.DeliveryListSuperadditionRequest;
 import org.tis.senior.module.developer.controller.request.DeliveryProfileRequest;
 import org.tis.senior.module.developer.controller.request.SDliveryAddRequest;
 import org.tis.senior.module.developer.dao.SDeliveryListMapper;
@@ -17,6 +18,7 @@ import org.tis.senior.module.developer.entity.enums.CommitType;
 import org.tis.senior.module.developer.entity.enums.DeliveryResult;
 import org.tis.senior.module.developer.entity.enums.DeliveryType;
 import org.tis.senior.module.developer.entity.enums.PatchType;
+import org.tis.senior.module.developer.entity.vo.DeliveryListFromType;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.entity.vo.SvnFile;
 import org.tis.senior.module.developer.exception.DeveloperException;
@@ -103,6 +105,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 SDeliveryList sdl = new SDeliveryList();
                 sdl.setCommitType(svnFile.getType());
                 sdl.setFullPath(DeveloperUtils.getPathUTF(svnFile.getPath()));
+                sdl.setFromType(DeliveryListFromType.BRANCH);
                 String programName = DeveloperUtils.getProgramName(svnFile.getPath());
                 sdl.setProgramName(programName);
                 String projectName = DeveloperUtils.getProjectName(svnFile.getPath());
@@ -150,7 +153,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     }
 
     @Override
-    public void addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException {
+    public List<DeliveryProjectDetail> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException {
 
         String guidBranch = request.getGuidBranch();
         SBranch branch = branchService.selectById(guidBranch);
@@ -181,22 +184,18 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         }
         deliveryService.insertBatch(deliveryList);
 
+        List<SDeliveryList> deliveryLists = new ArrayList<>();
 
         for (SDelivery sDelivery : deliveryList) {
-
             //组装投产代码清单
             for (SDeliveryList dlar : request.getDeliveryList()) {
-                dlar.setGuid(null);
                 dlar.setGuidDelivery(sDelivery.getGuid());
+                deliveryLists.add(dlar);
             }
-            insertBatch(request.getDeliveryList());
         }
+        insertBatch(deliveryLists);
 
-//        int revision = svnKitService.getLastRevision(branch.getFullPath());
-//        SBranch sb = new SBranch();
-//        sb.setCurrVersion(revision);
-//        sb.setGuid(branch.getGuid());
-//        branchService.updateById(sb);
+        return DeliveryProjectDetail.getDeliveryDetail(deliveryLists, projectService.selectProjectAll());
     }
 
     @Override
@@ -258,12 +257,19 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         return deliveryLists;
     }
 
-    private List<SvnFile> getDiffStatus(String fullPath, String startRevision) {
+    @Override
+    public List<DeliveryProjectDetail> addToDeliveryList(DeliveryListSuperadditionRequest request) {
 
-//        List<SvnFile> svnCommits = svnKitService.getDiffStatus(branch.getFullPath(), branch.getCurrVersion().toString());
-            return null;
+        List<SDeliveryList> deliveryLists = new ArrayList<>();
+        for (Integer guidDelivery:request.getGuidDelivery()){
+            for (SDeliveryList deliveryList:request.getDeliveryList()){
+                deliveryList.setGuidDelivery(guidDelivery);
+                deliveryLists.add(deliveryList);
+            }
+        }
+        insertBatch(deliveryLists);
+        return DeliveryProjectDetail.getDeliveryDetail(deliveryLists, projectService.selectProjectAll());
     }
-
 
 
 }

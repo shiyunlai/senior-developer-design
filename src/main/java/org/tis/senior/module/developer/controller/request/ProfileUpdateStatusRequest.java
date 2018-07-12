@@ -10,10 +10,10 @@ import javax.validation.constraints.NotNull;
 @Data
 public class ProfileUpdateStatusRequest {
 
-    @NotNull
+    @NotNull(message = "运行环境的guid不能为空")
     private Integer guid;
 
-    @NotNull
+    @NotNull(message = "运行环境的状态不能为空")
     @JSONField(deserializeUsing = CommonEnumDeserializer.class)
     private IsAllowDelivery isAllowDelivery;
 }

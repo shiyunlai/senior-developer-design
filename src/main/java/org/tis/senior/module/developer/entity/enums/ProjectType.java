@@ -7,7 +7,8 @@ import java.io.Serializable;
 public enum ProjectType implements BaseEnum {
 
     SPECIAL("S", "普通工程"),
-    COMMON("C", "特殊工程");
+    COMMON("C", "特殊工程"),
+    DEFAULT("D", "默认工程");
 
     private final String value;
 
