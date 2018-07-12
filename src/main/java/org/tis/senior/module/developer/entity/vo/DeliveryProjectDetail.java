@@ -4,6 +4,7 @@ import lombok.Data;
 import org.tis.senior.module.developer.entity.SCheckList;
 import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SProject;
+import org.tis.senior.module.developer.entity.enums.ProjectType;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public class DeliveryProjectDetail {
                 .forEach((p, l) -> {
                     DeliveryProjectDetail detail = new DeliveryProjectDetail();
                     if (pjMap.get(p) == null) {
-                        detail.setProjectType("S");
+                        detail.setProjectType(ProjectType.SPECIAL);
                     } else {
                         detail.setProjectType(pjMap.get(p).getProjectType());
                     }

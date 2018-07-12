@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 @Data
 public class DeliveryProfileRequest {
 
+    private String applyAlias;
 
     @NotBlank(message = "运行环境的guid不能为空")
     private String guidProfiles;

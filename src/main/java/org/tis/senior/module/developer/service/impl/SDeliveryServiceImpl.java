@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.tis.senior.module.developer.controller.request.DeliveryProfileRequest;
+import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.dao.SDeliveryMapper;
 import org.tis.senior.module.developer.entity.*;
@@ -17,10 +19,8 @@ import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -108,6 +108,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
 
     }
 
+
     /**
      * 判断是否允许合并投放，返回合并申请信息集合
      *
@@ -136,6 +137,39 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         return sDeliveries;
     }
 
+    @Override
+    public List<String> selectDeliveryProName(String guidDelivery) {
+        List<String> projectNameList = new ArrayList<>();
+        SDelivery delivery = selectById(guidDelivery);
+
+        EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
+        deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY,delivery.getGuid());
+        List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListEntityWrapper);
+        Set<String> str = new HashSet<>();
+        for (SDeliveryList deliveryList:deliveryLists){
+            str.add(deliveryList.getPartOfProject());
+        }
+        projectNameList.addAll(str);
+        return projectNameList;
+    }
+
+    @Override
+    public void whetherPutDelivery(IsPutDeliveryRequest request) {
+
+        String deliveryTime = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(request.getDeliveryTime());
+        for (DeliveryProfileRequest deliveryProfileRequest:request.getProfiles()){
+            EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_TIME,deliveryTime);
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,deliveryProfileRequest.getGuidProfiles());
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_PACK_TIMING,deliveryProfileRequest.getPackTiming());
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
+            List<SDelivery> deliveryList = selectList(deliveryEntityWrapper);
+            if(deliveryList.size() > 0){
+                throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
+            }
+        }
+    }
 
 }
 

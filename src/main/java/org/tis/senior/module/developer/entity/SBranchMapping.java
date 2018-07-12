@@ -7,6 +7,7 @@ import lombok.Data;
 import com.baomidou.mybatisplus.annotations.TableId;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.BranchForWhat;
+import org.tis.senior.module.developer.entity.enums.BranchMappingStatus;
 
 import java.io.Serializable;
 
@@ -123,7 +124,8 @@ public class SBranchMapping implements Serializable {
      * 状态:1 生效
      * 0 不再生效
      */
-    private String status;
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    private BranchMappingStatus status;
 
 }
 

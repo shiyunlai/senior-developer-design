@@ -1,5 +1,6 @@
 package org.tis.senior.module.developer.controller;
 
+import org.springframework.beans.BeanUtils;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.springframework.validation.annotation.Validated;
 import org.tis.senior.module.core.web.vo.SmartPage;
@@ -7,8 +8,14 @@ import org.tis.senior.module.core.web.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.hibernate.validator.constraints.NotBlank;
+import org.tis.senior.module.developer.controller.request.BranchAddAndUpdateRequest;
+import org.tis.senior.module.developer.controller.request.ProjectAddAndUpdateRequest;
+import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SProject;
 import org.tis.senior.module.developer.service.ISProjectService;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.groups.Default;
 
 /**
  * sProject的Controller类
@@ -18,32 +25,37 @@ import org.tis.senior.module.developer.service.ISProjectService;
  */
 @RestController
 @RequestMapping("/sProject")
+@Validated
 public class SProjectController extends BaseController<SProject>  {
 
     @Autowired
     private ISProjectService sProjectService;
 
-    @PostMapping("/add")
-    public ResultVO add(@RequestBody @Validated SProject sProject) {
+    @PostMapping
+    public ResultVO add(@RequestBody @Validated({ProjectAddAndUpdateRequest.add.class,Default.class})ProjectAddAndUpdateRequest request) {
+        SProject sProject = new SProject();
+        BeanUtils.copyProperties(request,sProject);
         sProjectService.insert(sProject);
         return ResultVO.success("新增成功！");
     }
     
     @PutMapping
-    public ResultVO update(@RequestBody @Validated SProject sProject) {
+    public ResultVO update(@RequestBody @Validated({ProjectAddAndUpdateRequest.update.class, Default.class})ProjectAddAndUpdateRequest request) {
+        SProject sProject = new SProject();
+        BeanUtils.copyProperties(request,sProject);
         sProjectService.updateById(sProject);
         return ResultVO.success("修改成功！");
     }
     
-    @DeleteMapping("/{id}")
-    public ResultVO delete(@PathVariable @NotBlank(message = "id不能为空") String id) {
-        sProjectService.deleteById(id);
+    @DeleteMapping("/{guid}")
+    public ResultVO delete(@PathVariable @NotNull(message = "guid不能为空") Integer guid) {
+        sProjectService.deleteById(guid);
         return ResultVO.success("删除成功");
     }
     
-    @GetMapping("/{id}")
-    public ResultVO detail(@PathVariable @NotBlank(message = "id不能为空") String id) {
-        SProject sProject = sProjectService.selectById(id);
+    @GetMapping("/{guid}")
+    public ResultVO detail(@PathVariable @NotNull(message = "id不能为空") Integer guid) {
+        SProject sProject = sProjectService.selectById(guid);
         if (sProjectService == null) {
             return ResultVO.error("404", "找不到对应记录或已经被删除！");
         }
@@ -51,8 +63,10 @@ public class SProjectController extends BaseController<SProject>  {
     }
     
     @PostMapping("/list")
-    public ResultVO list() {
-        return  ResultVO.success("查询成功", sProjectService.selectProjectAll());
+    public ResultVO list(@RequestBody @Validated SmartPage<SProject> page) {
+
+        return  ResultVO.success("查询成功", sProjectService.selectPage(getPage(page), getCondition(page)));
+
     }
     
 }

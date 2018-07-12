@@ -168,7 +168,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         for (DeliveryProfileRequest req : guidPro) {
             //组装投放申请
             SDelivery delivery = new SDelivery();
-            delivery.setApplyAlias(dliveryAddRequest.getApplyAlias());
+            delivery.setApplyAlias(req.getApplyAlias());
             delivery.setGuidWorkitem(sbm.getGuidOfWhats());
             delivery.setGuidProfiles(Integer.parseInt(req.getGuidProfiles()));
             delivery.setDeliveryType(DeliveryType.GENERAL);

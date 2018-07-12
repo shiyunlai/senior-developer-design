@@ -1,7 +1,10 @@
 package org.tis.senior.module.developer.service;
 
+import org.tis.senior.module.developer.controller.request.ProfileAddAndUpdateRequest;
+import org.tis.senior.module.developer.controller.request.ProfileAndBranchAddRequest;
 import org.tis.senior.module.developer.entity.SProfiles;
 import com.baomidou.mybatisplus.service.IService;
+import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
 
 import java.util.List;
 
@@ -20,5 +23,44 @@ public interface ISProfilesService extends IService<SProfiles>  {
     List<SProfiles> selectProfilesAll();
 
     SProfiles selectOneById(String guidProfile);
+
+    /**
+     * 新增运行环境和分支
+     * @param request
+     */
+    void insertProfileAndBranch(ProfileAndBranchAddRequest request);
+
+    /**
+     * 删除运行环境
+     * @param profileGuid
+     */
+    void deleteProfileAndBranchMapping(Integer profileGuid);
+
+    /**
+     * 修改运行环境状态为不允许投放
+     * @param profileGuid
+     */
+    void updateProfileStatus(Integer profileGuid, IsAllowDelivery isAllowDelivery);
+
+    /**
+     * 新增运行环境及分支关联表
+     * @param request
+     * @param guidBranch
+     */
+    void insertProfileBranchMapping(ProfileAddAndUpdateRequest request,Integer guidBranch);
+
+    /**
+     * 运行环境关联分支
+     *
+     * @param guidProfile
+     * @param guidBranch
+     */
+    void profileRelevanceBranch(Integer guidProfile, Integer guidBranch);
+
+    /**
+     * 取消关联分支
+     * @param guidProfile
+     */
+    void profileCancelBranch(Integer guidProfile);
 }
 
