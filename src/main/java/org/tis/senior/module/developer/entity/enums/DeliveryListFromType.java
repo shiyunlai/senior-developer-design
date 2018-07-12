@@ -1,4 +1,4 @@
-package org.tis.senior.module.developer.entity.vo;
+package org.tis.senior.module.developer.entity.enums;
 
 import org.tis.senior.module.core.entity.enums.BaseEnum;
 
@@ -18,6 +18,8 @@ public enum  DeliveryListFromType implements BaseEnum {
     ADDITION("A", "手动补录"),
 
     BRANCH("B", "分支提交"),
+
+    STANDARD("S", "标准清单"),
 
     MERGE("M", "合并添加");
 
