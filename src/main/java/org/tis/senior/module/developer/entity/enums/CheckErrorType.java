@@ -5,24 +5,24 @@ import org.tis.senior.module.core.entity.enums.BaseEnum;
 import java.io.Serializable;
 
 /**
- * description:
+ * description:核对错误类型
+ * D 申请清单异常
+ * M 合并清单异常
  *
  * @author zhaoch
- * @date 2018/6/28
+ * @date 2018/7/11
  **/
-public enum CheckStatus implements BaseEnum {
+public enum CheckErrorType implements BaseEnum {
 
-    FAILURE("F", "核对作废"),
+    Delivery("D", "申请清单异常"),
 
-    SUCCESS("S", "核对完成"),
-
-    WAIT("W", "正在核对");
+    Merge("M", "合并清单异常");
 
     private final String value;
 
     private final String name;
 
-    CheckStatus(final String value, final String name) {
+    CheckErrorType(final String value, final String name) {
         this.value = value;
         this.name = name;
     }

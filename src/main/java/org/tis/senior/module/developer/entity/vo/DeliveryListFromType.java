@@ -1,28 +1,31 @@
-package org.tis.senior.module.developer.entity.enums;
+package org.tis.senior.module.developer.entity.vo;
 
 import org.tis.senior.module.core.entity.enums.BaseEnum;
 
 import java.io.Serializable;
 
 /**
- * description:
- *
+ * description: 投产清单来源类型
+ * 清单来源：
+ * A 手动补录
+ * B 分支提交
+ * M 合并添加;
  * @author zhaoch
- * @date 2018/6/28
+ * @date 2018/7/12
  **/
-public enum CheckStatus implements BaseEnum {
+public enum  DeliveryListFromType implements BaseEnum {
 
-    FAILURE("F", "核对作废"),
+    ADDITION("A", "手动补录"),
 
-    SUCCESS("S", "核对完成"),
+    BRANCH("B", "分支提交"),
 
-    WAIT("W", "正在核对");
+    MERGE("M", "合并添加");
 
     private final String value;
 
     private final String name;
 
-    CheckStatus(final String value, final String name) {
+    DeliveryListFromType(final String value, final String name) {
         this.value = value;
         this.name = name;
     }
