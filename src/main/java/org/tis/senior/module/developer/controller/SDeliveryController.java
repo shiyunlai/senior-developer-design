@@ -12,6 +12,10 @@ import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.service.ISDeliveryService;
 
+import javax.validation.constraints.NotNull;
+import java.text.ParseException;
+import java.util.List;
+
 /**
  * sDelivery的Controller类
  * 
@@ -102,6 +106,17 @@ public class SDeliveryController extends BaseController<SDelivery>  {
     public ResultVO putDelivery(@RequestBody @Validated IsPutDeliveryRequest request){
         sDeliveryService.whetherPutDelivery(request);
         return ResultVO.success("可以投放！");
+    }
+
+    /**
+     * 查询工作项所要追加的投放申请集合
+     * @param workitemGuid
+     * @return
+     */
+    @GetMapping("/{workitemGuid}/addTo")
+    public ResultVO addToDelivery(@PathVariable @NotNull(message = "工作项id不能为空")Integer workitemGuid) throws ParseException {
+
+        return ResultVO.success("查询成功！", sDeliveryService.selectAddToDelivery(workitemGuid));
     }
     
 }

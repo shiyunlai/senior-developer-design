@@ -2,6 +2,7 @@ package org.tis.senior.module.developer.service;
 
 import org.tis.senior.module.developer.controller.request.ProfileAddAndUpdateRequest;
 import org.tis.senior.module.developer.controller.request.ProfileAndBranchAddRequest;
+import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SProfiles;
 import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
@@ -62,5 +63,12 @@ public interface ISProfilesService extends IService<SProfiles>  {
      * @param guidProfile
      */
     void profileCancelBranch(Integer guidProfile);
+
+    /**
+     * 根本运行环境guid查询分支信息
+     * @param profileGuid
+     * @return
+     */
+    SBranch selectBranchByProfileGuid(Integer profileGuid);
 }
 

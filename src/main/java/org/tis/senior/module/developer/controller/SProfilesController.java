@@ -102,7 +102,7 @@ public class SProfilesController extends BaseController<SProfiles>  {
      * @return
      */
     @GetMapping("/{profileGuid}/branch/{guidBranch}")
-    public ResultVO relevanceBranch(@PathVariable @NotNull(message = "工作项guid不能为空")Integer profileGuid,
+    public ResultVO relevanceBranch(@PathVariable @NotNull(message = "运行环境guid不能为空")Integer profileGuid,
                                     @PathVariable @NotNull(message = "分支guid不能为空")Integer guidBranch){
         sProfilesService.profileRelevanceBranch(profileGuid,guidBranch);
         return ResultVO.success("关联成功！");
@@ -114,9 +114,20 @@ public class SProfilesController extends BaseController<SProfiles>  {
      * @return
      */
     @GetMapping("/{profileGuid}/cancel")
-    public ResultVO cancelBranch(@PathVariable @NotNull(message = "工作项id不能为空")Integer profileGuid){
+    public ResultVO cancelBranch(@PathVariable @NotNull(message = "运行环境id不能为空")Integer profileGuid){
         sProfilesService.profileCancelBranch(profileGuid);
         return ResultVO.success("取消分支成功！");
+    }
+
+    /**
+     * 根本运行环境guid查询分支信息
+     * @param profileGuid
+     * @return
+     */
+    @GetMapping("/{profileGuid}/branchDetail")
+    public ResultVO selectBranchDetail(@PathVariable @NotNull(message = "运行环境id不能为空")Integer profileGuid){
+        sProfilesService.selectBranchByProfileGuid(profileGuid);
+        return ResultVO.success("查询成功！");
     }
 }
 
