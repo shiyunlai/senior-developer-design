@@ -55,9 +55,9 @@ public class DeliveryProjectDetail {
                 .forEach((p, l) -> {
                     DeliveryProjectDetail detail = new DeliveryProjectDetail();
                     if (pjMap.get(p) == null) {
-                        detail.setProjectType(ProjectType.SPECIAL);
+                        detail.setProjectType(ProjectType.SPECIAL.getValue().toString());
                     } else {
-                        detail.setProjectType(pjMap.get(p).getProjectType());
+                        detail.setProjectType(pjMap.get(p).getProjectType().getValue().toString());
                     }
                     detail.setProjectName(p);
                     List<DeliveryPatchDetail> dpts = new ArrayList<>();
