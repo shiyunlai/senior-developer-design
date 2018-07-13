@@ -12,6 +12,9 @@ import java.util.List;
 @Data
 public class DeliveryListAndDeliveryAddRequest {
 
+    @NotNull(message = "工作项的guid不能为空！")
+    private Integer guidWorkitem;
+
     @Valid
     @NotNull(message = "投产申请信息不能为空")
     private SDliveryAddRequest dliveryAddRequest;

@@ -193,7 +193,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
         List<SDelivery> deliveryList = selectList(deliveryEntityWrapper);
         if(deliveryList == null){
-            throw new DeveloperException("没有对应的投放申请需要追加！");
+            throw new DeveloperException("没有对应的投放申请可以追加！");
         }
         return deliveryList;
     }
