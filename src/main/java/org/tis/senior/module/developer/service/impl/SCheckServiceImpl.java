@@ -171,7 +171,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         // 获取当前核对中有问题的清单列表
         EntityWrapper<SCheckList> mergeWrapper = new EntityWrapper<>();
         mergeWrapper.eq(SCheckList.COLUMN_GUID_CHECK, checkGuid);
-        mergeWrapper.eq(SCheckList.COLUMN_CONFIRM_STATUS, ConfirmStatus.WAIT);
+//        mergeWrapper.eq(SCheckList.COLUMN_CONFIRM_STATUS, ConfirmStatus.WAIT);
         List<SCheckList> checkLists = checkListService.selectList(mergeWrapper);
 
         // 获取该核对的环境中的投放申请
