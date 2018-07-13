@@ -7,6 +7,7 @@ import org.tis.senior.module.core.web.controller.BaseController;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliveryAddRequest;
+import org.tis.senior.module.developer.controller.request.DeliveryListSuperadditionRequest;
 import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
@@ -85,11 +86,18 @@ public class SDeliveryListController extends BaseController<SDeliveryList>  {
     public ResultVO addDelivery(@RequestBody @Validated DeliveryListAndDeliveryAddRequest request) throws Exception {
 
         SSvnAccount sSvnAccount = getUser();
-        sDeliveryListService.addDeliveryList(request,sSvnAccount.getUserId());
-        return ResultVO.success("添加成功");
+        return ResultVO.success("添加成功",sDeliveryListService.addDeliveryList(request,sSvnAccount.getUserId()));
     }
 
+    /**
+     * 追加投放申请
+     * @return
+     */
+    @PostMapping("/superadditionDeliverylist")
+    public ResultVO superadditionDeliverylist(@RequestBody @Validated DeliveryListSuperadditionRequest request){
 
+        return ResultVO.success("添加成功",sDeliveryListService.addToDeliveryList(request));
+    }
 
     
 }

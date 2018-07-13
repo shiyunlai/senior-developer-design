@@ -12,7 +12,6 @@ import org.tis.senior.module.developer.controller.request.WorkitemBranchDetailRe
 import org.tis.senior.module.developer.dao.SWorkitemMapper;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SBranchMapping;
-import org.tis.senior.module.developer.entity.SProfiles;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import org.tis.senior.module.developer.entity.enums.BranchForWhat;
 import org.tis.senior.module.developer.entity.enums.BranchMappingStatus;
@@ -53,22 +52,6 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         sWorkitemEntityWrapper.eq(SWorkitem.COLUMN_ITEM_STATUS,ItemStatus.DEVELOP);
         List<SWorkitem> swList = selectList(sWorkitemEntityWrapper);
         return swList;
-    }
-
-    @Override
-    public SBranch selectBranchByWorkitemId(String workitemId) throws Exception {
-
-        EntityWrapper<SBranchMapping> sbmEntityWrapper = new EntityWrapper<>();
-        sbmEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS, workitemId)
-                .eq(SBranchMapping.COLUMN_FOR_WHAT, BranchForWhat.WORKITEM.getValue());
-        List<SBranchMapping> sbmList = branchMappingService.selectList(sbmEntityWrapper);
-        if(sbmList.size() != 1){
-            throw new Exception("The object of the query does not exist or superfluous");
-        }
-        SBranchMapping branchMapping = sbmList.get(0);
-
-        SBranch sBranch = branchService.selectById(branchMapping.getGuidBranch());
-        return sBranch;
     }
 
     @Override
@@ -188,6 +171,19 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         }
         SBranchMapping branchMapping = sbmList.get(0);
         branchMappingService.deleteById(branchMapping.getGuid());
+    }
+
+    @Override
+    public SBranch selectBranchByWorkitemGuid(Integer workitemGuid) {
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,workitemGuid);
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
+        List<SBranchMapping> branchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(branchMappings.size() != 1){
+            throw new DeveloperException("此工作项没有分配分支信息！");
+        }
+        SBranchMapping branchMapping = branchMappings.get(0);
+        return branchService.selectById(branchMapping.getGuidBranch());
     }
 
 }

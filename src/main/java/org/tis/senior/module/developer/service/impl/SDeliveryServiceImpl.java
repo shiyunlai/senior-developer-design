@@ -19,6 +19,7 @@ import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -182,6 +183,19 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
                 throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
             }
         }
+    }
+
+    @Override
+    public List<SDelivery> selectAddToDelivery(Integer workitemGuid) {
+
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,workitemGuid);
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
+        List<SDelivery> deliveryList = selectList(deliveryEntityWrapper);
+        if(deliveryList == null){
+            throw new DeveloperException("没有对应的投放申请需要追加！");
+        }
+        return deliveryList;
     }
 
 }

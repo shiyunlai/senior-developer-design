@@ -31,6 +31,6 @@ public enum IsAllowDelivery implements BaseEnum {
 
     @Override
     public String toString() {
-        return name;
+        return value;
     }
 }

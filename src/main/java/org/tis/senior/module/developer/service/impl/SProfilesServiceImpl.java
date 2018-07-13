@@ -142,10 +142,23 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.RELEASE);
         List<SBranchMapping> sbmList = branchMappingService.selectList(branchMappingEntityWrapper);
         if(sbmList.size() != 1){
-            throw new DeveloperException("此运行环境没有分配分支！");
+            throw new DeveloperException("此运行环境没有分配分支,请关联分支！");
         }
         SBranchMapping branchMapping = sbmList.get(0);
         branchMappingService.deleteById(branchMapping.getGuid());
+    }
+
+    @Override
+    public SBranch selectBranchByProfileGuid(Integer profileGuid) {
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,profileGuid);
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.RELEASE);
+        List<SBranchMapping> branchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(branchMappings.size() != 1){
+            throw new DeveloperException("此运行环境没有分配分支信息！");
+        }
+        SBranchMapping branchMapping = branchMappings.get(0);
+        return branchService.selectById(branchMapping.getGuidBranch());
     }
 
     /**
