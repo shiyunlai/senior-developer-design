@@ -151,6 +151,21 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
     @Override
     public void workitemRelevanceBranch(Integer guidWorkitem, Integer guidBranch) {
 
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH,guidBranch);
+        List<SBranchMapping> sBranchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(sBranchMappings.size() > 0){
+            throw new DeveloperException("此分支已被指配，请重新选择分支！");
+        }
+
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper2 = new EntityWrapper<>();
+        branchMappingEntityWrapper2.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,guidWorkitem);
+        branchMappingEntityWrapper2.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
+        List<SBranchMapping> sBranchMappings2 = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(sBranchMappings2.size() > 0){
+            throw new DeveloperException("此工作项已关联分支！");
+        }
+
         SBranchMapping branchMapping = new SBranchMapping();
         branchMapping.setGuidBranch(guidBranch);
         branchMapping.setForWhat(BranchForWhat.WORKITEM);
@@ -167,7 +182,7 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
         List<SBranchMapping> sbmList = branchMappingService.selectList(branchMappingEntityWrapper);
         if(sbmList.size() != 1){
-            throw new DeveloperException("此工作项没有分配分支！");
+            throw new DeveloperException("此工作项没有关联分支！");
         }
         SBranchMapping branchMapping = sbmList.get(0);
         branchMappingService.deleteById(branchMapping.getGuid());

@@ -32,12 +32,12 @@ public class SProjectServiceImpl extends ServiceImpl<SProjectMapper, SProject> i
 
     @Override
     public List<SProject> selectProjectAll() {
-        return this.spList;
+        return selectList(null);
     }
 
-    @PostConstruct
+    /*@PostConstruct
     private void loadAllProject(){
         this.spList = selectList(null);
-    }
+    }*/
 }
 

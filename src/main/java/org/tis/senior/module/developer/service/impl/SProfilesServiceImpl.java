@@ -44,7 +44,9 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
 
     @Override
     public List<SProfiles> selectProfilesAll() {
-        return this.spList;
+        EntityWrapper<SProfiles> spEntityWrapper = new EntityWrapper<>();
+        spEntityWrapper.eq(SProfiles.COLUMN_IS_ALLOW_DELIVERY,IsAllowDelivery.ALLOW);
+        return selectList(spEntityWrapper);
     }
 
     @Override
@@ -126,6 +128,22 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
 
     @Override
     public void profileRelevanceBranch(Integer guidProfile, Integer guidBranch) {
+
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH,guidBranch);
+        List<SBranchMapping> sBranchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(sBranchMappings.size() > 0){
+            throw new DeveloperException("此分支已被指配，请重新选择分支！");
+        }
+
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper2 = new EntityWrapper<>();
+        branchMappingEntityWrapper2.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,guidProfile);
+        branchMappingEntityWrapper2.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.RELEASE);
+        List<SBranchMapping> sBranchMappings2 = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(sBranchMappings2.size() > 0){
+            throw new DeveloperException("此运行环境已关联分支！");
+        }
+
         SBranchMapping branchMapping = new SBranchMapping();
         branchMapping.setGuidBranch(guidBranch);
         branchMapping.setForWhat(BranchForWhat.RELEASE);
@@ -161,14 +179,6 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         return branchService.selectById(branchMapping.getGuidBranch());
     }
 
-    /**
-     * 查询所有的运行环境
-     */
-    @PostConstruct
-    public void selectAll(){
-        EntityWrapper<SProfiles> spEntityWrapper = new EntityWrapper<>();
-        spEntityWrapper.eq(SProfiles.COLUMN_IS_ALLOW_DELIVERY,IsAllowDelivery.ALLOW);
-        this.spList = selectList(spEntityWrapper);
-    }
+
 }
 

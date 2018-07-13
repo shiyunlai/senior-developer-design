@@ -18,6 +18,7 @@ import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -41,6 +42,8 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     private ISWorkitemService workitemService;
     @Autowired
     private ISDeliveryListService deliveryListService;
+    @Autowired
+    private ISProjectService projectService;
 
     @Override
     public DeliveryDetail getMergeInfo(MergeDeliveryRequest mergeDelivery, String userId) {
@@ -193,6 +196,58 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
             throw new DeveloperException("没有对应的投放申请可以追加！");
         }
         return deliveryList;
+    }
+
+    @Override
+    public void deleteDeliveryAndDeliveryList(Integer guidDelivery) {
+
+        SDelivery delivery = selectById(guidDelivery);
+        if(delivery == null){
+            throw new DeveloperException("没有找到对应的投放申请！");
+        }
+        EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
+        deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY,delivery.getGuid());
+        List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListEntityWrapper);
+
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.ne(SDelivery.COLUMN_GUID,delivery.getGuid());
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,delivery.getGuidWorkitem());
+        deliveryEntityWrapper.in(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.unfinished());
+        List<SDelivery> deliveryList = selectList(deliveryEntityWrapper);
+
+
+
+        if(deliveryList.size() < 1){
+            SWorkitem workitem  = workitemService.selectById(delivery.getGuidWorkitem());
+
+            EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+            branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,workitem.getGuid());
+            branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
+            List<SBranchMapping> branchMapping = branchMappingService.selectList(branchMappingEntityWrapper);
+
+            if(branchMapping.size() > 0){
+                try {
+                    branchService.recordBranchTempRevision(branchMapping.get(0).getGuidBranch());
+                } catch (SVNException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
+        deliveryListService.deleteBatchIds(deliveryLists.stream().map(SDeliveryList::getGuid).collect(Collectors.toList()));
+        deleteById(delivery.getGuid());
+
+    }
+
+    @Override
+    public List<DeliveryProjectDetail> selectDeliveryListByGuidDelivery(Integer guidDelivery) {
+
+        EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
+        deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY,guidDelivery);
+        List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListEntityWrapper);
+
+        return DeliveryProjectDetail.getDeliveryDetail(deliveryLists,projectService.selectProjectAll());
     }
 
 }
