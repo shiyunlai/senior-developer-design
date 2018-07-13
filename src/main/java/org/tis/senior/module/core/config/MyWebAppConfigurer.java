@@ -58,7 +58,9 @@ public class MyWebAppConfigurer extends WebMvcConfigurerAdapter {
                 // 空字段序列化输出null
                 SerializerFeature.WriteMapNullValue,
                 // 枚举类序列化调用toString方法
-                SerializerFeature.WriteEnumUsingToString
+                SerializerFeature.WriteEnumUsingToString,
+                // 关闭循环引用
+                SerializerFeature.DisableCircularReferenceDetect
         );
         // 设置日期格式化
 //        fastJsonConfig.setDateFormat("yyyy-MM-dd HH:mm:ss");
