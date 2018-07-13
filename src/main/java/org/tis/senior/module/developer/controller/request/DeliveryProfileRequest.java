@@ -13,8 +13,8 @@ public class DeliveryProfileRequest {
 
     private String applyAlias;
 
-    @NotBlank(message = "运行环境的guid不能为空")
-    private String guidProfiles;
+    @NotNull(message = "运行环境的guid不能为空")
+    private Integer guidProfiles;
 
     @NotNull(message = "打包窗口不能为空")
     @JSONField(deserializeUsing = CommonEnumDeserializer.class)
