@@ -115,14 +115,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 if ("S".equals(sProject.getProjectType())) {
                     String deployConfig = sProject.getDeployConfig();
                     JSONArray jsonArray = JSONArray.parseArray(deployConfig);
-                    String exportType = "";
                     for (Object object : jsonArray) {
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
-                        if(exportType == ""){
-                            exportType = jsonObject.getString("exportType");
-                        }else{
-                            exportType = exportType + "," + jsonObject.getString("exportType");
-                        }
+                        String exportType = jsonObject.getString("exportType");
                         String deployType = jsonObject.getString("deployType");
                         sdl.setPatchType(exportType);
                         sdl.setDeployWhere(deployType);
@@ -130,14 +125,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 } else {
                     String deployConfig = sProject.getDeployConfig();
                     JSONArray jsonArray = JSONArray.parseArray(deployConfig);
-                    String exportType = "";
                     for (Object object : jsonArray) {
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
-                        if(exportType == ""){
-                            exportType = jsonObject.getString("exportType");
-                        }else{
-                            exportType = exportType + "," + jsonObject.getString("exportType");
-                        }
+                        String exportType = jsonObject.getString("exportType");
                         String deployType = jsonObject.getString("deployType");
                         if (exportType.equals("ecd")) {
                             if (ecdSet.size() > 0) {
@@ -316,7 +306,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     }
 
     @Override
-    public List<SDeliveryList> addToDeliveryList(DeliveryListSuperadditionRequest request) {
+    public List<SDelivery> addToDeliveryList(DeliveryListSuperadditionRequest request) {
 
         List<SDeliveryList> deliveryLists = new ArrayList<>();
         for (Integer guidDelivery:request.getGuidDelivery()){
@@ -327,7 +317,11 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         }
         insertBatch(deliveryLists);
 
-        return deliveryLists;
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.in(SDelivery.COLUMN_GUID,request.getGuidDelivery());
+        List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
+
+        return deliverys;
     }
 
     @Override
