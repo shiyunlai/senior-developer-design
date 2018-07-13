@@ -56,7 +56,7 @@ public class MyWebAppConfigurer extends WebMvcConfigurerAdapter {
                 // 格式化
                 SerializerFeature.PrettyFormat,
                 // 空字段序列化输出null
-                SerializerFeature.WriteMapNullValue,
+//                SerializerFeature.WriteMapNullValue,
                 // 枚举类序列化调用toString方法
                 SerializerFeature.WriteEnumUsingToString,
                 // 关闭循环引用
