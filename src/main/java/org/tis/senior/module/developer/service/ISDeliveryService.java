@@ -54,7 +54,7 @@ public interface ISDeliveryService extends IService<SDelivery>  {
 
     /**
      * 确认合并投放申请
-     * @param id
+     * @param id 投放申请GUID
      */
     void merge(String id);
 }
