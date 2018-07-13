@@ -1,6 +1,7 @@
 package org.tis.senior.module.developer.entity.vo;
 
 import lombok.Data;
+import org.tis.senior.module.developer.entity.SCheck;
 import org.tis.senior.module.developer.entity.SCheckList;
 
 import java.util.List;
@@ -13,6 +14,8 @@ import java.util.List;
  **/
 @Data
 public class CheckResultDetail {
+
+    private SCheck check;
 
     private List<DeliveryCheckResultDetail> deliveryDetails;
 
