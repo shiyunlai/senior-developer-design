@@ -94,7 +94,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         // 合并为一个投产申请,每个环境形成一个独立的投放申请
         mergeDelivery.getProfiles().forEach(p -> {
             SDelivery sDelivery = new SDelivery();
-            sDelivery.setGuidProfiles(Integer.parseInt(p.getGuidProfiles()));
+            sDelivery.setGuidProfiles(p.getGuidProfiles());
             sDelivery.setPackTiming(p.getPackTiming());
             sDelivery.setDeliveryType(DeliveryType.MERGE);
             sDelivery.setMergeList(mergeDelivery.getMergeList().stream().reduce("", (r, s) -> r + "," + s));
