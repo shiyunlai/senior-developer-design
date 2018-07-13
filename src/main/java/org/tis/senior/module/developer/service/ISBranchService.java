@@ -3,6 +3,7 @@ package org.tis.senior.module.developer.service;
 import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.enums.BranchForWhat;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,5 +36,33 @@ public interface ISBranchService extends IService<SBranch>  {
      * @return
      */
     List<SBranch> selectNotAllotBranch();
+
+    /**
+     * 记录分支临时版本号
+     */
+    void recordBranchTempRevision(Integer guidBranch) throws SVNException;
+
+    /**
+     * 记录分支临时版本号
+     */
+    void recordBranchTempRevision(List<Integer> guidBranchs) throws SVNException;
+
+    /**
+     * 回滚分支版本号
+     */
+    void revertBranchRevision(Integer guidBranch) throws SVNException;
+    /**
+     * 回滚分支版本号
+     */
+    void revertBranchRevision(List<Integer> guidBranchs);
+
+    /**
+     * 同步分支版本号
+     */
+    void syncBranchRevision(Integer guidBranch);
+    /**
+     * 同步分支版本号
+     */
+    void syncBranchRevision(List<Integer> guidBranchs);
 }
 

@@ -12,7 +12,9 @@ import org.tis.senior.module.developer.entity.enums.BranchForWhat;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISBranchMappingService;
 import org.tis.senior.module.developer.service.ISBranchService;
+import org.tis.senior.module.developer.service.ISSvnKitService;
 import org.tis.senior.module.developer.util.DeveloperUtils;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,6 +33,9 @@ public class SBranchServiceImpl extends ServiceImpl<SBranchMapper, SBranch> impl
 
     @Autowired
     private ISBranchMappingService branchMappingService;
+
+    @Autowired
+    private ISSvnKitService svnKitService;
 
     @Override
     public void deleteBranchAndMapping(Integer guidBranch) {
@@ -54,19 +59,74 @@ public class SBranchServiceImpl extends ServiceImpl<SBranchMapper, SBranch> impl
         for (SBranchMapping branchMapping:sBranchMappings){
             branchGuid.add(branchMapping.getGuidBranch());
         }
-        if(branchGuid == null){
+        if(branchGuid.size() == 0){
             throw new DeveloperException("没有查询到为被指配的分支");
         }
         EntityWrapper<SBranch> branchEntityWrapper = new EntityWrapper<>();
         branchEntityWrapper.notIn(SBranch.COLUMN_GUID,branchGuid);
-        List<SBranch> branchList = selectList(branchEntityWrapper);
-        return branchList;
+        return selectList(branchEntityWrapper);
     }
 
     @Override
     public List<Map> selectListByForWhatIds(BranchForWhat forWhat, Collection ids) {
         String s = DeveloperUtils.inExpression(ids);
         return this.baseMapper.selectListByForWhatIds(forWhat.getValue().toString(), s);
+    }
+
+    @Override
+    public void recordBranchTempRevision(Integer guidBranch) throws SVNException {
+        SBranch sBranch = selectById(guidBranch);
+        int lastRevision = svnKitService.getLastRevision(sBranch.getFullPath());
+        sBranch.setCurrVersion(lastRevision);
+        updateById(sBranch);
+    }
+
+    @Override
+    public void recordBranchTempRevision(List<Integer> guidBranchs) throws SVNException {
+        EntityWrapper<SBranch> branchEntityWrapper = new EntityWrapper<>();
+        branchEntityWrapper.in(SBranch.COLUMN_GUID, guidBranchs);
+        List<SBranch> sBranches = selectList(branchEntityWrapper);
+        for (SBranch sBranch : sBranches) {
+            int lastRevision = svnKitService.getLastRevision(sBranch.getFullPath());
+            sBranch.setCurrVersion(lastRevision);
+        }
+        updateBatchById(sBranches);
+    }
+
+    @Override
+    public void revertBranchRevision(Integer guidBranch) throws SVNException {
+        SBranch sBranch = selectById(guidBranch);
+        sBranch.setCurrVersion(sBranch.getLastVersion());
+        updateById(sBranch);
+    }
+
+    @Override
+    public void revertBranchRevision(List<Integer> guidBranchs) {
+        EntityWrapper<SBranch> branchEntityWrapper = new EntityWrapper<>();
+        branchEntityWrapper.in(SBranch.COLUMN_GUID, guidBranchs);
+        List<SBranch> sBranches = selectList(branchEntityWrapper);
+        for (SBranch sBranch : sBranches) {
+            sBranch.setCurrVersion(sBranch.getLastVersion());
+        }
+        updateBatchById(sBranches);
+    }
+
+    @Override
+    public void syncBranchRevision(Integer guidBranch) {
+        SBranch sBranch = selectById(guidBranch);
+        sBranch.setLastVersion(sBranch.getCurrVersion());
+        updateById(sBranch);
+    }
+
+    @Override
+    public void syncBranchRevision(List<Integer> guidBranchs) {
+        EntityWrapper<SBranch> branchEntityWrapper = new EntityWrapper<>();
+        branchEntityWrapper.in(SBranch.COLUMN_GUID, guidBranchs);
+        List<SBranch> sBranches = selectList(branchEntityWrapper);
+        for (SBranch sBranch : sBranches) {
+            sBranch.setLastVersion(sBranch.getCurrVersion());
+        }
+        updateBatchById(sBranches);
     }
 }
 

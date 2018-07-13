@@ -121,7 +121,6 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         this.baseMapper.updateById(delivery);
     }
 
-
     /**
      * 判断是否允许合并投放，返回合并申请信息集合
      *
@@ -186,7 +185,6 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
 
     @Override
     public List<SDelivery> selectAddToDelivery(Integer workitemGuid) {
-
         EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
         deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,workitemGuid);
         deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);

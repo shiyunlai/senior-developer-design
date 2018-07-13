@@ -3,6 +3,8 @@ package org.tis.senior.module.developer.entity.enums;
 import org.tis.senior.module.core.entity.enums.BaseEnum;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * description: 投放结果
@@ -48,5 +50,14 @@ public enum DeliveryResult implements BaseEnum {
 
     public boolean isSuccess() {
         return this.equals(SUCCESS);
+    }
+
+    public static List<String> unfinished() {
+        List<String> list = new ArrayList<>();
+        list.add(DeliveryResult.APPLYING.getValue().toString());
+        list.add(DeliveryResult.MERGED.getValue().toString());
+        list.add(DeliveryResult.CHECKING.getValue().toString());
+        list.add(DeliveryResult.SUCCESS.getValue().toString());
+        return list;
     }
 }
