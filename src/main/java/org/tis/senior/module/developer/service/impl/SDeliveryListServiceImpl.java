@@ -154,7 +154,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     public List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) {
 
         //判断是否是新投放
-        String deliveryTime = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(request.getDliveryAddRequest().getDeliveryTime());
         EntityWrapper<SDelivery> deliverysEntityWrapper = new EntityWrapper<>();
         deliverysEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
         deliverysEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
@@ -182,7 +181,10 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             SDelivery delivery = new SDelivery();
             delivery.setApplyAlias(req.getApplyAlias());
             delivery.setGuidWorkitem(sbm.getGuidOfWhats());
-            delivery.setGuidProfiles(Integer.parseInt(req.getGuidProfiles()));
+            if(deliveryService.selectById(req.getGuidProfiles()) == null){
+                throw new DeveloperException("投放的环境不存在，请重新选择环境！");
+            }
+            delivery.setGuidProfiles(req.getGuidProfiles());
             delivery.setDeliveryType(DeliveryType.GENERAL);
             delivery.setProposer(userId);
             delivery.setApplyTime(new Date());
