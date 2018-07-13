@@ -382,22 +382,23 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             SDelivery delivery = new SDelivery();
             delivery.setDeliveryResult(DeliveryResult.DELIVERED);
             deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.SUCCESS);
+            List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
             deliveryService.update(delivery, deliveryWrapper);
 
-            List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
             // 同步版本号 工作项和环境分支
             List<Integer> workIds = deliveryList.stream().map(SDelivery::getGuidWorkitem).collect(Collectors.toList());
             List<Integer> branchIds = branchService
                     .selectListByForWhatIds(BranchForWhat.WORKITEM, workIds).stream()
                     .map(map -> Integer.valueOf(map.get("guidBranch").toString())).collect(Collectors.toList());
-            branchService.syncBranchRevision(branchIds);
+            if (!CollectionUtils.isEmpty(branchIds)) {
+                branchService.syncBranchRevision(branchIds);
+            }
             List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.RELEASE,
-                    Collections.singletonList(delivery.getGuidProfiles()));
+                    Collections.singletonList(check.getGuidProfiles()));
             branchService.syncBranchRevision(Integer.valueOf(maps.get(0).get("guidBranch").toString()));
-
             // 维护标准清单
-//            Map<Integer, Integer> deliveryWorkItemMap = deliveryList.stream()
-//                    .collect(Collectors.toMap(SDelivery::getGuid, SDelivery::getGuidWorkitem));
+            Map<Integer, Integer> deliveryWorkItemMap = deliveryList.stream()
+                    .collect(Collectors.toMap(SDelivery::getGuid, SDelivery::getGuidWorkitem));
             List<Integer> deliveryIds = deliveryList.stream().map(SDelivery::getGuid).collect(Collectors.toList());
             // 获取所有需要添加到标准清单的申请清单
             EntityWrapper<SDeliveryList> sdlWrapper = new EntityWrapper<>();
@@ -447,6 +448,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
                         // 如果出现标准清单中没有的文件，提交类型是新增，并且导出类型是epd,需要判断添加到标准清单中是ecd或epd
                         SStandardList newSSD = new SStandardList();
                         BeanUtils.copyProperties(d, newSSD);
+                        newSSD.setGuidWorkitem(deliveryWorkItemMap.get(d.getGuidDelivery()));
                         newSSD.setGuid(null);
                         if (d.getPatchType().equals(PatchType.EPD.getValue().toString())) {
                             EntityWrapper<SStandardList> wrapper = new EntityWrapper<>();
