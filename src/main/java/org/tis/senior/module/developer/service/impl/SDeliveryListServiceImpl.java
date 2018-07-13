@@ -165,13 +165,12 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
 
         //判断是否是新投放
         String deliveryTime = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(request.getDliveryAddRequest().getDeliveryTime());
-        for (DeliveryProfileRequest deliveryProfileRequest:request.getDliveryAddRequest().getProfiles()){
-            EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
-            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
-            List<SDelivery> deliveryList = deliveryService.selectList(deliveryEntityWrapper);
-            if(deliveryList.size() > 0){
-                throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
-            }
+        EntityWrapper<SDelivery> deliverysEntityWrapper = new EntityWrapper<>();
+        deliverysEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
+        deliverysEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
+        List<SDelivery> sDeliveries = deliveryService.selectList(deliverysEntityWrapper);
+        if(sDeliveries.size() > 0){
+            throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
         }
 
         Integer guidBranch = request.getGuidBranch();
