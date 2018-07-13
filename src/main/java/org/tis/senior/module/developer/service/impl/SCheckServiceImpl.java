@@ -159,7 +159,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         // 记录投放环境分支的版本号
         branchService.recordBranchTempRevision(sBranch.getGuid());
         // 组装核对结果
-        return getCheckResultDetail(notInDelivery, deliveryList, notInMerge);
+        return getCheckResultDetail(check, notInDelivery, deliveryList, notInMerge);
     }
 
     @Override
@@ -189,7 +189,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
                 checkErrorTypeListMap.get(CheckErrorType.Merge);
         List<SCheckList> deliveryLists = checkErrorTypeListMap.get(CheckErrorType.Delivery) == null ? new ArrayList<>() :
                 checkErrorTypeListMap.get(CheckErrorType.Delivery);
-        return getCheckResultDetail(mergeLists, deliveryList, deliveryLists);
+        return getCheckResultDetail(check, mergeLists, deliveryList, deliveryLists);
     }
 
     @Override
@@ -479,9 +479,10 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
      * @param deliveryLists
      * @return
      */
-    private CheckResultDetail getCheckResultDetail(List<SCheckList> mergeLists, List<SDelivery> deliverys,
-                                                   List<SCheckList> deliveryLists) {
+    private CheckResultDetail getCheckResultDetail(SCheck check, List<SCheckList> mergeLists,
+                                                   List<SDelivery> deliverys, List<SCheckList> deliveryLists) {
         CheckResultDetail result = new CheckResultDetail();
+        result.setCheck(check);
         result.setMergeLists(mergeLists);
         List<DeliveryCheckResultDetail> details = new ArrayList<>();
         result.setDeliveryDetails(details);
