@@ -10,6 +10,7 @@ import org.tis.senior.module.developer.entity.vo.SvnCommit;
 import org.tis.senior.module.developer.entity.vo.SvnFile;
 import org.tis.senior.module.developer.entity.vo.SvnPath;
 import org.tis.senior.module.developer.service.ISSvnKitService;
+import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.*;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory;
@@ -173,7 +174,7 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
             if (!diff.getModificationType().equals(STATUS_NONE) ) {
                 if (StringUtils.isBlank(filter) || diff.getURL().getPath().startsWith(filter)) {
                     SvnFile svnFile = new SvnFile();
-                    svnFile.setPath(diff.getURL().toString());
+                    svnFile.setPath(DeveloperUtils.getPathUTF(diff.getURL().toString()));
                     CommitType what = CommitType.what(diff.getModificationType().toString());
                     if (what != null) {
                         svnFile.setType(what);
@@ -191,10 +192,10 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
         SVNRevision start = SVNRevision.create(Long.valueOf(startRevision));
         DefaultSVNOptions defaultOptions = SVNWCUtil.createDefaultOptions(true);
         SVNDiffClient svnDiffClient = new SVNDiffClient(svnAuthenticationManager, defaultOptions);
-        SVNDepth depth = includeDir ? SVNDepth.INFINITY : SVNDepth.FILES;
-        svnDiffClient.doDiffStatus(svnurl, start, svnurl, SVNRevision.HEAD, depth, false, diff -> {
+//        SVNDepth depth = includeDir ? SVNDepth.INFINITY : SVNDepth.FILES;
+        svnDiffClient.doDiffStatus(svnurl, start, svnurl, SVNRevision.HEAD, SVNDepth.INFINITY, false, diff -> {
             SvnFile svnFile = new SvnFile();
-            svnFile.setPath(diff.getURL().toString());
+            svnFile.setPath(DeveloperUtils.getPathUTF(diff.getURL().toString()));
             CommitType what = CommitType.what(diff.getModificationType().toString());
             if (what != null) {
                 svnFile.setType(what);
