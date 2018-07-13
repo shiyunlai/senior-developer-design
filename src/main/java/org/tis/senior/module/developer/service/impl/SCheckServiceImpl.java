@@ -156,6 +156,8 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         insert.addAll(notInMerge);
         insert.addAll(notInDelivery);
         checkListService.insertBatch(insert);
+        // 记录投放环境分支的版本号
+        branchService.recordBranchTempRevision(sBranch.getGuid());
         // 组装核对结果
         return getCheckResultDetail(notInDelivery, deliveryList, notInMerge);
     }
@@ -191,7 +193,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
     }
 
     @Override
-    public void process(String deliveryGuid, DeliveryResult result, String desc, String userId) {
+    public void process(String deliveryGuid, DeliveryResult result, String desc, String userId) throws SVNException {
         if (!(result.equals(DeliveryResult.FAILED) && result.equals(DeliveryResult.SUCCESS))) {
             throw new DeveloperException("投放申请结果只能处理为成功或失败！");
         }
@@ -202,6 +204,19 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         if (!delivery.getDeliveryResult().equals(DeliveryResult.CHECKING)) {
             throw new DeveloperException("投放申请'" + delivery.getApplyAlias() + "'当前状态为" +
                     delivery.getDeliveryResult().toString() + "，只能对核对中的申请作处理！");
+        }
+        // 如果申请失败
+        if (result.equals(DeliveryResult.FAILED)) {
+            // 查询当前工作项是否有其他未完成的申请，没有则回滚版本号
+            EntityWrapper<SDelivery> wrapper = new EntityWrapper<>();
+            wrapper.eq(SDelivery.COLUMN_GUID_WORKITEM, delivery.getGuidWorkitem());
+            wrapper.in(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.unfinished());
+            int count = deliveryService.selectCount(wrapper);
+            if (count == 0) {
+                List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.WORKITEM,
+                        Collections.singletonList(delivery.getGuidWorkitem()));
+                branchService.revertBranchRevision(Integer.valueOf(maps.get(0).get("guidBranch").toString()));
+            }
         }
         delivery.setDeliveryResult(result);
         delivery.setDeliveryDesc(desc);
@@ -363,8 +378,16 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             delivery.setDeliveryResult(DeliveryResult.DELIVERED);
             deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.SUCCESS);
             deliveryService.update(delivery, deliveryWrapper);
-            // 维护标准清单
+
             List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
+            // 同步版本号
+            List<Integer> workIds = deliveryList.stream().map(SDelivery::getGuidWorkitem).collect(Collectors.toList());
+            List<Integer> branchIds = branchService
+                    .selectListByForWhatIds(BranchForWhat.WORKITEM, workIds).stream()
+                    .map(map -> Integer.valueOf(map.get("guidBranch").toString())).collect(Collectors.toList());
+            branchService.syncBranchRevision(branchIds);
+
+            // 维护标准清单
             Map<Integer, Integer> deliveryWorkItemMap = deliveryList.stream()
                     .collect(Collectors.toMap(SDelivery::getGuid, SDelivery::getGuidWorkitem));
             List<Integer> deliveryIds = deliveryList.stream().map(SDelivery::getGuid).collect(Collectors.toList());

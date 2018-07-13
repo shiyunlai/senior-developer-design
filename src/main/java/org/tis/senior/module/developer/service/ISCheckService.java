@@ -43,7 +43,7 @@ public interface ISCheckService extends IService<SCheck>  {
      * @param desc
      * @param userId
      */
-    void process(String deliveryGuid, DeliveryResult result, String desc, String userId);
+    void process(String deliveryGuid, DeliveryResult result, String desc, String userId) throws SVNException;
 
     /**
      * 确认核对清单状态
