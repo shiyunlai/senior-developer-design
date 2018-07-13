@@ -267,7 +267,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         }
         boolean isCurrCheck = DeveloperUtils.getDayFormat(delivery.getDeliveryTime())
                 .equals(DeveloperUtils.getDayFormat(check.getDeliveryTime()))
-                && delivery.getGuidProfiles().equals(check.getGuid())
+                && delivery.getGuidProfiles().equals(check.getGuidProfiles())
                 && delivery.getPackTiming().equals(check.getPackTiming());
         if (!isCurrCheck) {
             throw new DeveloperException("只能将核对清单添加到此次核对中的投放申请中！");
