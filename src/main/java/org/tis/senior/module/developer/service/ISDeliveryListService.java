@@ -45,7 +45,7 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      * 追加投放申请
      * @param request
      */
-    List<SDeliveryList> addToDeliveryList(DeliveryListSuperadditionRequest request);
+    List<SDelivery> addToDeliveryList(DeliveryListSuperadditionRequest request);
 
     /**
      * 填充对象
