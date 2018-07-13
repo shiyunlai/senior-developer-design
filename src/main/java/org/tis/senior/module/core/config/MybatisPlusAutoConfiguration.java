@@ -2,7 +2,6 @@ package org.tis.senior.module.core.config;
 
 import com.baomidou.mybatisplus.mapper.ISqlInjector;
 import com.baomidou.mybatisplus.mapper.LogicSqlInjector;
-import com.baomidou.mybatisplus.mapper.MetaObjectHandler;
 import com.baomidou.mybatisplus.plugins.OptimisticLockerInterceptor;
 import com.baomidou.mybatisplus.plugins.PaginationInterceptor;
 import com.baomidou.mybatisplus.plugins.PerformanceInterceptor;
@@ -22,7 +21,7 @@ import org.springframework.context.annotation.Configuration;
  * @since 2017/5/20 21:58
  */
 @Configuration
-@MapperScan(basePackages = {"org.tis.senior.module.**.dao"})
+@MapperScan("org.tis.senior.module.developer.dao")
 public class MybatisPlusAutoConfiguration {
 
     /**

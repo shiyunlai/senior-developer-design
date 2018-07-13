@@ -141,7 +141,7 @@ public class BaseControllerExceptionHandler {
     @ExceptionHandler(DeveloperException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResultVO handleDeveloperException(DeveloperException ex) {
-        return ResultVO.failure("400", "错误的请求！" + ex.getMessage());
+        return ResultVO.failure("400", ex.getMessage());
     }
 
     /**

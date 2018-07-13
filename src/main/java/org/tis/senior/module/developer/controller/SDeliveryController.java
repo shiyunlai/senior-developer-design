@@ -14,7 +14,6 @@ import org.tis.senior.module.developer.service.ISDeliveryService;
 
 import javax.validation.constraints.NotNull;
 import java.text.ParseException;
-import java.util.List;
 
 /**
  * sDelivery的Controller类
@@ -89,7 +88,7 @@ public class SDeliveryController extends BaseController<SDelivery>  {
     @PutMapping("/{id}/merge")
     public ResultVO merge(@PathVariable @NotBlank(message = "id不能为空") String id) {
         sDeliveryService.merge(id);
-        return ResultVO.success("申请合并投放成功！");
+        return ResultVO.success("确认已合并！");
     }
 
     /**
