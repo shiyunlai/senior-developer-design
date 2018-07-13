@@ -74,6 +74,6 @@ public interface ISCheckService extends IService<SCheck>  {
      * @param id 核对ID
      * @param status 核对状态 成功或失败
      */
-    void completeCheck(String id, CheckStatus status);
+    void completeCheck(String id, CheckStatus status) throws SVNException;
 }
 

@@ -312,7 +312,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
     }
 
     @Override
-    public void completeCheck(String id, CheckStatus status) {
+    public void completeCheck(String id, CheckStatus status) throws SVNException {
         SCheck check = this.baseMapper.selectById(id);
         if (check == null) {
             throw new DeveloperException("找不到'" + id + "'对应的核对记录！");
@@ -336,6 +336,10 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             deliveryService.update(delivery, deliveryWrapper);
             check.setCheckStatus(status);
             this.baseMapper.updateById(check);
+            // 环境分支版本回滚
+            List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.RELEASE,
+                    Collections.singletonList(delivery.getGuidProfiles()));
+            branchService.revertBranchRevision(Integer.valueOf(maps.get(0).get("guidBranch").toString()));
         } else {
             // 如果核对完成
             // 判断是否有未处理清单
@@ -380,16 +384,19 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             deliveryService.update(delivery, deliveryWrapper);
 
             List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
-            // 同步版本号
+            // 同步版本号 工作项和环境分支
             List<Integer> workIds = deliveryList.stream().map(SDelivery::getGuidWorkitem).collect(Collectors.toList());
             List<Integer> branchIds = branchService
                     .selectListByForWhatIds(BranchForWhat.WORKITEM, workIds).stream()
                     .map(map -> Integer.valueOf(map.get("guidBranch").toString())).collect(Collectors.toList());
             branchService.syncBranchRevision(branchIds);
+            List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.RELEASE,
+                    Collections.singletonList(delivery.getGuidProfiles()));
+            branchService.syncBranchRevision(Integer.valueOf(maps.get(0).get("guidBranch").toString()));
 
             // 维护标准清单
-            Map<Integer, Integer> deliveryWorkItemMap = deliveryList.stream()
-                    .collect(Collectors.toMap(SDelivery::getGuid, SDelivery::getGuidWorkitem));
+//            Map<Integer, Integer> deliveryWorkItemMap = deliveryList.stream()
+//                    .collect(Collectors.toMap(SDelivery::getGuid, SDelivery::getGuidWorkitem));
             List<Integer> deliveryIds = deliveryList.stream().map(SDelivery::getGuid).collect(Collectors.toList());
             // 获取所有需要添加到标准清单的申请清单
             EntityWrapper<SDeliveryList> sdlWrapper = new EntityWrapper<>();
