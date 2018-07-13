@@ -236,17 +236,20 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 standardListEntityWrapper.eq(SStandardList.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
                 List<SStandardList> sStandardLists = standardListService.selectList(standardListEntityWrapper);
 
-                List<SDeliveryList> sdlList = new ArrayList<>();
-                for(Integer guid:choiceProfileGuid){
-                    for(SStandardList sStandard:sStandardLists){
-                        SDeliveryList sdl = new SDeliveryList();
-                        BeanUtils.copyProperties(sStandard,sdl);
-                        sdl.setGuidDelivery(guid);
-                        sdl.setFromType(DeliveryListFromType.STANDARD);
-                        sdlList.add(sdl);
+                if(sStandardLists != null){
+                    List<SDeliveryList> sdlList = new ArrayList<>();
+                    for(Integer guid:choiceProfileGuid){
+                        for(SStandardList sStandard:sStandardLists){
+                            SDeliveryList sdl = new SDeliveryList();
+                            BeanUtils.copyProperties(sStandard,sdl);
+                            sdl.setGuidDelivery(guid);
+                            sdl.setFromType(DeliveryListFromType.STANDARD);
+                            sdlList.add(sdl);
+                        }
                     }
+                    insertBatch(sdlList);
                 }
-                insertBatch(sdlList);
+
             }
 
         }
