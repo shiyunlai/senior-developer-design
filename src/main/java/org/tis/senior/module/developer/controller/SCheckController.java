@@ -121,7 +121,7 @@ public class SCheckController extends BaseController<SCheck>  {
     @PutMapping("/{id}/status/{status}")
     @RequiresRoles("rct")
     public ResultVO changeCheckStatus(@PathVariable @NotBlank(message = "核对ID不能为空！") String id,
-                                      @PathVariable @NotBlank(message = "核对状态不能为空！") String status) {
+                                      @PathVariable @NotBlank(message = "核对状态不能为空！") String status) throws SVNException {
         sCheckService.completeCheck(id, CheckStatus.what(status));
         return ResultVO.success("操作成功！");
     }
