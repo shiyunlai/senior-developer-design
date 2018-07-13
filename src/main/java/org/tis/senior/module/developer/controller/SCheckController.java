@@ -104,7 +104,7 @@ public class SCheckController extends BaseController<SCheck>  {
      * @param request
      * @return
      */
-    @PostMapping("/delivery/{id}/result")
+    @PutMapping("/delivery/{id}/result")
     @RequiresRoles("rct")
     public ResultVO process(@PathVariable @NotBlank(message = "投放申请ID不能为空！") String id,
                             @RequestBody @Validated DeliveryProcessRequest request) throws SVNException {

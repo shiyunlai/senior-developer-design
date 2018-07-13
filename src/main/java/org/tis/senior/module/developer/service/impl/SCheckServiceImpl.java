@@ -194,7 +194,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
 
     @Override
     public void process(String deliveryGuid, DeliveryResult result, String desc, String userId) throws SVNException {
-        if (!(result.equals(DeliveryResult.FAILED) && result.equals(DeliveryResult.SUCCESS))) {
+        if (!(result.equals(DeliveryResult.FAILED) || result.equals(DeliveryResult.SUCCESS))) {
             throw new DeveloperException("投放申请结果只能处理为成功或失败！");
         }
         SDelivery delivery = deliveryService.selectById(deliveryGuid);
