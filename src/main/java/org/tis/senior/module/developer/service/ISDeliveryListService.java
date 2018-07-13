@@ -30,7 +30,7 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      * 添加投放申请和投产代码清单
      * @param request
      */
-    List<DeliveryProjectDetail> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String proposer) throws Exception;
+    List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String proposer);
 
     /**
      * 查询此工作项下需要导出成Excel文件的清单代码
@@ -45,7 +45,7 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      * 追加投放申请
      * @param request
      */
-    List<DeliveryProjectDetail> addToDeliveryList(DeliveryListSuperadditionRequest request);
+    List<SDeliveryList> addToDeliveryList(DeliveryListSuperadditionRequest request);
 
     /**
      * 填充对象

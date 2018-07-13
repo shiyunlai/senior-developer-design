@@ -5,13 +5,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliveryAddRequest;
-import org.tis.senior.module.developer.controller.request.DeliveryListSuperadditionRequest;
-import org.tis.senior.module.developer.controller.request.DeliveryProfileRequest;
-import org.tis.senior.module.developer.controller.request.SDliveryAddRequest;
+import org.tis.senior.module.developer.controller.request.*;
 import org.tis.senior.module.developer.dao.SDeliveryListMapper;
 import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.*;
@@ -22,6 +20,7 @@ import org.tis.senior.module.developer.service.*;
 import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,6 +49,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
 
     @Autowired
     private ISBranchMappingService branchMappingService;
+
+    @Autowired
+    private ISStandardListService standardListService;
 
     @Override
     public List<DeliveryProjectDetail> assembleDelivery(String branchGuid) throws SVNException {
@@ -113,9 +115,14 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 if ("S".equals(sProject.getProjectType())) {
                     String deployConfig = sProject.getDeployConfig();
                     JSONArray jsonArray = JSONArray.parseArray(deployConfig);
+                    String exportType = "";
                     for (Object object : jsonArray) {
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
-                        String exportType = jsonObject.getString("exportType");
+                        if(exportType == ""){
+                            exportType = jsonObject.getString("exportType");
+                        }else{
+                            exportType = exportType + "," + jsonObject.getString("exportType");
+                        }
                         String deployType = jsonObject.getString("deployType");
                         sdl.setPatchType(exportType);
                         sdl.setDeployWhere(deployType);
@@ -123,9 +130,14 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 } else {
                     String deployConfig = sProject.getDeployConfig();
                     JSONArray jsonArray = JSONArray.parseArray(deployConfig);
+                    String exportType = "";
                     for (Object object : jsonArray) {
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
-                        String exportType = jsonObject.getString("exportType");
+                        if(exportType == ""){
+                            exportType = jsonObject.getString("exportType");
+                        }else{
+                            exportType = exportType + "," + jsonObject.getString("exportType");
+                        }
                         String deployType = jsonObject.getString("deployType");
                         if (exportType.equals("ecd")) {
                             if (ecdSet.size() > 0) {
@@ -149,7 +161,18 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     }
 
     @Override
-    public List<DeliveryProjectDetail> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException {
+    public List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) {
+
+        //判断是否是新投放
+        String deliveryTime = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(request.getDliveryAddRequest().getDeliveryTime());
+        for (DeliveryProfileRequest deliveryProfileRequest:request.getDliveryAddRequest().getProfiles()){
+            EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
+            List<SDelivery> deliveryList = deliveryService.selectList(deliveryEntityWrapper);
+            if(deliveryList.size() > 0){
+                throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
+            }
+        }
 
         Integer guidBranch = request.getGuidBranch();
         SBranch branch = branchService.selectById(guidBranch);
@@ -161,6 +184,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         }
         SBranchMapping sbm = sbmList.get(0);
 
+        //新增投放申请列表
         List<SDelivery> deliveryList = new ArrayList<>();
         SDliveryAddRequest dliveryAddRequest = request.getDliveryAddRequest();
         List<DeliveryProfileRequest> guidPro = dliveryAddRequest.getProfiles();
@@ -180,9 +204,12 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         }
         deliveryService.insertBatch(deliveryList);
 
+        //创建投放申请集合
         List<SDeliveryList> deliveryLists = new ArrayList<>();
-
+        //创建已选择的环境的投放申请中的运行环境guid集合
+        List<Integer> choiceProfileGuid = new ArrayList<>();
         for (SDelivery sDelivery : deliveryList) {
+            choiceProfileGuid.add(sDelivery.getGuidProfiles());
             //组装投产代码清单
             for (SDeliveryList dlar : request.getDeliveryList()) {
                 dlar.setGuidDelivery(sDelivery.getGuid());
@@ -191,7 +218,40 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         }
         insertBatch(deliveryLists);
 
-        return DeliveryProjectDetail.getDeliveryDetail(deliveryLists, projectService.selectProjectAll());
+        //获取已成功合并的投放申请
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.SUCCESS);
+        List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
+        if (deliverys != null) {
+            //创建工作项已成功投放申请的运行环境guid
+            List<Integer> achieveProfileGuid = new ArrayList<>();
+            for (SDelivery delivery:deliverys){
+                achieveProfileGuid.add(delivery.getGuidProfiles());
+            }
+            choiceProfileGuid.removeAll(achieveProfileGuid);
+
+            if(choiceProfileGuid != null){
+                //获取工作项的标准清单记录
+                EntityWrapper<SStandardList> standardListEntityWrapper = new EntityWrapper<>();
+                standardListEntityWrapper.eq(SStandardList.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
+                List<SStandardList> sStandardLists = standardListService.selectList(standardListEntityWrapper);
+
+                List<SDeliveryList> sdlList = new ArrayList<>();
+                for(Integer guid:choiceProfileGuid){
+                    for(SStandardList sStandard:sStandardLists){
+                        SDeliveryList sdl = new SDeliveryList();
+                        BeanUtils.copyProperties(sStandard,sdl);
+                        sdl.setGuidDelivery(guid);
+                        sdl.setFromType(DeliveryListFromType.STANDARD);
+                        sdlList.add(sdl);
+                    }
+                }
+                insertBatch(sdlList);
+            }
+
+        }
+        return deliveryList;
     }
 
     @Override
@@ -254,7 +314,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     }
 
     @Override
-    public List<DeliveryProjectDetail> addToDeliveryList(DeliveryListSuperadditionRequest request) {
+    public List<SDeliveryList> addToDeliveryList(DeliveryListSuperadditionRequest request) {
 
         List<SDeliveryList> deliveryLists = new ArrayList<>();
         for (Integer guidDelivery:request.getGuidDelivery()){
@@ -264,7 +324,8 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             }
         }
         insertBatch(deliveryLists);
-        return DeliveryProjectDetail.getDeliveryDetail(deliveryLists, projectService.selectProjectAll());
+
+        return deliveryLists;
     }
 
     @Override
