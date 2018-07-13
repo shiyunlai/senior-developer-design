@@ -230,13 +230,13 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             }
             choiceProfileGuid.removeAll(achieveProfileGuid);
 
-            if(choiceProfileGuid != null){
+            if(choiceProfileGuid.size() > 0){
                 //获取工作项的标准清单记录
                 EntityWrapper<SStandardList> standardListEntityWrapper = new EntityWrapper<>();
                 standardListEntityWrapper.eq(SStandardList.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
                 List<SStandardList> sStandardLists = standardListService.selectList(standardListEntityWrapper);
 
-                if(sStandardLists != null){
+                if(sStandardLists.size() > 0){
                     List<SDeliveryList> sdlList = new ArrayList<>();
                     for(Integer guid:choiceProfileGuid){
                         for(SStandardList sStandard:sStandardLists){
