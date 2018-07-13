@@ -194,18 +194,20 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         deliveryService.insertBatch(deliveryList);
 
         //创建投放申请集合
-        List<SDeliveryList> deliveryLists = new ArrayList<>();
+
         //创建已选择的环境的投放申请中的运行环境guid集合
-        List<Integer> choiceProfileGuid = new ArrayList<>();
+        ArrayList<Integer> choiceProfileGuid = new ArrayList<>();
         for (SDelivery sDelivery : deliveryList) {
+            List<SDeliveryList> deliveryLists = new ArrayList<>();
             choiceProfileGuid.add(sDelivery.getGuidProfiles());
             //组装投产代码清单
             for (SDeliveryList dlar : request.getDeliveryList()) {
                 dlar.setGuidDelivery(sDelivery.getGuid());
                 deliveryLists.add(dlar);
             }
+            insertBatch(deliveryLists);
         }
-        insertBatch(deliveryLists);
+
 
         //获取已成功合并的投放申请
         EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
