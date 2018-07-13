@@ -53,6 +53,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     @Autowired
     private ISStandardListService standardListService;
 
+    @Autowired
+    private ISProfilesService profilesService;
+
     @Override
     public List<DeliveryProjectDetail> assembleDelivery(String branchGuid) throws SVNException {
 
@@ -161,7 +164,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         if(sDeliveries.size() > 0){
             throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
         }
-
         Integer guidBranch = request.getGuidBranch();
         SBranch branch = branchService.selectById(guidBranch);
         EntityWrapper<SBranchMapping> sbmEntityWrapper = new EntityWrapper<>();
@@ -181,7 +183,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             SDelivery delivery = new SDelivery();
             delivery.setApplyAlias(req.getApplyAlias());
             delivery.setGuidWorkitem(sbm.getGuidOfWhats());
-            if(deliveryService.selectById(req.getGuidProfiles()) == null){
+            if(profilesService.selectById(req.getGuidProfiles()) == null){
                 throw new DeveloperException("投放的环境不存在，请重新选择环境！");
             }
             delivery.setGuidProfiles(req.getGuidProfiles());
