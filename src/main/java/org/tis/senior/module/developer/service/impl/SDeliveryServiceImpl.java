@@ -19,7 +19,6 @@ import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -114,7 +113,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         if (delivery == null) {
             throw new DeveloperException("找不到" + id + "对应投放申请");
         }
-        if (delivery.getDeliveryResult().equals(DeliveryResult.APPLYING)) {
+        if (!delivery.getDeliveryResult().equals(DeliveryResult.APPLYING)) {
             throw new DeveloperException("投放申请'" + delivery.getApplyAlias() + "'当前状态为" +
                     delivery.getDeliveryResult().toString() + "，只能合并申请中状态的投放申请！");
         }
