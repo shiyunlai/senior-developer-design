@@ -11,7 +11,7 @@ import java.util.Date;
 
 public class DeveloperUtils {
 
-    private static final String PLACE_HOLDER = "{%s}";
+    private static final String PLACE_HOLDER = "'%s'";
 
     /**
      * 获取工程明
@@ -156,8 +156,9 @@ public class DeveloperUtils {
             StringBuilder inSql = new StringBuilder();
             inSql.append("(");
             int size = value.size();
-            for (int i = 0; i < size; i++) {
-                inSql.append(String.format(PLACE_HOLDER, i));
+            int i = 0;
+            for (Object o : value) {
+                inSql.append(String.format(PLACE_HOLDER, o.toString()));
                 if (i + 1 < size) {
                     inSql.append(",");
                 }

@@ -112,6 +112,12 @@ public class SCheckController extends BaseController<SCheck>  {
         return ResultVO.success("处理成功");
     }
 
+    /**
+     * 完成核对
+     * @param id
+     * @param status
+     * @return
+     */
     @PutMapping("/{id}/status/{status}")
     @RequiresRoles("rct")
     public ResultVO changeCheckStatus(@PathVariable @NotBlank(message = "核对ID不能为空！") String id,
@@ -119,9 +125,6 @@ public class SCheckController extends BaseController<SCheck>  {
         sCheckService.completeCheck(id, CheckStatus.what(status));
         return ResultVO.success("操作成功！");
     }
-
-
-
 
     /**
      * Excel导出清单

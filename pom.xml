@@ -136,6 +136,20 @@
 
 	<build>
 		<defaultGoal>install</defaultGoal>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<!-- mybatis-puls：如果mapper.xml是放在src/main/java目录下，需配置以下 -->
+			<resource>
+				<directory>src/main/java</directory>
+				<filtering>false</filtering>
+				<includes>
+					<!-- 约定 mapper.xml 放在以mapping标示的pacage路径里 -->
+					<include>**/mapping/*.xml</include>
+				</includes>
+			</resource>
+		</resources>
 		<plugins>
 
 			<!-- 使用flyway 在开发阶段，对开发环境进行数据库版本管理 mvn flyway:migrate mvn flyway:info 
