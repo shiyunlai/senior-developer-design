@@ -209,8 +209,9 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         if (result.equals(DeliveryResult.FAILED)) {
             // 查询当前工作项是否有其他未完成的申请，没有则回滚版本号
             EntityWrapper<SDelivery> wrapper = new EntityWrapper<>();
-            wrapper.eq(SDelivery.COLUMN_GUID_WORKITEM, delivery.getGuidWorkitem());
-            wrapper.in(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.unfinished());
+            wrapper.ne(SDelivery.COLUMN_GUID, delivery.getGuid())
+                    .eq(SDelivery.COLUMN_GUID_WORKITEM, delivery.getGuidWorkitem())
+                    .in(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.unfinished());
             int count = deliveryService.selectCount(wrapper);
             if (count == 0) {
                 List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.WORKITEM,
