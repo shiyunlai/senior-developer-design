@@ -2,10 +2,15 @@ package org.tis.senior.module.developer.service;
 
 import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.entity.SCheck;
+import org.tis.senior.module.developer.entity.enums.CheckStatus;
+import org.tis.senior.module.developer.entity.enums.ConfirmStatus;
 import org.tis.senior.module.developer.entity.enums.DeliveryResult;
 import org.tis.senior.module.developer.entity.enums.PackTime;
+import org.tis.senior.module.developer.entity.vo.CheckMergeDetail;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tmatesoft.svn.core.SVNException;
+
+import java.util.List;
 
 /**
  * sCheck的Service接口类
@@ -41,10 +46,34 @@ public interface ISCheckService extends IService<SCheck>  {
     void process(String deliveryGuid, DeliveryResult result, String desc, String userId);
 
     /**
-     * 确认文件
-      * @param isDelivery 是否为投放清单，false则为合并清单
-     * @param id 清单id
+     * 确认核对清单状态
+     * @param checkListGuid 核对清单id
+    * @param status 状态
      */
-    void confirm(boolean isDelivery, String id);
+    void confirm(String checkListGuid, ConfirmStatus status);
+
+    /**
+     * 确认核对清单添加到投放申请
+     * @param checkListGuid 核对清单id
+     * @param deliveryId 申请id
+     * @param patchType
+     * @param deployWhere
+     */
+    void confirmToDelivery(String checkListGuid, String deliveryId, String patchType, String deployWhere);
+
+    /**
+     * 查看环境及窗口下的申请合并详情
+     * @param profileId
+     * @param what
+     * @return
+     */
+    List<CheckMergeDetail> getMergeList(String profileId, PackTime what);
+
+    /**
+     * 完成核对
+     * @param id 核对ID
+     * @param status 核对状态 成功或失败
+     */
+    void completeCheck(String id, CheckStatus status);
 }
 

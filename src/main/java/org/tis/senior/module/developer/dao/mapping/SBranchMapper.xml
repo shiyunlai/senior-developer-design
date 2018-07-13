@@ -2,4 +2,25 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.tis.senior.module.developer.dao.SBranchMapper">
 
+    <select id="selectListByForWhatIds" resultType="java.util.Map">
+        select
+            m.guid_of_whats as guidOfWhats,
+            n.guid as guidBranch,
+            m.for_what as forWhat,
+            m.status as status,
+            n.full_path as fullPath,
+            n.branch_type as branchType,
+            n.branch_for as branchFor,
+            n.curr_version as currVersion,
+            n.last_version as lastVersion
+        from
+            s_branch n,
+            s_branch_mapping m
+        where
+            m.for_what = #{forWhat}
+            AND
+            m.guid_of_whats in ${ids}
+            AND
+            n.guid = m.guid_branch
+    </select>
 </mapper>

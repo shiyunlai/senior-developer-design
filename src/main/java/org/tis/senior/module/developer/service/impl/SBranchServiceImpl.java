@@ -1,19 +1,23 @@
 package org.tis.senior.module.developer.service.impl;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.tis.senior.module.developer.dao.SBranchMapper;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SBranchMapping;
+import org.tis.senior.module.developer.entity.enums.BranchForWhat;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISBranchMappingService;
 import org.tis.senior.module.developer.service.ISBranchService;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.service.impl.ServiceImpl;
-import org.tis.senior.module.developer.dao.SBranchMapper;
-import org.springframework.transaction.annotation.Transactional;
+import org.tis.senior.module.developer.util.DeveloperUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * sBranch的Service接口实现类
@@ -57,6 +61,12 @@ public class SBranchServiceImpl extends ServiceImpl<SBranchMapper, SBranch> impl
         branchEntityWrapper.notIn(SBranch.COLUMN_GUID,branchGuid);
         List<SBranch> branchList = selectList(branchEntityWrapper);
         return branchList;
+    }
+
+    @Override
+    public List<Map> selectListByForWhatIds(BranchForWhat forWhat, Collection ids) {
+        String s = DeveloperUtils.inExpression(ids);
+        return this.baseMapper.selectListByForWhatIds(forWhat.getValue().toString(), s);
     }
 }
 

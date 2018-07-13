@@ -30,7 +30,7 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      * @param mergeDelivery
      * @param userId
      */
-    void mergeDeliver(MergeDeliveryRequest mergeDelivery, String userId);
+    void mergeDelivery(MergeDeliveryRequest mergeDelivery, String userId);
 
     /**
      * 查询一条投放申请中的工程名
@@ -52,5 +52,10 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      */
     List<SDelivery> selectAddToDelivery(Integer workitemGuid) throws ParseException;
 
+    /**
+     * 确认合并投放申请
+     * @param id 投放申请GUID
+     */
+    void merge(String id);
 }
 
