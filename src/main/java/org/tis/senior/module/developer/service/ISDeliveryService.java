@@ -1,10 +1,13 @@
 package org.tis.senior.module.developer.service;
 
 import com.baomidou.mybatisplus.service.IService;
+import com.sun.org.apache.bcel.internal.generic.LSTORE;
 import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
+import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
+import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 
 import java.text.ParseException;
 import java.util.List;
@@ -57,5 +60,19 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      * @param id 投放申请GUID
      */
     void merge(String id);
+
+    /**
+     * 删除投放申请及对应的投放代码
+     * @param guidDelivery
+     */
+    void deleteDeliveryAndDeliveryList(Integer guidDelivery);
+
+    /**
+     * 根据投放申请guid查询投放清单代码集合
+     *
+     * @param guidDelivery 投放申请的guid
+     * @return
+     */
+    List<DeliveryProjectDetail> selectDeliveryListByGuidDelivery(Integer guidDelivery);
 }
 

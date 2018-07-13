@@ -123,6 +123,29 @@ public class SDeliveryController extends BaseController<SDelivery>  {
 
         return ResultVO.success("查询成功！", sDeliveryService.selectAddToDelivery(workitemGuid));
     }
+
+    /**
+     * 删除投放申请及投放的代码
+     * @param guidDelivery
+     * @return
+     */
+    @DeleteMapping("/{guidDelivery}/deliveryAndDeliveryList")
+    public ResultVO deleteDeliveryAndDeliveryList(@PathVariable @NotNull(message = "投放申请id不能为空")Integer guidDelivery){
+
+        sDeliveryService.deleteDeliveryAndDeliveryList(guidDelivery);
+        return ResultVO.success("删除成功");
+    }
+
+    /**
+     * 根据投放申请guid查询所投放的代码集合
+     * @return
+     */
+    @GetMapping("/{guidDelivery}/deliveryListDetail")
+    public ResultVO deliveryListDetail(@PathVariable @NotNull(message = "投放申请id不能为空")Integer guidDelivery){
+
+        return ResultVO.success("查询成功",sDeliveryService.selectDeliveryListByGuidDelivery(guidDelivery));
+    }
+
     
 }
 

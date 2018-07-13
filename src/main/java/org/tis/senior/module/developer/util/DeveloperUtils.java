@@ -28,10 +28,10 @@ public class DeveloperUtils {
         }
         if (pathSplit[8].equals("Feature") || pathSplit[8].equals("Hotfix")) {
 
-            return getPathUTF(pathSplit[10]);
+            return pathSplit[10];
         } else {
 
-            return getPathUTF(pathSplit[9]);
+            return pathSplit[9];
         }
     }
 
@@ -44,7 +44,7 @@ public class DeveloperUtils {
     public static String getProgramName(String svnPath) {
 
         String[] pathSplit = svnPath.split("/");
-        return getPathUTF(pathSplit[pathSplit.length - 1]);
+        return pathSplit[pathSplit.length - 1];
     }
 
     /**
@@ -53,7 +53,7 @@ public class DeveloperUtils {
      * @return
      */
     public static String getFilePath(String svnPath)  {
-        return getPathUTF(svnPath.substring(svnPath.indexOf(getProjectName(svnPath))));
+        return svnPath.substring(svnPath.indexOf(getProjectName(svnPath)));
     }
 
     /**
@@ -70,9 +70,9 @@ public class DeveloperUtils {
         }
         if (pathSplit[8].equals("Feature") || pathSplit[8].equals("Hotfix")) {
 
-            return getPathUTF(pathSplit[11]);
+            return pathSplit[11];
         } else {
-            return getPathUTF(pathSplit[10]);
+            return pathSplit[10];
         }
     }
 
@@ -88,11 +88,11 @@ public class DeveloperUtils {
             return "";
         }
         if (pathSplit[8].equals("Feature") || pathSplit[8].equals("Hotfix")) {
-            return getPathUTF(Arrays.stream(pathSplit).limit(12)
-                    .reduce("", (r, t) -> "".equals(r) ?t:(r + "/" + t)));
+            return Arrays.stream(pathSplit).limit(12)
+                    .reduce("", (r, t) -> "".equals(r) ?t:(r + "/" + t));
         } else {
-            return getPathUTF(Arrays.stream(pathSplit).limit(11)
-                    .reduce("", (r, t) -> "".equals(r) ?t:(r + "/" + t)));
+            return Arrays.stream(pathSplit).limit(11)
+                    .reduce("", (r, t) -> "".equals(r) ?t:(r + "/" + t));
         }
     }
 
