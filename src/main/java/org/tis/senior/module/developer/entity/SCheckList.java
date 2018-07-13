@@ -77,6 +77,11 @@ public class SCheckList implements Serializable {
     public static final String COLUMN_GUID_DELIVERY = "guid_delivery";
 
     /**
+     * guidDeliveryList对应表字段
+     */
+    public static final String COLUMN_GUID_DELIVERY_LIST = "guid_delivery_list";
+
+    /**
      * patchType对应表字段
      */
     public static final String COLUMN_PATCH_TYPE = "patch_type";
@@ -129,7 +134,12 @@ public class SCheckList implements Serializable {
     /**
      * guidDelivery逻辑名
      */
-    public static final String NAME_GUID_DELIVERY = "投产代码GUID";
+    public static final String NAME_GUID_DELIVERY = "投产申请GUID";
+
+    /**
+     * guidDeliveryList逻辑名
+     */
+    public static final String NAME_GUID_DELIVERY_LIST = "投产清单GUID";
 
     /**
      * patchType逻辑名
@@ -193,9 +203,14 @@ public class SCheckList implements Serializable {
     private ConfirmStatus confirmStatus;
 
     /**
-     * 投产代码GUID:对应投产代码ID
+     * 投产申请GUID:对应投产申请GUID
      */
     private Integer guidDelivery;
+
+    /**
+     * 投产清单GUID:
+     */
+    private Integer guidDeliveryList;
 
     /**
      * 补丁类型:JAR 输出为jar包

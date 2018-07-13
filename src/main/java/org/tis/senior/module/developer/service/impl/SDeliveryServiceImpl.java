@@ -83,7 +83,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     }
 
     @Override
-    public void mergeDeliver(MergeDeliveryRequest mergeDelivery, String userId) {
+    public void mergeDelivery(MergeDeliveryRequest mergeDelivery, String userId) {
         List<SDelivery> deliveryList = isAllowMerge(mergeDelivery.getMergeList());
         EntityWrapper<SDeliveryList> wrapper = new EntityWrapper<>();
         wrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, mergeDelivery.getMergeList());
@@ -105,7 +105,20 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
             sDeliveryLists.forEach(s -> s.setGuidDelivery(sDelivery.getGuid()));
             deliveryListService.insertBatch(sDeliveryLists);
         });
+    }
 
+    @Override
+    public void merge(String id) {
+        SDelivery delivery = this.baseMapper.selectById(id);
+        if (delivery == null) {
+            throw new DeveloperException("找不到" + id + "对应投放申请");
+        }
+        if (delivery.getDeliveryResult().equals(DeliveryResult.APPLYING)) {
+            throw new DeveloperException("投放申请'" + delivery.getApplyAlias() + "'当前状态为" +
+                    delivery.getDeliveryResult().toString() + "，只能合并申请中状态的投放申请！");
+        }
+        delivery.setDeliveryResult(DeliveryResult.MERGED);
+        this.baseMapper.updateById(delivery);
     }
 
 

@@ -77,8 +77,14 @@ public class SDeliveryController extends BaseController<SDelivery>  {
      * @return
      */
     @PostMapping("/merge")
-    public ResultVO merge(@RequestBody @Validated MergeDeliveryRequest request) {
-        sDeliveryService.mergeDeliver(request, getUser().getUserId());
+    public ResultVO mergeDelivery(@RequestBody @Validated MergeDeliveryRequest request) {
+        sDeliveryService.mergeDelivery(request, getUser().getUserId());
+        return ResultVO.success("申请合并投放成功！");
+    }
+
+    @PutMapping("/{id}/merge")
+    public ResultVO merge(@PathVariable @NotBlank(message = "id不能为空") String id) {
+        sDeliveryService.merge(id);
         return ResultVO.success("申请合并投放成功！");
     }
 

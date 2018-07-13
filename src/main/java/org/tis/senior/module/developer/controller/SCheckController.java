@@ -15,7 +15,9 @@ import org.tis.senior.module.developer.controller.request.DeliveryProcessRequest
 import org.tis.senior.module.developer.entity.SCheck;
 import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SSvnAccount;
+import org.tis.senior.module.developer.entity.enums.CheckStatus;
 import org.tis.senior.module.developer.entity.enums.PackTime;
+import org.tis.senior.module.developer.entity.vo.CheckMergeDetail;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISCheckService;
@@ -56,32 +58,43 @@ public class SCheckController extends BaseController<SCheck>  {
      */
     @RequiresRoles(value = "rct")
     @PostMapping("/profiles/{profileId}/packTiming/{packTiming}")
-    public ResultVO add(@PathVariable @NotBlank(message = "环境ID不能为空") String profileId,
+    public ResultVO check(@PathVariable @NotBlank(message = "环境ID不能为空") String profileId,
                         @PathVariable @NotNull(message = "打包窗口不能为空") String packTiming) throws SVNException {
         CheckResultDetail detail = sCheckService.check(profileId, PackTime.what(packTiming), getUser().getUserId());
         return ResultVO.success(detail);
     }
-    
-    @PutMapping
-    public ResultVO update(@RequestBody @Validated SCheck sCheck) {
-        sCheckService.updateById(sCheck);
-        return ResultVO.success("修改成功！");
-    }
-    
-    @DeleteMapping("/{id}")
-    public ResultVO delete(@PathVariable @NotBlank(message = "id不能为空") String id) {
-        sCheckService.deleteById(id);
-        return ResultVO.success("删除成功");
-    }
-    
+
+    /**
+     * 查看核对详情
+     * @param id
+     * @return
+     */
     @GetMapping("/{id}")
     @RequiresRoles(value = "rct")
     public ResultVO detail(@PathVariable @NotBlank(message = "id不能为空") String id) {
         CheckResultDetail detail = sCheckService.detail(id);
         return ResultVO.success("查询成功", detail);
     }
-    
+
+    /**
+     * 去合并
+     * @return
+     */
+    @GetMapping("/profiles/{profileId}/packTiming/{packTiming}")
+    @RequiresRoles(value = "rct")
+    public ResultVO merge(@PathVariable @NotBlank(message = "环境ID不能为空") String profileId,
+                          @PathVariable @NotNull(message = "打包窗口不能为空") String packTiming) {
+        List<CheckMergeDetail> detail = sCheckService.getMergeList(profileId, PackTime.what(packTiming));
+        return ResultVO.success("查询成功", detail);
+    }
+
+    /**
+     * 查看核对列表
+     * @param page
+     * @return
+     */
     @PostMapping("/list")
+    @RequiresRoles(value = "rct")
     public ResultVO list(@RequestBody @Validated SmartPage<SCheck> page) {
         return ResultVO.success("查询成功", sCheckService.selectPage(getPage(page), getCondition(page)));
     }
@@ -98,6 +111,17 @@ public class SCheckController extends BaseController<SCheck>  {
         sCheckService.process(id, request.getResult(), request.getDesc(), getUser().getUserId());
         return ResultVO.success("处理成功");
     }
+
+    @PutMapping("/{id}/status/{status}")
+    @RequiresRoles("rct")
+    public ResultVO changeCheckStatus(@PathVariable @NotBlank(message = "核对ID不能为空！") String id,
+                                      @PathVariable @NotBlank(message = "核对状态不能为空！") String status) {
+        sCheckService.completeCheck(id, CheckStatus.what(status));
+        return ResultVO.success("操作成功！");
+    }
+
+
+
 
     /**
      * Excel导出清单
@@ -161,32 +185,6 @@ public class SCheckController extends BaseController<SCheck>  {
 
         return ResultVO.success("导出成功");
     }
-
-    /**
-     * 确认投放清单明细
-     * @param id
-     * @return
-     */
-    @RequiresRoles(value = "rct")
-    @PutMapping("/deliveryList/{id}/confirm")
-    ResultVO confirmDelivery(@PathVariable @NotBlank String id) {
-        sCheckService.confirm(true, id);
-        return ResultVO.success("确认成功！");
-    }
-
-    /**
-     * 确认合并清单明细
-     * @param id
-     * @return
-     */
-    @RequiresRoles(value = "rct")
-    @PutMapping("/mergeList/{id}/confirm")
-    ResultVO confirmMerge(@PathVariable @NotBlank String id) {
-        sCheckService.confirm(true, id);
-        return ResultVO.success("确认成功！");
-    }
-
-
 
 }
 

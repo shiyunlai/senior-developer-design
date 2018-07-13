@@ -6,21 +6,21 @@ import java.io.Serializable;
 
 /**
  * description: 投放结果
- *
+ * 0 申请中
+ * S 成功
+ * F 失败
+ * C 核对中（功能没有投放）
  * @author zhaoch
  * @date 2018/6/21
  **/
 public enum DeliveryResult implements BaseEnum {
-    /**
-     * 投放结果:0 申请中
-     * S 成功
-     * F 失败
-     * C 取消投放（功能没有投放）
-     */
+
     APPLYING("0", "申请中"),
-    SUCCESS("S", "成功"),
-    FAILED("F", "失败"),
-    CANCEL("C", "取消投放");
+    MERGED("M", "已合并"),
+    CHECKING("C", "核对中"),
+    SUCCESS("S", "核对成功"),
+    FAILED("F", "核对失败"),
+    DELIVERED("D", "投放成功");
 
     private final String value;
 
@@ -30,7 +30,6 @@ public enum DeliveryResult implements BaseEnum {
         this.value = value;
         this.name = name;
     }
-
 
     @Override
     public Serializable deserialze() {

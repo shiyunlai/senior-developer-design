@@ -29,7 +29,7 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      * @param mergeDelivery
      * @param userId
      */
-    void mergeDeliver(MergeDeliveryRequest mergeDelivery, String userId);
+    void mergeDelivery(MergeDeliveryRequest mergeDelivery, String userId);
 
     /**
      * 查询一条投放申请中的工程名
@@ -44,5 +44,10 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      */
     void whetherPutDelivery(IsPutDeliveryRequest request);
 
+    /**
+     * 确认合并投放申请
+     * @param id
+     */
+    void merge(String id);
 }
 
