@@ -1,9 +1,17 @@
 package org.tis.senior.module.developer.util;
 
 
+import com.baomidou.mybatisplus.toolkit.CollectionUtils;
+
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
 
 public class DeveloperUtils {
+
+    private static final String PLACE_HOLDER = "{%s}";
 
     /**
      * 获取工程明
@@ -69,6 +77,26 @@ public class DeveloperUtils {
     }
 
     /**
+     * 获取模块全路径
+     * @param path
+     * @return
+     */
+    public static String getModulePath(String path) {
+        String[] pathSplit = path.split("/");
+
+        if(pathSplit.length < 12) {
+            return "";
+        }
+        if (pathSplit[8].equals("Feature") || pathSplit[8].equals("Hotfix")) {
+            return getPathUTF(Arrays.stream(pathSplit).limit(12)
+                    .reduce("", (r, t) -> "".equals(r) ?t:(r + "/" + t)));
+        } else {
+            return getPathUTF(Arrays.stream(pathSplit).limit(11)
+                    .reduce("", (r, t) -> "".equals(r) ?t:(r + "/" + t)));
+        }
+    }
+
+    /**
      * 获取ECD的打包路径
      * @param fullPath
      * @return
@@ -113,6 +141,43 @@ public class DeveloperUtils {
             }
         }
         return result.toString();
+    }
+
+    /**
+     * <p>
+     * 获取in表达式
+     * </p>
+     *
+     * @param value  集合
+     */
+    public static String inExpression(Collection<?> value) {
+
+        if (CollectionUtils.isNotEmpty(value)) {
+            StringBuilder inSql = new StringBuilder();
+            inSql.append("(");
+            int size = value.size();
+            for (int i = 0; i < size; i++) {
+                inSql.append(String.format(PLACE_HOLDER, i));
+                if (i + 1 < size) {
+                    inSql.append(",");
+                }
+            }
+            inSql.append(")");
+            return inSql.toString();
+        }
+        return "('')";
+    }
+
+    /**
+     * 格式化日期到天
+     * @param date 如果date为null, 则使用当前时间
+     * @return
+     */
+    public static String getDayFormat(Date date) {
+        if (date == null) {
+            date = new Date();
+        }
+        return new SimpleDateFormat("yyyy-MM-dd").format(date);
     }
 
 }

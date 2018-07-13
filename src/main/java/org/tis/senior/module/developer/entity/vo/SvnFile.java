@@ -32,7 +32,6 @@ public class SvnFile {
     private String projectName;
 
     public String getProgramName() {
-
         return DeveloperUtils.getProgramName(this.path);
     }
 
