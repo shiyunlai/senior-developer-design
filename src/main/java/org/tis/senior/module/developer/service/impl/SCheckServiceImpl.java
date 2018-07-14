@@ -115,6 +115,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
                     sBranch.getCurrVersion() + "\"开始没有文件变动！");
         }
         Map<String, SvnFile> filePathMergeListMap = svnFiles.stream()
+                .filter(s -> StringUtils.equals(s.getNodeType(), "file"))
                 .collect(Collectors.toMap(f -> DeveloperUtils.getFilePath(f.getPath()), f -> f));
         // 不在合并清单中的投放清单
         List<SCheckList> notInMerge = new ArrayList<>();
