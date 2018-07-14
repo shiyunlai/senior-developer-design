@@ -337,7 +337,6 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             delivery.setDeliveryResult(DeliveryResult.CHECKING);
             deliveryService.update(delivery, deliveryWrapper);
             check.setCheckStatus(status);
-            this.baseMapper.updateById(check);
             // 环境分支版本回滚
             List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.RELEASE,
                     Collections.singletonList(delivery.getGuidProfiles()));
@@ -384,94 +383,105 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             delivery.setDeliveryResult(DeliveryResult.DELIVERED);
             deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.SUCCESS);
             List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
-            deliveryService.update(delivery, deliveryWrapper);
+            if (!CollectionUtils.isEmpty(deliveryList)) {
+                deliveryService.update(delivery, deliveryWrapper);
 
-            // 同步版本号 工作项和环境分支
-            List<Integer> workIds = deliveryList.stream().map(SDelivery::getGuidWorkitem).collect(Collectors.toList());
-            List<Integer> branchIds = branchService
-                    .selectListByForWhatIds(BranchForWhat.WORKITEM, workIds).stream()
-                    .map(map -> Integer.valueOf(map.get("guidBranch").toString())).collect(Collectors.toList());
-            if (!CollectionUtils.isEmpty(branchIds)) {
-                branchService.syncBranchRevision(branchIds);
-            }
-            List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.RELEASE,
-                    Collections.singletonList(check.getGuidProfiles()));
-            branchService.syncBranchRevision(Integer.valueOf(maps.get(0).get("guidBranch").toString()));
-            // 维护标准清单
-            Map<Integer, Integer> deliveryWorkItemMap = deliveryList.stream()
-                    .collect(Collectors.toMap(SDelivery::getGuid, SDelivery::getGuidWorkitem));
-            List<Integer> deliveryIds = deliveryList.stream().map(SDelivery::getGuid).collect(Collectors.toList());
-            // 获取所有需要添加到标准清单的申请清单
-            EntityWrapper<SDeliveryList> sdlWrapper = new EntityWrapper<>();
-            sdlWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, deliveryIds)
-                    .ne(SDeliveryList.COLUMN_FROM_TYPE, DeliveryListFromType.STANDARD);
-            List<SDeliveryList> sDeliveryLists = deliveryListService.selectList(sdlWrapper);
-            if (sDeliveryLists.size() > 0) {
-                List<String> collect = sDeliveryLists.stream().map(SDeliveryList::getFullPath).collect(Collectors.toList());
-                EntityWrapper<SStandardList> sslWrapper = new EntityWrapper<>();
-                sslWrapper.eq(SDeliveryList.COLUMN_FULL_PATH, collect);
-                Map<String, SStandardList> ssdMap = standardListService.selectList(sslWrapper)
-                        .stream().collect(Collectors.toMap(SStandardList::getFullPath, s -> s));
-                List<SStandardList> insertsOrUpdates = new ArrayList<>();
-                List<Integer> deletes = new ArrayList<>();
-                for (SDeliveryList d : sDeliveryLists) {
-                    SStandardList ssd = ssdMap.get(d.getFullPath());
-                    if (ssd != null) {
-                        // 原-现—终 (修改类型的变化)
-                        // D  A  M
-                        // M  A  M 理论上不出现，如果发生抛出异常
-                        // A  D  X 移除
-                        // M  D  D
-                        // A  M  A 不处理
-                        // D  M  M 理论上不出现，如果发生抛出异常// D  A  M
-                        // A  A  A 不处理
-                        // M  M  M 不处理
-                        // D  D  D 不处理
-                        if (ssd.getCommitType() != d.getCommitType()) {
-                            if (ssd.getCommitType().equals(CommitType.DELETED) &&
-                                    d.getCommitType().equals(CommitType.ADDED)) {
-                                ssd.setCommitType(CommitType.MODIFIED);
-                                insertsOrUpdates.add(ssd);
-                            } else if (ssd.getCommitType().equals(CommitType.ADDED) &&
-                                    d.getCommitType().equals(CommitType.DELETED)) {
-                                deletes.add(ssd.getGuid());
-                            } else if (ssd.getCommitType().equals(CommitType.MODIFIED) &&
-                                    d.getCommitType().equals(CommitType.DELETED)) {
-                                ssd.setCommitType(CommitType.DELETED);
-                                insertsOrUpdates.add(ssd);
-                            } else if (ssd.getCommitType().equals(CommitType.ADDED) &&
-                                    d.getCommitType().equals(CommitType.MODIFIED)) {
-                            } else {
-                                throw new DeveloperException("标准清单发生了预料之外的异常！");
+                // 同步版本号 工作项和环境分支
+                List<Integer> workIds = deliveryList.stream().map(SDelivery::getGuidWorkitem)
+                        .collect(Collectors.toList());
+                List<Integer> branchIds = branchService
+                        .selectListByForWhatIds(BranchForWhat.WORKITEM, workIds).stream()
+                        .map(map -> Integer.valueOf(map.get("guidBranch").toString())).collect(Collectors.toList());
+                if (!CollectionUtils.isEmpty(branchIds)) {
+                    branchService.syncBranchRevision(branchIds);
+                }
+                List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.RELEASE,
+                        Collections.singletonList(check.getGuidProfiles()));
+                branchService.syncBranchRevision(Integer.valueOf(maps.get(0).get("guidBranch").toString()));
+                // 维护标准清单
+                Map<Integer, Integer> deliveryWorkItemMap = deliveryList.stream()
+                        .collect(Collectors.toMap(SDelivery::getGuid, SDelivery::getGuidWorkitem));
+                List<Integer> deliveryIds = deliveryList.stream().map(SDelivery::getGuid).collect(Collectors.toList());
+                // 获取所有需要添加到标准清单的申请清单
+                EntityWrapper<SDeliveryList> sdlWrapper = new EntityWrapper<>();
+                sdlWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, deliveryIds)
+                        .ne(SDeliveryList.COLUMN_FROM_TYPE, DeliveryListFromType.STANDARD);
+                List<SDeliveryList> sDeliveryLists = deliveryListService.selectList(sdlWrapper);
+                if (sDeliveryLists.size() > 0) {
+                    // 获取需要同步的申请清单的全路径集合
+                    List<String> dlFullPaths = sDeliveryLists.stream().map(SDeliveryList::getFullPath)
+                            .collect(Collectors.toList());
+                    // 查找标准清单中包含这些全路径的清单
+                    EntityWrapper<SStandardList> sslWrapper = new EntityWrapper<>();
+                    sslWrapper.in(SDeliveryList.COLUMN_FULL_PATH, dlFullPaths);
+                    // 转化为以全路径为key的标准清单MAP
+                    Map<String, SStandardList> ssdMap = standardListService.selectList(sslWrapper)
+                            .stream().collect(Collectors.toMap(SStandardList::getFullPath, s -> s));
+                    // 接受需要新增或修改的标准清单
+                    List<SStandardList> insertsOrUpdates = new ArrayList<>();
+                    // 接受需要删除的标准清单ID
+                    List<Integer> deletes = new ArrayList<>();
+                    for (SDeliveryList d : sDeliveryLists) {
+                        SStandardList ssd = ssdMap.get(d.getFullPath());
+                        // 如果标准清单中已经有此次投放申请代码
+                        if (ssd != null) {
+                            // 原-现—终 (修改类型的变化)
+                            // D  A  M
+                            // M  A  M 理论上不出现，如果发生抛出异常
+                            // A  D  X 移除
+                            // M  D  D
+                            // A  M  A 不处理
+                            // D  M  M 理论上不出现，如果发生抛出异常// D  A  M
+                            // A  A  A 不处理
+                            // M  M  M 不处理
+                            // D  D  D 不处理
+                            if (ssd.getCommitType() != d.getCommitType()) {
+                                if (ssd.getCommitType().equals(CommitType.DELETED) &&
+                                        d.getCommitType().equals(CommitType.ADDED)) {
+                                    ssd.setCommitType(CommitType.MODIFIED);
+                                    insertsOrUpdates.add(ssd);
+                                } else if (ssd.getCommitType().equals(CommitType.ADDED) &&
+                                        d.getCommitType().equals(CommitType.DELETED)) {
+                                    deletes.add(ssd.getGuid());
+                                } else if (ssd.getCommitType().equals(CommitType.MODIFIED) &&
+                                        d.getCommitType().equals(CommitType.DELETED)) {
+                                    ssd.setCommitType(CommitType.DELETED);
+                                    insertsOrUpdates.add(ssd);
+                                } else if (ssd.getCommitType().equals(CommitType.ADDED) &&
+                                        d.getCommitType().equals(CommitType.MODIFIED)) {
+                                } else {
+                                    throw new DeveloperException("标准清单发生了预料之外的异常！");
+                                }
                             }
-                        }
-                    } else {
-                        // 如果出现标准清单中没有的文件，提交类型是新增，并且导出类型是epd,需要判断添加到标准清单中是ecd或epd
-                        SStandardList newSSD = new SStandardList();
-                        BeanUtils.copyProperties(d, newSSD);
-                        newSSD.setGuidWorkitem(deliveryWorkItemMap.get(d.getGuidDelivery()));
-                        newSSD.setGuid(null);
-                        if (d.getPatchType().equals(PatchType.EPD.getValue().toString())) {
-                            EntityWrapper<SStandardList> wrapper = new EntityWrapper<>();
-                            wrapper.like(SStandardList.COLUMN_FULL_PATH,
-                                    DeveloperUtils.getModulePath(d.getFullPath()), SqlLike.LEFT)
-                                    .eq(SStandardList.COLUMN_PATCH_TYPE, PatchType.ECD);
-                            if (standardListService.selectCount(wrapper) > 0) {
-                                newSSD.setPatchType(PatchType.ECD.getValue().toString());
+                        } else {
+                            // 如果出现标准清单中没有的文件，提交类型是新增，并且导出类型是epd,需要判断添加到标准清单中是ecd或epd
+                            SStandardList newSSD = new SStandardList();
+                            BeanUtils.copyProperties(d, newSSD);
+                            newSSD.setGuidWorkitem(deliveryWorkItemMap.get(d.getGuidDelivery()));
+                            newSSD.setGuid(null);
+                            if (d.getPatchType().equals(PatchType.EPD.getValue().toString())) {
+                                EntityWrapper<SStandardList> wrapper = new EntityWrapper<>();
+                                wrapper.like(SStandardList.COLUMN_FULL_PATH,
+                                        DeveloperUtils.getModulePath(d.getFullPath()), SqlLike.LEFT)
+                                        .eq(SStandardList.COLUMN_PATCH_TYPE, PatchType.ECD);
+                                if (standardListService.selectCount(wrapper) > 0) {
+                                    newSSD.setPatchType(PatchType.ECD.getValue().toString());
+                                }
                             }
+                            insertsOrUpdates.add(newSSD);
                         }
-                        insertsOrUpdates.add(newSSD);
-                    }
-                    if (insertsOrUpdates.size() > 0) {
-                        standardListService.insertOrUpdateBatch(insertsOrUpdates);
-                    }
-                    if (deletes.size() > 0) {
-                        standardListService.deleteBatchIds(deletes);
+                        if (insertsOrUpdates.size() > 0) {
+                            standardListService.insertOrUpdateBatch(insertsOrUpdates);
+                        }
+                        if (deletes.size() > 0) {
+                            standardListService.deleteBatchIds(deletes);
+                        }
                     }
                 }
             }
+            check.setCheckStatus(status);
         }
-
+        this.baseMapper.updateById(check);
     }
 
     /**
