@@ -8,10 +8,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.tis.senior.module.developer.dao.SBranchMapper;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SBranchMapping;
+import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.enums.BranchForWhat;
+import org.tis.senior.module.developer.entity.enums.DeliveryResult;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISBranchMappingService;
 import org.tis.senior.module.developer.service.ISBranchService;
+import org.tis.senior.module.developer.service.ISDeliveryService;
 import org.tis.senior.module.developer.service.ISSvnKitService;
 import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
@@ -37,13 +40,30 @@ public class SBranchServiceImpl extends ServiceImpl<SBranchMapper, SBranch> impl
     @Autowired
     private ISSvnKitService svnKitService;
 
+    @Autowired
+    private ISDeliveryService deliveryService;
+
     @Override
     public void deleteBranchAndMapping(Integer guidBranch) {
+
         EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
         branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH,guidBranch);
         List<SBranchMapping> sBranchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
         if(sBranchMappings.size() > 0){
             SBranchMapping sbm = sBranchMappings.get(0);
+
+            EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,sbm.getGuidOfWhats());
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
+            if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
+                throw new DeveloperException("不能删除分支，此分支关联的工作项有对应的投放申请在申请中！");
+            }
+            deliveryEntityWrapper.clone();
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,sbm.getGuidOfWhats());
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
+            if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
+                throw new DeveloperException("不能删除分支，此分支关联的运行环境有对应的投放申请在申请中！");
+            }
 
             //删除对应的第三张关联表
             branchMappingService.deleteById(sbm.getGuid());

@@ -9,7 +9,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.tis.senior.module.developer.controller.request.*;
+import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliveryAddRequest;
+import org.tis.senior.module.developer.controller.request.DeliveryListSuperadditionRequest;
+import org.tis.senior.module.developer.controller.request.DeliveryProfileRequest;
+import org.tis.senior.module.developer.controller.request.SDliveryAddRequest;
 import org.tis.senior.module.developer.dao.SDeliveryListMapper;
 import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.*;
@@ -20,7 +23,6 @@ import org.tis.senior.module.developer.service.*;
 import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -197,8 +199,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         }
         deliveryService.insertBatch(deliveryList);
 
-        //创建投放申请集合
-
         //创建已选择的环境的投放申请中的运行环境guid集合
         ArrayList<Integer> choiceProfileGuid = new ArrayList<>();
         for (SDelivery sDelivery : deliveryList) {
@@ -212,18 +212,18 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             insertBatch(deliveryLists);
         }
 
-
         //获取已成功合并的投放申请
         EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
         deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
         deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.SUCCESS);
         List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
-        if (deliverys != null) {
+        if (deliverys.size() > 0) {
             //创建工作项已成功投放申请的运行环境guid
             List<Integer> achieveProfileGuid = new ArrayList<>();
             for (SDelivery delivery:deliverys){
                 achieveProfileGuid.add(delivery.getGuidProfiles());
             }
+            //移除已成功投放运行环境的投放申请
             choiceProfileGuid.removeAll(achieveProfileGuid);
 
             if(choiceProfileGuid.size() > 0){
@@ -233,12 +233,18 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 List<SStandardList> sStandardLists = standardListService.selectList(standardListEntityWrapper);
 
                 if(sStandardLists.size() > 0){
+                    //重新查询
+                    EntityWrapper<SDelivery> sDeliveryEntityWrapper = new EntityWrapper<>();
+                    sDeliveryEntityWrapper.in(SDelivery.COLUMN_GUID_PROFILES,choiceProfileGuid);
+                    sDeliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
+                    List<SDelivery> sdList = deliveryService.selectList(sDeliveryEntityWrapper);
                     List<SDeliveryList> sdlList = new ArrayList<>();
-                    for(Integer guid:choiceProfileGuid){
+                    for(SDelivery sd:sdList){
                         for(SStandardList sStandard:sStandardLists){
                             SDeliveryList sdl = new SDeliveryList();
                             BeanUtils.copyProperties(sStandard,sdl);
-                            sdl.setGuidDelivery(guid);
+                            sdl.setGuidDelivery(sd.getGuid());
+                            sdl.setGuid(null);
                             sdl.setFromType(DeliveryListFromType.STANDARD);
                             sdlList.add(sdl);
                         }
