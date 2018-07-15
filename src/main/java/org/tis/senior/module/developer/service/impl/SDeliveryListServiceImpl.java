@@ -117,8 +117,8 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                     sProject = projectMap.get("default");
                 }
                 sdl.setPartOfProject(sProject.getProjectName());
-                if ("S".equals(sProject.getProjectType())) {
-                    String deployConfig = sProject.getDeployConfig();
+                String deployConfig = sProject.getDeployConfig();
+                if (ProjectType.SPECIAL.equals(sProject.getProjectType()) || ProjectType.DEFAULT.equals(sProject.getProjectType())) {
                     JSONArray jsonArray = JSONArray.parseArray(deployConfig);
                     for (Object object : jsonArray) {
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
@@ -127,9 +127,10 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                         sdl.setPatchType(exportType);
                         sdl.setDeployWhere(deployType);
                     }
-                } else {
-                    String deployConfig = sProject.getDeployConfig();
+                } else if(ProjectType.IBS.equals(sProject.getProjectType())) {
                     JSONArray jsonArray = JSONArray.parseArray(deployConfig);
+                    //here  跳出循环的标记
+                    here:
                     for (Object object : jsonArray) {
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
                         String exportType = jsonObject.getString("exportType");
@@ -140,6 +141,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                                     if (svnFile.getPath().contains(ecd)) {
                                         sdl.setPatchType(exportType);
                                         sdl.setDeployWhere(deployType);
+                                        break here;
                                     }
                                 }
                             }
@@ -147,6 +149,20 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                             sdl.setPatchType(exportType);
                             sdl.setDeployWhere(deployType);
                         }
+                    }
+                }else{
+                    JSONArray jsonArray = JSONArray.parseArray(deployConfig);
+                    String exportType = "";
+                    for (Object object : jsonArray) {
+                        JSONObject jsonObject = JSONObject.parseObject(object.toString());
+                        if(exportType == ""){
+                            exportType = jsonObject.getString("exportType");
+                        }else{
+                            exportType = exportType + "," + jsonObject.getString("exportType");
+                        }
+                        String deployType = jsonObject.getString("deployType");
+                        sdl.setPatchType(exportType);
+                        sdl.setDeployWhere(deployType);
                     }
                 }
                 sdList.add(sdl);
