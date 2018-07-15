@@ -335,12 +335,27 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             // 如果核对作废，所有相关申请状态全部重置为核对中
             SDelivery delivery = new SDelivery();
             delivery.setDeliveryResult(DeliveryResult.CHECKING);
-            deliveryService.update(delivery, deliveryWrapper);
-            check.setCheckStatus(status);
+            // FIXME 核对失败的不回滚
+            deliveryWrapper.ne(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.FAILED);
+            List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
             // 环境分支版本回滚
             List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.RELEASE,
                     Collections.singletonList(delivery.getGuidProfiles()));
             branchService.revertBranchRevision(Integer.valueOf(maps.get(0).get("guidBranch").toString()));
+            if (!CollectionUtils.isEmpty(deliveryList)) {
+                deliveryService.update(delivery, deliveryWrapper);
+                // 同步版本号 工作项和环境分支
+                List<Integer> workIds = deliveryList.stream().map(SDelivery::getGuidWorkitem)
+                        .collect(Collectors.toList());
+                List<Integer> branchIds = branchService
+                        .selectListByForWhatIds(BranchForWhat.WORKITEM, workIds).stream()
+                        .map(map -> Integer.valueOf(map.get("guidBranch").toString())).collect(Collectors.toList());
+                if (!CollectionUtils.isEmpty(branchIds)) {
+                    branchService.revertBranchRevision(branchIds);
+                }
+            }
+            deliveryService.update(delivery, deliveryWrapper);
+            check.setCheckStatus(status);
         } else {
             // 如果核对完成
             // 判断是否有未处理清单
@@ -383,10 +398,14 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             delivery.setDeliveryResult(DeliveryResult.DELIVERED);
             deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.SUCCESS);
             List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
+            // 同步环境版本号
+            List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.RELEASE,
+                    Collections.singletonList(check.getGuidProfiles()));
+            branchService.syncBranchRevision(Integer.valueOf(maps.get(0).get("guidBranch").toString()));
+
             if (!CollectionUtils.isEmpty(deliveryList)) {
                 deliveryService.update(delivery, deliveryWrapper);
-
-                // 同步版本号 工作项和环境分支
+                // 同步工作项版本号
                 List<Integer> workIds = deliveryList.stream().map(SDelivery::getGuidWorkitem)
                         .collect(Collectors.toList());
                 List<Integer> branchIds = branchService
@@ -395,9 +414,6 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
                 if (!CollectionUtils.isEmpty(branchIds)) {
                     branchService.syncBranchRevision(branchIds);
                 }
-                List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.RELEASE,
-                        Collections.singletonList(check.getGuidProfiles()));
-                branchService.syncBranchRevision(Integer.valueOf(maps.get(0).get("guidBranch").toString()));
                 // 维护标准清单
                 Map<Integer, Integer> deliveryWorkItemMap = deliveryList.stream()
                         .collect(Collectors.toMap(SDelivery::getGuid, SDelivery::getGuidWorkitem));
@@ -481,6 +497,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             }
             check.setCheckStatus(status);
         }
+        // 更新核对状态
         this.baseMapper.updateById(check);
     }
 
