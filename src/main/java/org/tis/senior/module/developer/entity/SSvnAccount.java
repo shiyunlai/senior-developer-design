@@ -1,9 +1,9 @@
 package org.tis.senior.module.developer.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.baomidou.mybatisplus.annotations.TableId;
 import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
-import com.baomidou.mybatisplus.annotations.TableId;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.SvnRole;
 
@@ -88,6 +88,7 @@ public class SSvnAccount implements Serializable {
     /**
      * svn密码
      */
+    @JSONField(serialize = false)
     private String svnPwd;
     /**
      * svn角色
