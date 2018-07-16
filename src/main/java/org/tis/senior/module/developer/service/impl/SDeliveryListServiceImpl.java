@@ -182,6 +182,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         if(sDeliveries.size() > 0){
             throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
         }
+
         EntityWrapper<SBranchMapping> sbmEntityWrapper = new EntityWrapper<>();
         sbmEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH, request.getGuidBranch());
         List<SBranchMapping> sbmList = branchMappingService.selectList(sbmEntityWrapper);
@@ -213,6 +214,16 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         }
         deliveryService.insertBatch(deliveryList);
 
+        //获取已成功合并的投放申请
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.SUCCESS);
+        List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
+
+        if(deliverys.size() <= 0 && request.getDeliveryList().size() <= 0){
+            throw new DeveloperException("没有需要投放申请的代码！");
+        }
+
         //创建已选择的环境的投放申请中的运行环境guid集合
         ArrayList<Integer> choiceProfileGuid = new ArrayList<>();
         for (SDelivery sDelivery : deliveryList) {
@@ -226,11 +237,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             insertBatch(deliveryLists);
         }
 
-        //获取已成功合并的投放申请
-        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
-        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
-        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.SUCCESS);
-        List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
+        //判断此工作项是否有成功投放的申请记录
         if (deliverys.size() > 0) {
             //创建工作项已成功投放申请的运行环境guid
             List<Integer> achieveProfileGuid = new ArrayList<>();
@@ -247,11 +254,12 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 List<SStandardList> sStandardLists = standardListService.selectList(standardListEntityWrapper);
 
                 if(sStandardLists.size() > 0){
-                    //重新查询
+                    //重新查询移除后已成功投放运行环境的投放申请
                     EntityWrapper<SDelivery> sDeliveryEntityWrapper = new EntityWrapper<>();
                     sDeliveryEntityWrapper.in(SDelivery.COLUMN_GUID_PROFILES,choiceProfileGuid);
                     sDeliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
                     List<SDelivery> sdList = deliveryService.selectList(sDeliveryEntityWrapper);
+                    //
                     List<SDeliveryList> sdlList = new ArrayList<>();
                     for(SDelivery sd:sdList){
                         for(SStandardList sStandard:sStandardLists){
