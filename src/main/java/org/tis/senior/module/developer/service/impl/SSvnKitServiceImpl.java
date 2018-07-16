@@ -133,7 +133,7 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
                         if (isCopy) {
                             list.addAll(doBranchDiffStatus(entry.getURL(), Long.toString(logEntry.getRevision()), null));
                         } else {
-                            list.addAll(doBranchDiffStatus(entry.getRepositoryRoot(),
+                            list.addAll(doBranchDiffStatus(entry.getURL().removePathTail(),
                                     Long.toString(logEntry.getRevision() -1), entry.getURL().getPath()));
                         }
                     }

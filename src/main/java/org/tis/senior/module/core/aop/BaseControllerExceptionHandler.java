@@ -47,11 +47,11 @@ public class BaseControllerExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResultVO bindException(MethodArgumentNotValidException e) {
         BindingResult bindingResult = e.getBindingResult();
-        String errorMesssage = "数据验证失败:";
+        StringBuilder errorMesssage = new StringBuilder("数据验证失败:");
         for (FieldError fieldError : bindingResult.getFieldErrors()) {
-            errorMesssage += fieldError.getDefaultMessage() + ", ";
+            errorMesssage.append(fieldError.getDefaultMessage()).append(", ");
         }
-        return ResultVO.error("400", errorMesssage);
+        return ResultVO.error("400", errorMesssage.toString());
     }
 
     /**
@@ -62,11 +62,11 @@ public class BaseControllerExceptionHandler {
     public ResultVO methodValidateException(ConstraintViolationException e) {
 
         Set<ConstraintViolation<?>> violations = e.getConstraintViolations();
-        String errorMesssage = "参数验证失败:";
+        StringBuilder errorMesssage = new StringBuilder("参数验证失败:");
         for (ConstraintViolation<?> violation : violations) {
-            errorMesssage += violation.getMessage();
+            errorMesssage.append(violation.getMessage());
         }
-        return ResultVO.error("400", errorMesssage);
+        return ResultVO.error("400", errorMesssage.toString());
     }
 
     /**
@@ -75,6 +75,7 @@ public class BaseControllerExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(HttpMessageConversionException.class)
     public ResultVO messageConversionException(HttpMessageConversionException e) {
+        e.printStackTrace();
         return ResultVO.error("400", "请求数据不合法！" + e.getMessage());
     }
 
