@@ -59,7 +59,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     private ISProfilesService profilesService;
 
     @Override
-    public List<DeliveryProjectDetail> assembleDelivery(String branchGuid) throws SVNException {
+    public List<DeliveryProjectDetail> assembleDelivery(String branchGuid){
 
         SBranch branch = branchService.selectById(branchGuid);
         if (branch == null) {
@@ -69,7 +69,12 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
                 collect(Collectors.toMap(SProject::getProjectName, p -> p));
 
-        List<SvnFile> svnCommits = svnKitService.getBranchDiffStatus(branch.getFullPath(), branch.getCurrVersion().toString());
+        List<SvnFile> svnCommits = null;
+        try {
+            svnCommits = svnKitService.getBranchDiffStatus(branch.getFullPath(), branch.getCurrVersion().toString());
+        } catch (SVNException e) {
+            throw new DeveloperException("分支的svnUrl不合法，无法获取提交记录！");
+        }
         if (svnCommits.size() < 1) {
             throw new DeveloperException("该清单已被整理或没有最新的提交记录!");
         }
@@ -182,11 +187,12 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         if(sDeliveries.size() > 0){
             throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
         }
+
         EntityWrapper<SBranchMapping> sbmEntityWrapper = new EntityWrapper<>();
         sbmEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH, request.getGuidBranch());
         List<SBranchMapping> sbmList = branchMappingService.selectList(sbmEntityWrapper);
         if (sbmList.size() != 1) {
-            throw new DeveloperException("根据分支guid获取的第三方的工作项为空或多条！");
+            throw new DeveloperException("查询不到对应的关联数据！");
         }
         SBranchMapping sbm = sbmList.get(0);
 
@@ -213,6 +219,16 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         }
         deliveryService.insertBatch(deliveryList);
 
+        //获取已成功合并的投放申请
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.SUCCESS);
+        List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
+
+        if(deliverys.size() <= 0 && request.getDeliveryList().size() <= 0){
+            throw new DeveloperException("没有选择可投放的代码！");
+        }
+
         //创建已选择的环境的投放申请中的运行环境guid集合
         ArrayList<Integer> choiceProfileGuid = new ArrayList<>();
         for (SDelivery sDelivery : deliveryList) {
@@ -226,11 +242,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             insertBatch(deliveryLists);
         }
 
-        //获取已成功合并的投放申请
-        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
-        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
-        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.SUCCESS);
-        List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
+        //判断此工作项是否有成功投放的申请记录
         if (deliverys.size() > 0) {
             //创建工作项已成功投放申请的运行环境guid
             List<Integer> achieveProfileGuid = new ArrayList<>();
@@ -247,11 +259,12 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 List<SStandardList> sStandardLists = standardListService.selectList(standardListEntityWrapper);
 
                 if(sStandardLists.size() > 0){
-                    //重新查询
+                    //重新查询移除后已成功投放运行环境的投放申请
                     EntityWrapper<SDelivery> sDeliveryEntityWrapper = new EntityWrapper<>();
                     sDeliveryEntityWrapper.in(SDelivery.COLUMN_GUID_PROFILES,choiceProfileGuid);
                     sDeliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
                     List<SDelivery> sdList = deliveryService.selectList(sDeliveryEntityWrapper);
+                    //
                     List<SDeliveryList> sdlList = new ArrayList<>();
                     for(SDelivery sd:sdList){
                         for(SStandardList sStandard:sStandardLists){
@@ -275,7 +288,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     }
 
     @Override
-    public List<SDeliveryList> selectDeliveryListOutPutExcel(String guidWorkitem, String guidProfiles) {
+    public List<SDeliveryList> selectDeliveryListOutPutExcel(Integer guidWorkitem, Integer guidProfiles) {
 
         EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
         deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, guidProfiles);
@@ -287,50 +300,35 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             guidDelivery.add(delivery.getGuid());
         }
 
-        EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
-        if (guidDelivery == null) {
-            throw new DeveloperException("查询到的投放申请的guid集合为空");
+        if (guidDelivery.size() == 0) {
+            throw new DeveloperException("此工作项查询不到对应的投放申请!");
         }
+
+        EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
         deliveryListEntityWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, guidDelivery);
         List<SDeliveryList> sdlList = selectList(deliveryListEntityWrapper);
 
-        List<SDeliveryList> deliveryLists = new ArrayList<>();
+        if(sdlList.size() == 0){
+            throw new DeveloperException("此清单没有要导出的代码清单！");
+        }
+        return disposeExportExcel(sdlList);
+    }
 
-        sdlList.stream().collect(Collectors.groupingBy(SDeliveryList::getPatchType)).forEach((p, list) -> {
-            if (p.equals(PatchType.ECD.getValue())) {
-                list.stream().collect(Collectors.groupingBy(SDeliveryList::getPartOfProject,
-                        Collectors.groupingBy(dl -> DeveloperUtils.getModule(dl.getFullPath()))))
-                        .forEach((pj, m) -> m.forEach((module, l) -> {
-                            // 导出ecd 的同工程清单
-                            String[] deployWhereSplit = l.get(0).getDeployWhere().split(",");
-                            for (String deployWhere : deployWhereSplit) {
-                                SDeliveryList sdl = new SDeliveryList();
-                                sdl.setPatchType(l.get(0).getPatchType());
-                                sdl.setDeployWhere(deployWhere);
-                                sdl.setPartOfProject(pj);
-                                sdl.setFullPath(DeveloperUtils.getEcdPath(l.get(0).getFullPath()));
-                                deliveryLists.add(sdl);
-                            }
-                        }));
-            } else {
-                for (SDeliveryList sd : list) {
-                    String[] deployWhereSplit = sd.getDeployWhere().split(",");
-                    String[] patchTypeSplit = sd.getPatchType().split(",");
-                    for (String patchType : patchTypeSplit) {
-                        for (String deployWhere : deployWhereSplit) {
-                            SDeliveryList sdl = new SDeliveryList();
-                            sdl.setPatchType(patchType);
-                            sdl.setDeployWhere(deployWhere);
-                            sdl.setPartOfProject(sd.getPartOfProject());
-                            sdl.setFullPath(DeveloperUtils.getFilePath(sd.getFullPath()));
-                            deliveryLists.add(sdl);
-                        }
-                    }
+    @Override
+    public List<SDeliveryList> selectDeliveryListExcel(Integer guidDelivery) {
 
-                }
-            }
-        });
-        return deliveryLists;
+        SDelivery delivery = deliveryService.selectById(guidDelivery);
+        if(delivery == null){
+            throw new DeveloperException("没有找到对应的投放申请！");
+        }
+        EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
+        deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY, delivery.getGuid());
+        List<SDeliveryList> sdlList = selectList(deliveryListEntityWrapper);
+
+        if(sdlList.size() == 0){
+            throw new DeveloperException("此清单没有要导出的代码清单！");
+        }
+        return disposeExportExcel(sdlList);
     }
 
     @Override
@@ -380,6 +378,47 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         deliveryList.setDeployWhere(deployType);
 
     }
+
+    private List<SDeliveryList> disposeExportExcel(List<SDeliveryList> sdlList){
+        List<SDeliveryList> deliveryLists = new ArrayList<>();
+
+        sdlList.stream().collect(Collectors.groupingBy(SDeliveryList::getPatchType)).forEach((p, list) -> {
+            if (p.equals(PatchType.ECD.getValue())) {
+                list.stream().collect(Collectors.groupingBy(SDeliveryList::getPartOfProject,
+                        Collectors.groupingBy(dl -> DeveloperUtils.getModule(dl.getFullPath()))))
+                        .forEach((pj, m) -> m.forEach((module, l) -> {
+                            // 导出ecd 的同工程清单
+                            String[] deployWhereSplit = l.get(0).getDeployWhere().split(",");
+                            for (String deployWhere : deployWhereSplit) {
+                                SDeliveryList sdl = new SDeliveryList();
+                                sdl.setPatchType(l.get(0).getPatchType());
+                                sdl.setDeployWhere(deployWhere);
+                                sdl.setPartOfProject(pj);
+                                sdl.setFullPath(DeveloperUtils.getEcdPath(l.get(0).getFullPath()));
+                                deliveryLists.add(sdl);
+                            }
+                        }));
+            } else {
+                for (SDeliveryList sd : list) {
+                    String[] deployWhereSplit = sd.getDeployWhere().split(",");
+                    String[] patchTypeSplit = sd.getPatchType().split(",");
+                    for (String patchType : patchTypeSplit) {
+                        for (String deployWhere : deployWhereSplit) {
+                            SDeliveryList sdl = new SDeliveryList();
+                            sdl.setPatchType(patchType);
+                            sdl.setDeployWhere(deployWhere);
+                            sdl.setPartOfProject(sd.getPartOfProject());
+                            sdl.setFullPath(DeveloperUtils.getFilePath(sd.getFullPath()));
+                            deliveryLists.add(sdl);
+                        }
+                    }
+
+                }
+            }
+        });
+        return deliveryLists;
+    }
+
 
 
 }
