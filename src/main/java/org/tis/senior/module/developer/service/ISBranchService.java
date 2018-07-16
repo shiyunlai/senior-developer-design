@@ -64,5 +64,7 @@ public interface ISBranchService extends IService<SBranch>  {
      * 同步分支版本号
      */
     void syncBranchRevision(List<Integer> guidBranchs);
+
+    Integer verificationUrl(String svnUrl);
 }
 

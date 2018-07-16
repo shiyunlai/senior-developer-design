@@ -1,6 +1,7 @@
 package org.tis.senior.module.developer.service;
 
 import com.baomidou.mybatisplus.service.IService;
+import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
 import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
@@ -72,5 +73,12 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      * @return
      */
     List<DeliveryProjectDetail> selectDeliveryListByGuidDelivery(Integer guidDelivery);
+
+    /**
+     * 根据投放时间、打包窗口、运行环境获取投放申请
+     * @param request
+     * @return
+     */
+    List<SDelivery> selectDeliveryOutExecl(DeliveryOutExeclRequest request);
 }
 

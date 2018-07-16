@@ -1,18 +1,17 @@
 package org.tis.senior.module.developer.controller;
 
-import lombok.Builder;
+import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.tis.senior.module.core.web.controller.BaseController;
+import org.tis.senior.module.core.web.vo.ResultVO;
+import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.BranchAddAndUpdateRequest;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.service.ISBranchService;
-import org.tis.senior.module.core.web.vo.ResultVO;
-import org.springframework.validation.annotation.Validated;
-import org.tis.senior.module.core.web.vo.SmartPage;
-import org.tis.senior.module.core.web.controller.BaseController;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import org.hibernate.validator.constraints.NotBlank;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.groups.Default;
@@ -76,6 +75,16 @@ public class SBranchController extends BaseController<SBranch>  {
     public ResultVO notAllot() {
         return  ResultVO.success("查询成功", sBranchService.selectNotAllotBranch());
     }
-    
+
+    /**
+     * 验证url是否是合法的svn路径
+     * @param svnUrl
+     * @return
+     */
+    @GetMapping("/path/{svnUrl}/revision")
+    public ResultVO verificationUrl(@PathVariable @NotBlank(message = "svnUrl不能为空") String svnUrl){
+
+        return  ResultVO.success("验证通过", sBranchService.verificationUrl(svnUrl));
+    }
 }
 
