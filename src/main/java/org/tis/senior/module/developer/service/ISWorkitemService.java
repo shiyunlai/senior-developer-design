@@ -1,11 +1,11 @@
 package org.tis.senior.module.developer.service;
 
-import org.tis.senior.module.developer.controller.request.WorkitemAndBranchAddRequest;
+import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRequest;
+import org.tis.senior.module.developer.controller.request.WorkitemAndBranchAddRequest;
 import org.tis.senior.module.developer.controller.request.WorkitemBranchDetailRequest;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SWorkitem;
-import com.baomidou.mybatisplus.service.IService;
 
 import java.util.List;
 
@@ -70,5 +70,11 @@ public interface ISWorkitemService extends IService<SWorkitem>  {
      * @return
      */
     SBranch selectBranchByWorkitemGuid(Integer workitemGuid);
+
+    /**
+     * 可关联的分支
+     * @return
+     */
+    List<SBranch> mayRelevanceBranch();
 }
 

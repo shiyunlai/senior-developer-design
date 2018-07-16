@@ -80,7 +80,7 @@ public class SBranchServiceImpl extends ServiceImpl<SBranchMapper, SBranch> impl
             branchGuid.add(branchMapping.getGuidBranch());
         }
         if(branchGuid.size() == 0){
-            throw new DeveloperException("没有查询到为被指配的分支");
+            throw new DeveloperException("没有查询到未被指配的分支");
         }
         EntityWrapper<SBranch> branchEntityWrapper = new EntityWrapper<>();
         branchEntityWrapper.notIn(SBranch.COLUMN_GUID,branchGuid);

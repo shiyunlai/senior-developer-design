@@ -215,8 +215,6 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         deliveryEntityWrapper.in(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.unfinished());
         List<SDelivery> deliveryList = selectList(deliveryEntityWrapper);
 
-
-
         if(deliveryList.size() < 1){
             SWorkitem workitem  = workitemService.selectById(delivery.getGuidWorkitem());
 
@@ -227,7 +225,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
 
             if(branchMapping.size() > 0){
                 try {
-                    branchService.recordBranchTempRevision(branchMapping.get(0).getGuidBranch());
+                    branchService.revertBranchRevision(branchMapping.get(0).getGuidBranch());
                 } catch (SVNException e) {
                     e.printStackTrace();
                 }
