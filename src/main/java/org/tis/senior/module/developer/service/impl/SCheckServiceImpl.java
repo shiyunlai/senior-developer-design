@@ -156,7 +156,9 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         List<SCheckList> insert = new ArrayList<>();
         insert.addAll(notInMerge);
         insert.addAll(notInDelivery);
-        checkListService.insertBatch(insert);
+        if (insert.size() > 0) {
+            checkListService.insertBatch(insert);
+        }
         // 记录投放环境分支的版本号
         branchService.recordBranchTempRevision(sBranch.getGuid());
         // 组装核对结果
