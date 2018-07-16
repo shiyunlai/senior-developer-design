@@ -214,11 +214,13 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
 
         List<SBranchMapping> sBranchMappings = branchMappingService.selectList(null);
         List<Integer> branchGuid = new ArrayList<>();
-        for (SBranchMapping branchMapping:sBranchMappings){
-            branchGuid.add(branchMapping.getGuidBranch());
-        }
-        if(branchGuid.size() == 0){
-            throw new DeveloperException("没有查询到未被指配的分支");
+        if(sBranchMappings.size() > 0){
+            for (SBranchMapping branchMapping:sBranchMappings){
+                branchGuid.add(branchMapping.getGuidBranch());
+            }
+            if(branchGuid.size() == 0){
+                throw new DeveloperException("没有查询到未被指配的分支");
+            }
         }
         EntityWrapper<SBranch> branchEntityWrapper = new EntityWrapper<>();
         branchEntityWrapper.notIn(SBranch.COLUMN_GUID,branchGuid);
