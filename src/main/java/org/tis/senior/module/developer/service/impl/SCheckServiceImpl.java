@@ -340,7 +340,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
             // 环境分支版本回滚
             List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.RELEASE,
-                    Collections.singletonList(delivery.getGuidProfiles()));
+                    Collections.singletonList(check.getGuidProfiles()));
             branchService.revertBranchRevision(Integer.valueOf(maps.get(0).get("guidBranch").toString()));
             if (!CollectionUtils.isEmpty(deliveryList)) {
                 deliveryService.update(delivery, deliveryWrapper);
