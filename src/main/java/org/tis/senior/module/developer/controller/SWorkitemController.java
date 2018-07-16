@@ -1,20 +1,17 @@
 package org.tis.senior.module.developer.controller;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.tis.senior.module.core.web.controller.BaseController;
 import org.tis.senior.module.core.web.vo.ResultVO;
+import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRequest;
-import org.tis.senior.module.developer.entity.SBranch;
-import org.tis.senior.module.developer.entity.SBranchMapping;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.SWorkitem;
-import org.springframework.validation.annotation.Validated;
-import org.tis.senior.module.core.web.vo.SmartPage;
-import org.tis.senior.module.core.web.controller.BaseController;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 import org.tis.senior.module.developer.entity.enums.ItemStatus;
 import org.tis.senior.module.developer.service.ISWorkitemService;
-import org.hibernate.validator.constraints.NotBlank;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.groups.Default;
@@ -132,6 +129,15 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
     public ResultVO selectBranchDetail(@PathVariable @NotNull(message = "运行环境id不能为空")Integer workitemGuid){
 
         return ResultVO.success("查询成功！",sWorkitemService.selectBranchByWorkitemGuid(workitemGuid));
+    }
+
+    /**
+     * 可关联分支
+     * @return
+     */
+    @GetMapping("/relevanceBranch")
+    public ResultVO relevanceBranch(){
+        return ResultVO.success("查询成功",sWorkitemService.mayRelevanceBranch());
     }
 
 

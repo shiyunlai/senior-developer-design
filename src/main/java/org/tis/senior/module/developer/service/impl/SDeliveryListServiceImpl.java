@@ -172,7 +172,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     }
 
     @Override
-    public List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) {
+    public List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException {
 
         //判断是否是新投放
         EntityWrapper<SDelivery> deliverysEntityWrapper = new EntityWrapper<>();
@@ -182,10 +182,8 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         if(sDeliveries.size() > 0){
             throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
         }
-        Integer guidBranch = request.getGuidBranch();
-        SBranch branch = branchService.selectById(guidBranch);
         EntityWrapper<SBranchMapping> sbmEntityWrapper = new EntityWrapper<>();
-        sbmEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH, branch.getGuid());
+        sbmEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH, request.getGuidBranch());
         List<SBranchMapping> sbmList = branchMappingService.selectList(sbmEntityWrapper);
         if (sbmList.size() != 1) {
             throw new DeveloperException("根据分支guid获取的第三方的工作项为空或多条！");
@@ -271,6 +269,8 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             }
 
         }
+        branchService.recordBranchTempRevision(request.getGuidBranch());
+
         return deliveryList;
     }
 
