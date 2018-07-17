@@ -164,7 +164,7 @@ public class SCheckController extends BaseController<SCheck>  {
                 row.createCell(6).setCellValue(user.getUserId());
             }
             String fileName = "清单"+ new SimpleDateFormat("");
-            response.setContentType("application/octet-stream");
+            response.setContentType("application/vnd.ms-excel;");
             response.setCharacterEncoding("utf-8");
             response.setHeader("content-disposition", "attachment;filename=" + new String(fileName.getBytes(), "ISO8859-1") + ".xls");
             os = response.getOutputStream();
