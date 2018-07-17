@@ -11,16 +11,16 @@ import org.tis.senior.module.developer.controller.request.ProfileAndBranchAddReq
 import org.tis.senior.module.developer.dao.SProfilesMapper;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SBranchMapping;
+import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.SProfiles;
-import org.tis.senior.module.developer.entity.enums.BranchForWhat;
-import org.tis.senior.module.developer.entity.enums.BranchMappingStatus;
-import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
+import org.tis.senior.module.developer.entity.enums.*;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISBranchMappingService;
 import org.tis.senior.module.developer.service.ISBranchService;
+import org.tis.senior.module.developer.service.ISDeliveryService;
 import org.tis.senior.module.developer.service.ISProfilesService;
 
-import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -41,6 +41,9 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
 
     @Autowired
     private ISBranchMappingService branchMappingService;
+
+    @Autowired
+    private ISDeliveryService deliveryService;
 
     @Override
     public List<SProfiles> selectProfilesAll() {
@@ -115,7 +118,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH,guidBranch);
         List<SBranchMapping> sbmList = branchMappingService.selectList(branchMappingEntityWrapper);
         if(sbmList.size() > 0){
-            throw new DeveloperException("次分支已被指配，请重新选择分支！");
+            throw new DeveloperException("此分支已被指配，请重新选择分支！");
         }
         SBranchMapping branchMapping = new SBranchMapping();
         branchMapping.setGuidBranch(guidBranch);
@@ -141,7 +144,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         branchMappingEntityWrapper2.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.RELEASE);
         List<SBranchMapping> sBranchMappings2 = branchMappingService.selectList(branchMappingEntityWrapper);
         if(sBranchMappings2.size() > 0){
-            throw new DeveloperException("此运行环境已关联分支！");
+            throw new DeveloperException("此运行环境已有关联分支！");
         }
 
         SBranchMapping branchMapping = new SBranchMapping();
@@ -162,6 +165,14 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         if(sbmList.size() != 1){
             throw new DeveloperException("此运行环境没有分配分支,请关联分支！");
         }
+
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,guidProfile);
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
+        if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
+            throw new DeveloperException("此运行环境关联的分支有投放申请，不允许取消关联！");
+        }
+
         SBranchMapping branchMapping = sbmList.get(0);
         branchMappingService.deleteById(branchMapping.getGuid());
     }
@@ -177,6 +188,25 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         }
         SBranchMapping branchMapping = branchMappings.get(0);
         return branchService.selectById(branchMapping.getGuidBranch());
+    }
+
+    @Override
+    public List<SBranch> mayRelevanceReleaseBranch() {
+
+        List<SBranchMapping> sBranchMappings = branchMappingService.selectList(null);
+        List<Integer> branchGuid = new ArrayList<>();
+        if(sBranchMappings.size() > 0) {
+            for (SBranchMapping branchMapping : sBranchMappings) {
+                branchGuid.add(branchMapping.getGuidBranch());
+            }
+            if (branchGuid.size() == 0) {
+                throw new DeveloperException("没有查询到未被指配的分支");
+            }
+        }
+        EntityWrapper<SBranch> branchEntityWrapper = new EntityWrapper<>();
+        branchEntityWrapper.notIn(SBranch.COLUMN_GUID,branchGuid);
+        branchEntityWrapper.eq(SBranch.COLUMN_BRANCH_TYPE,BranchType.RELEASE);
+        return branchService.selectList(branchEntityWrapper);
     }
 
 

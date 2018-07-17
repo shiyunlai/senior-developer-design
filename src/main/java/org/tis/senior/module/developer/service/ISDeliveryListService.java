@@ -30,7 +30,7 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      * 添加投放申请和投产代码清单
      * @param request
      */
-    List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String proposer);
+    List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String proposer) throws SVNException;
 
     /**
      * 查询此工作项下需要导出成Excel文件的清单代码
@@ -39,7 +39,14 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      * @param guidProfiles 运行环境guid
      * @return
      */
-    List<SDeliveryList> selectDeliveryListOutPutExcel(String guidWorkitem, String guidProfiles);
+    List<SDeliveryList> selectDeliveryListOutPutExcel(Integer guidWorkitem, Integer guidProfiles);
+
+    /**
+     * 根本投放申请guid查询对应的代码清单
+     * @param guidDelivery
+     * @return
+     */
+    List<SDeliveryList> selectDeliveryListExcel(Integer guidDelivery);
 
     /**
      * 追加投放申请

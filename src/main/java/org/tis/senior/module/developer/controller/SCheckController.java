@@ -132,13 +132,12 @@ public class SCheckController extends BaseController<SCheck>  {
      * @return
      */
     @RequiresRoles(value = "rct")
-    @PostMapping("/excel")
+    @GetMapping("/delivery/{guidDelivery}/excel")
     public ResultVO deliveryExportExcel(HttpServletResponse response,
-                                        @PathVariable @NotBlank(message = "工作项guid不能为空") String guidWorkitem,
-                                        @PathVariable @NotBlank(message = "运行环境guid不能为空") String guidProfiles) {
+                                        @PathVariable @NotBlank(message = "工作项guid不能为空") Integer guidDelivery) {
 
         SSvnAccount user = getUser();
-        List<SDeliveryList> sDeliveryLists = deliveryListService.selectDeliveryListOutPutExcel(guidWorkitem,guidProfiles);
+        List<SDeliveryList> sDeliveryLists = deliveryListService.selectDeliveryListExcel(guidDelivery);
 
         OutputStream os = null;
         InputStream is = null;
@@ -165,7 +164,7 @@ public class SCheckController extends BaseController<SCheck>  {
                 row.createCell(6).setCellValue(user.getUserId());
             }
             String fileName = "清单"+ new SimpleDateFormat("");
-            response.setContentType("application/octet-stream");
+            response.setContentType("application/vnd.ms-excel;");
             response.setCharacterEncoding("utf-8");
             response.setHeader("content-disposition", "attachment;filename=" + new String(fileName.getBytes(), "ISO8859-1") + ".xls");
             os = response.getOutputStream();

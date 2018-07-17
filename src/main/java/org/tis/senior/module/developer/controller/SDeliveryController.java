@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import org.tis.senior.module.core.web.controller.BaseController;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.core.web.vo.SmartPage;
+import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
 import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
@@ -129,7 +130,7 @@ public class SDeliveryController extends BaseController<SDelivery>  {
      * @param guidDelivery
      * @return
      */
-    @DeleteMapping("/{guidDelivery}/deliveryAndDeliveryList")
+    @DeleteMapping("/{guidDelivery}")
     public ResultVO deleteDeliveryAndDeliveryList(@PathVariable @NotNull(message = "投放申请id不能为空")Integer guidDelivery){
 
         sDeliveryService.deleteDeliveryAndDeliveryList(guidDelivery);
@@ -144,6 +145,17 @@ public class SDeliveryController extends BaseController<SDelivery>  {
     public ResultVO deliveryListDetail(@PathVariable @NotNull(message = "投放申请id不能为空")Integer guidDelivery){
 
         return ResultVO.success("查询成功",sDeliveryService.selectDeliveryListByGuidDelivery(guidDelivery));
+    }
+
+    /**
+     * 查询导出的投放申请
+     * @param request
+     * @return
+     */
+    @PostMapping("/excels")
+    public ResultVO selectOutDelivery(@RequestBody @Validated DeliveryOutExeclRequest request){
+
+        return ResultVO.success("查询成功",sDeliveryService.selectDeliveryOutExecl(request));
     }
 
     

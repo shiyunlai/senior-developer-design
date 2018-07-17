@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
 import org.tis.senior.module.developer.controller.request.DeliveryProfileRequest;
 import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
@@ -204,7 +205,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         SDelivery delivery = selectById(guidDelivery);
         if(delivery == null){
             throw new DeveloperException("没有找到对应的投放申请！");
-        }
+    }
         EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
         deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY,delivery.getGuid());
         List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListEntityWrapper);
@@ -214,8 +215,6 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,delivery.getGuidWorkitem());
         deliveryEntityWrapper.in(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.unfinished());
         List<SDelivery> deliveryList = selectList(deliveryEntityWrapper);
-
-
 
         if(deliveryList.size() < 1){
             SWorkitem workitem  = workitemService.selectById(delivery.getGuidWorkitem());
@@ -227,7 +226,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
 
             if(branchMapping.size() > 0){
                 try {
-                    branchService.recordBranchTempRevision(branchMapping.get(0).getGuidBranch());
+                    branchService.revertBranchRevision(branchMapping.get(0).getGuidBranch());
                 } catch (SVNException e) {
                     e.printStackTrace();
                 }
@@ -248,6 +247,23 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListEntityWrapper);
 
         return DeliveryProjectDetail.getDeliveryDetail(deliveryLists,projectService.selectProjectAll());
+    }
+
+    @Override
+    public List<SDelivery> selectDeliveryOutExecl(DeliveryOutExeclRequest request) {
+
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,request.getGuidProfile());
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_PACK_TIMING,request.getPackTiming());
+        deliveryEntityWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
+                new SimpleDateFormat("yyyy-MM-dd").format(request.getDeliveryTime()));
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
+        List<SDelivery> deliveries = selectList(deliveryEntityWrapper);
+
+        if(deliveries.size() == 0){
+            throw new DeveloperException("没有找到对应的投放申请！");
+        }
+        return deliveries;
     }
 
 }

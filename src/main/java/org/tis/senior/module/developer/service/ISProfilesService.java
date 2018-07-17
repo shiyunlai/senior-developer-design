@@ -1,10 +1,10 @@
 package org.tis.senior.module.developer.service;
 
+import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.controller.request.ProfileAddAndUpdateRequest;
 import org.tis.senior.module.developer.controller.request.ProfileAndBranchAddRequest;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SProfiles;
-import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
 
 import java.util.List;
@@ -70,5 +70,11 @@ public interface ISProfilesService extends IService<SProfiles>  {
      * @return
      */
     SBranch selectBranchByProfileGuid(Integer profileGuid);
+
+    /**
+     * 查询可关联的Release分支
+     * @return
+     */
+    List<SBranch> mayRelevanceReleaseBranch();
 }
 

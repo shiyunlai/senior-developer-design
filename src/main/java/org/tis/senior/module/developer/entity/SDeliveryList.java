@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableId;
 import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
+import org.hibernate.validator.constraints.NotBlank;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.CommitType;
 import org.tis.senior.module.developer.entity.enums.DeliveryListFromType;
@@ -135,6 +136,7 @@ public class SDeliveryList implements Serializable {
     /**
      * 程序名称:记录程序名称
      */
+    @NotBlank(message = "程序名称不能为空！")
     private String programName;
 
     /**
@@ -144,22 +146,26 @@ public class SDeliveryList implements Serializable {
      * CFG 作为配置文件
      * DBV 作为数据库脚本（SQL、DDL等数据库版本脚本）
      */
+    @NotBlank(message = "导出类型不能为空！")
     private String patchType;
 
     /**
      * 部署到
      */
+    @NotBlank(message = "部署到那不能为空！")
     private String deployWhere;
 
     /**
      * 代码全路径:冗余设计
      */
+    @NotBlank(message = "代码全路径不能为空！")
     private String fullPath;
 
     /**
      * 代码所在工程:记录该代码所在的工程名称（s_project.project_name）
      * 冗余设计
      */
+    @NotBlank(message = "工程名称不能为空！")
     private String partOfProject;
 
     /**
@@ -173,6 +179,7 @@ public class SDeliveryList implements Serializable {
      * 来源类型
      */
     @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    @NotNull
     private DeliveryListFromType fromType;
 }
 

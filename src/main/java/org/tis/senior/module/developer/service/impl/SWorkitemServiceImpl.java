@@ -12,19 +12,16 @@ import org.tis.senior.module.developer.controller.request.WorkitemBranchDetailRe
 import org.tis.senior.module.developer.dao.SWorkitemMapper;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SBranchMapping;
+import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.SWorkitem;
-import org.tis.senior.module.developer.entity.enums.BranchForWhat;
-import org.tis.senior.module.developer.entity.enums.BranchMappingStatus;
-import org.tis.senior.module.developer.entity.enums.ItemStatus;
+import org.tis.senior.module.developer.entity.enums.*;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISBranchMappingService;
 import org.tis.senior.module.developer.service.ISBranchService;
+import org.tis.senior.module.developer.service.ISDeliveryService;
 import org.tis.senior.module.developer.service.ISWorkitemService;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * sWorkitem的Service接口实现类
@@ -41,6 +38,9 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
 
     @Autowired
     private ISBranchMappingService branchMappingService;
+
+    @Autowired
+    private ISDeliveryService deliveryService;
 
     private Map<String, SWorkitem> workitems = new HashMap<>();
 
@@ -184,6 +184,14 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         if(sbmList.size() != 1){
             throw new DeveloperException("此工作项没有关联分支！");
         }
+
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,guidWorkitem);
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
+        if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
+            throw new DeveloperException("此工作项关联的分支有投放申请，不允许取消关联！");
+        }
+
         SBranchMapping branchMapping = sbmList.get(0);
         branchMappingService.deleteById(branchMapping.getGuid());
     }
@@ -199,6 +207,25 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         }
         SBranchMapping branchMapping = branchMappings.get(0);
         return branchService.selectById(branchMapping.getGuidBranch());
+    }
+
+    @Override
+    public List<SBranch> mayRelevanceBranch() {
+
+        List<SBranchMapping> sBranchMappings = branchMappingService.selectList(null);
+        List<Integer> branchGuid = new ArrayList<>();
+        if(sBranchMappings.size() > 0){
+            for (SBranchMapping branchMapping:sBranchMappings){
+                branchGuid.add(branchMapping.getGuidBranch());
+            }
+            if(branchGuid.size() == 0){
+                throw new DeveloperException("没有查询到未被指配的分支");
+            }
+        }
+        EntityWrapper<SBranch> branchEntityWrapper = new EntityWrapper<>();
+        branchEntityWrapper.notIn(SBranch.COLUMN_GUID,branchGuid);
+        branchEntityWrapper.ne(SBranch.COLUMN_BRANCH_TYPE,BranchType.RELEASE);
+        return branchService.selectList(branchEntityWrapper);
     }
 
 }

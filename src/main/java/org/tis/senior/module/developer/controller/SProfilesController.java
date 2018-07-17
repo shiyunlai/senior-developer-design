@@ -1,6 +1,5 @@
 package org.tis.senior.module.developer.controller;
 
-import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -126,8 +125,17 @@ public class SProfilesController extends BaseController<SProfiles>  {
      */
     @GetMapping("/{profileGuid}/branchDetail")
     public ResultVO selectBranchDetail(@PathVariable @NotNull(message = "运行环境id不能为空")Integer profileGuid){
-        sProfilesService.selectBranchByProfileGuid(profileGuid);
-        return ResultVO.success("查询成功！");
+
+        return ResultVO.success("查询成功！",sProfilesService.selectBranchByProfileGuid(profileGuid));
+    }
+
+    /**
+     * 可关联分支
+     * @return
+     */
+    @GetMapping("/relevanceBranch")
+    public ResultVO relevanceBranch(){
+        return ResultVO.success("查询成功",sProfilesService.mayRelevanceReleaseBranch());
     }
 }
 
