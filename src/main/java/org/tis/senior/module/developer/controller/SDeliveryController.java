@@ -42,12 +42,6 @@ public class SDeliveryController extends BaseController<SDelivery>  {
         return ResultVO.success("修改成功！");
     }
     
-    @DeleteMapping("/{id}")
-    public ResultVO delete(@PathVariable @NotBlank(message = "id不能为空") String id) {
-        sDeliveryService.deleteById(id);
-        return ResultVO.success("删除成功");
-    }
-    
     @GetMapping("/{id}")
     public ResultVO detail(@PathVariable @NotBlank(message = "id不能为空") String id) {
         SDelivery sDelivery = sDeliveryService.selectById(id);
