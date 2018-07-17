@@ -12,6 +12,7 @@ import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.service.ISDeliveryService;
+import org.tmatesoft.svn.core.SVNException;
 
 import javax.validation.constraints.NotNull;
 import java.text.ParseException;
@@ -125,7 +126,8 @@ public class SDeliveryController extends BaseController<SDelivery>  {
      * @return
      */
     @DeleteMapping("/{guidDelivery}")
-    public ResultVO deleteDeliveryAndDeliveryList(@PathVariable @NotNull(message = "投放申请id不能为空")Integer guidDelivery){
+    public ResultVO deleteDeliveryAndDeliveryList(@PathVariable @NotNull(message = "投放申请id不能为空")
+                                                              Integer guidDelivery) throws SVNException {
 
         sDeliveryService.deleteDeliveryAndDeliveryList(guidDelivery);
         return ResultVO.success("删除成功");

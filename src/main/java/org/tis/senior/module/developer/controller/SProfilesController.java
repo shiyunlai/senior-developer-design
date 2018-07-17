@@ -1,5 +1,6 @@
 package org.tis.senior.module.developer.controller;
 
+import com.baomidou.mybatisplus.plugins.Page;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -11,6 +12,7 @@ import org.tis.senior.module.developer.controller.request.ProfileAddAndUpdateReq
 import org.tis.senior.module.developer.controller.request.ProfileUpdateStatusRequest;
 import org.tis.senior.module.developer.entity.SProfiles;
 import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
+import org.tis.senior.module.developer.entity.vo.ProfileBranchDetail;
 import org.tis.senior.module.developer.service.ISProfilesService;
 
 import javax.validation.constraints.NotNull;
@@ -80,8 +82,14 @@ public class SProfilesController extends BaseController<SProfiles>  {
      * @return
      */
     @PostMapping("/all")
-    public ResultVO profielAll(@RequestBody @Validated SmartPage<SProfiles> page){
-        return ResultVO.success("查询成功",sProfilesService.selectPage(getPage(page), getCondition(page)));
+    public ResultVO profielAll(@RequestBody @Validated SmartPage<ProfileBranchDetail> page){
+
+        Page<ProfileBranchDetail> workitemDetailPage = new Page<ProfileBranchDetail>
+                (page.getPage().getCurrent(), page.getPage().getSize(),
+                        page.getPage().getOrderByField(), page.getPage().getAsc());
+
+        return ResultVO.success("查询成功",
+                sProfilesService.profileFullPathDetail(workitemDetailPage, getWrapper(page.getCondition())));
     }
 
     /**

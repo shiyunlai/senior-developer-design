@@ -58,10 +58,10 @@ public class SBranchServiceImpl extends ServiceImpl<SBranchMapper, SBranch> impl
             if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
                 throw new DeveloperException("不能删除分支，此分支关联的工作项有对应的投放申请在申请中！");
             }
-            deliveryEntityWrapper.clone();
-            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,sbm.getGuidOfWhats());
-            deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
-            if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
+            EntityWrapper<SDelivery> deliveryEntityWrapper1 = new EntityWrapper<>();
+            deliveryEntityWrapper1.eq(SDelivery.COLUMN_GUID_PROFILES,sbm.getGuidOfWhats());
+            deliveryEntityWrapper1.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
+            if(deliveryService.selectList(deliveryEntityWrapper1).size() > 0){
                 throw new DeveloperException("不能删除分支，此分支关联的运行环境有对应的投放申请在申请中！");
             }
 

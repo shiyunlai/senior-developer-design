@@ -1,6 +1,7 @@
 package org.tis.senior.module.developer.service.impl;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.plugins.Page;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.tis.senior.module.developer.entity.SBranchMapping;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.SProfiles;
 import org.tis.senior.module.developer.entity.enums.*;
+import org.tis.senior.module.developer.entity.vo.ProfileBranchDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISBranchMappingService;
 import org.tis.senior.module.developer.service.ISBranchService;
@@ -92,6 +94,13 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         List<SBranchMapping> sBranchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
         if (sBranchMappings.size() > 0) {
             SBranchMapping sbm = sBranchMappings.get(0);
+
+            EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,sbm.getGuidOfWhats());
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
+            if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
+                throw new DeveloperException("此运行环境有对应的投放申请在申请中，不允许删除！");
+            }
 
             //删除对应的第三张关联表
             branchMappingService.deleteById(sbm.getGuid());
@@ -207,6 +216,13 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         branchEntityWrapper.notIn(SBranch.COLUMN_GUID,branchGuid);
         branchEntityWrapper.eq(SBranch.COLUMN_BRANCH_TYPE,BranchType.RELEASE);
         return branchService.selectList(branchEntityWrapper);
+    }
+
+    @Override
+    public Page<ProfileBranchDetail> profileFullPathDetail(Page<ProfileBranchDetail> page,
+                                                           EntityWrapper<ProfileBranchDetail> wrapper) {
+
+        return page.setRecords(this.baseMapper.selectProfileDetail(page,wrapper));
     }
 
 
