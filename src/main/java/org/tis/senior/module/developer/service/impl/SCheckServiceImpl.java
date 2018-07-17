@@ -2,6 +2,7 @@ package org.tis.senior.module.developer.service.impl;
 
 import com.baomidou.mybatisplus.enums.SqlLike;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.mapper.Wrapper;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -356,10 +357,16 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
                     branchService.revertBranchRevision(branchIds);
                 }
             }
-            deliveryService.update(delivery, deliveryWrapper);
             check.setCheckStatus(status);
         } else {
             // 如果核对完成
+            // 判断申请是否全部处理完成
+            Wrapper<SDelivery> clone = deliveryWrapper.clone();
+            clone.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.CHECKING);
+            long count = deliveryService.selectCount(clone);
+            if (count > 0) {
+                throw new DeveloperException("还有" + count + "条申请结果未确认!");
+            }
             // 判断是否有未处理清单
             EntityWrapper<SCheckList> clWrapper = new EntityWrapper<>();
             clWrapper.eq(SCheckList.COLUMN_GUID_CHECK, id);
@@ -395,17 +402,17 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
                 }
                 deliveryListService.insertBatch(list);
             }
-            // 所有相关申请状态为核对成功的全部置为成功投放
-            SDelivery delivery = new SDelivery();
-            delivery.setDeliveryResult(DeliveryResult.DELIVERED);
-            deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.SUCCESS);
-            List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
             // 同步环境版本号
             List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.RELEASE,
                     Collections.singletonList(check.getGuidProfiles()));
             branchService.syncBranchRevision(Integer.valueOf(maps.get(0).get("guidBranch").toString()));
-
+            // 所有相关申请状态为核对成功的
+            deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.SUCCESS);
+            List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
             if (!CollectionUtils.isEmpty(deliveryList)) {
+                // 全部置为成功投放
+                SDelivery delivery = new SDelivery();
+                delivery.setDeliveryResult(DeliveryResult.DELIVERED);
                 deliveryService.update(delivery, deliveryWrapper);
                 // 同步工作项版本号
                 List<Integer> workIds = deliveryList.stream().map(SDelivery::getGuidWorkitem)
