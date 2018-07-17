@@ -200,12 +200,17 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     }
 
     @Override
-    public void deleteDeliveryAndDeliveryList(Integer guidDelivery) {
+    public void deleteDeliveryAndDeliveryList(Integer guidDelivery) throws SVNException {
 
         SDelivery delivery = selectById(guidDelivery);
         if(delivery == null){
             throw new DeveloperException("没有找到对应的投放申请！");
-    }
+        }
+
+        if(delivery.getDeliveryResult().equals(DeliveryResult.DELIVERED)){
+            throw new DeveloperException("此投放申请已成功投放，不允许删除！");
+        }
+
         EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
         deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY,delivery.getGuid());
         List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListEntityWrapper);
@@ -225,16 +230,14 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
             List<SBranchMapping> branchMapping = branchMappingService.selectList(branchMappingEntityWrapper);
 
             if(branchMapping.size() > 0){
-                try {
-                    branchService.revertBranchRevision(branchMapping.get(0).getGuidBranch());
-                } catch (SVNException e) {
-                    e.printStackTrace();
-                }
+                branchService.revertBranchRevision(branchMapping.get(0).getGuidBranch());
+
             }
 
         }
-
-        deliveryListService.deleteBatchIds(deliveryLists.stream().map(SDeliveryList::getGuid).collect(Collectors.toList()));
+        if(deliveryLists.size() > 0){
+            deliveryListService.deleteBatchIds(deliveryLists.stream().map(SDeliveryList::getGuid).collect(Collectors.toList()));
+        }
         deleteById(delivery.getGuid());
 
     }

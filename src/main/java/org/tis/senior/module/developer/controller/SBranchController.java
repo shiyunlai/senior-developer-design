@@ -32,7 +32,8 @@ public class SBranchController extends BaseController<SBranch>  {
     private ISBranchService sBranchService;
 
     @PostMapping
-    public ResultVO add(@RequestBody @Validated({BranchAddAndUpdateRequest.add.class,Default.class})BranchAddAndUpdateRequest request) {
+    public ResultVO add(@RequestBody @Validated({BranchAddAndUpdateRequest.add.class,Default.class})
+                                    BranchAddAndUpdateRequest request) {
         SSvnAccount user = getUser();
         SBranch sBranch = new SBranch();
         BeanUtils.copyProperties(request,sBranch);
@@ -44,7 +45,8 @@ public class SBranchController extends BaseController<SBranch>  {
     }
     
     @PutMapping
-    public ResultVO update(@RequestBody @Validated({BranchAddAndUpdateRequest.update.class,Default.class})BranchAddAndUpdateRequest request) {
+    public ResultVO update(@RequestBody @Validated({BranchAddAndUpdateRequest.update.class,Default.class})
+                                       BranchAddAndUpdateRequest request) {
         SBranch sBranch = new SBranch();
         BeanUtils.copyProperties(request,sBranch);
         sBranchService.updateById(sBranch);

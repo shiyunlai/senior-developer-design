@@ -2,4 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.tis.senior.module.developer.dao.SWorkitemMapper">
 
+
+    <select id="selectWorkitemDetail" resultType="org.tis.senior.module.developer.entity.vo.WorkitemBranchDetail">
+        SELECT a.*,b.full_path FROM S_WORKITEM a LEFT JOIN
+	          (SELECT c.guid_of_whats, d.full_path FROM s_branch_mapping c INNER JOIN
+	                s_branch d ON c.for_what = 'W' AND c.guid_branch = d.guid) b ON a.guid = b.guid_of_whats
+        <if test="ew != null">
+            <where>
+                ${ew.sqlSegment}
+            </where>
+        </if>
+    </select>
 </mapper>

@@ -6,6 +6,9 @@ import org.apache.shiro.SecurityUtils;
 import org.tis.senior.module.core.web.vo.PageVO;
 import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.entity.SSvnAccount;
+import org.tis.senior.module.developer.util.DeveloperUtils;
+
+import java.lang.reflect.Field;
 
 /**
  * describe: 
@@ -43,6 +46,27 @@ public class BaseController<T> {
         return principal;
     }
 
-
+    protected <S> EntityWrapper<S> getWrapper(S s) {
+        if(s == null){
+            return null;
+        }
+        EntityWrapper<S> wrapper = new EntityWrapper<>();
+        Field[] fields = s.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            if (!field.isAccessible()) {
+                field.setAccessible(true);
+                String name = field.getName();
+                try {
+                    Object o = field.get(s);
+                    if (o != null) {
+                        wrapper.like(DeveloperUtils.humpToUnderline(name).toLowerCase(), o.toString());
+                    }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return wrapper;
+    }
 
 }

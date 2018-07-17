@@ -1,5 +1,6 @@
 package org.tis.senior.module.developer.controller;
 
+import com.baomidou.mybatisplus.plugins.Page;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -11,6 +12,7 @@ import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRe
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import org.tis.senior.module.developer.entity.enums.ItemStatus;
+import org.tis.senior.module.developer.entity.vo.WorkitemBranchDetail;
 import org.tis.senior.module.developer.service.ISWorkitemService;
 
 import javax.validation.constraints.NotNull;
@@ -33,7 +35,8 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
 
 
     @PostMapping
-    public ResultVO add(@RequestBody @Validated({WorkitemAddAndUpdateRequest.add.class, Default.class}) WorkitemAddAndUpdateRequest request) {
+    public ResultVO add(@RequestBody @Validated({WorkitemAddAndUpdateRequest.add.class, Default.class})
+                                    WorkitemAddAndUpdateRequest request) {
         SWorkitem workitem = new SWorkitem();
         BeanUtils.copyProperties(request,workitem);
         workitem.setItemStatus(ItemStatus.DEVELOP);
@@ -42,7 +45,8 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
     }
     
     @PutMapping
-    public ResultVO update(@RequestBody @Validated({WorkitemAddAndUpdateRequest.update.class, Default.class}) WorkitemAddAndUpdateRequest request) {
+    public ResultVO update(@RequestBody @Validated({WorkitemAddAndUpdateRequest.update.class, Default.class})
+                                       WorkitemAddAndUpdateRequest request) {
         SWorkitem sWorkitem = new SWorkitem();
         BeanUtils.copyProperties(request,sWorkitem);
         sWorkitemService.updateById(sWorkitem);
@@ -65,8 +69,14 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
     }
     
     @PostMapping("/list")
-    public ResultVO list(@RequestBody @Validated SmartPage<SWorkitem> page) {
-        return  ResultVO.success("查询成功", sWorkitemService.selectPage(getPage(page), getCondition(page)));
+    public ResultVO list(@RequestBody @Validated SmartPage<WorkitemBranchDetail> page) {
+
+        Page<WorkitemBranchDetail> workitemDetailPage = new Page<WorkitemBranchDetail>
+                (page.getPage().getCurrent(), page.getPage().getSize(),
+                page.getPage().getOrderByField(), page.getPage().getAsc());
+
+        return  ResultVO.success("查询成功",
+                sWorkitemService.workitemFullPathDetail(workitemDetailPage,getWrapper(page.getCondition())));
     }
 
     /**
