@@ -1,8 +1,12 @@
 package org.tis.senior.module.developer.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.baomidou.mybatisplus.annotations.TableField;
 import com.baomidou.mybatisplus.annotations.TableId;
 import com.baomidou.mybatisplus.annotations.TableName;
+import com.baomidou.mybatisplus.mapper.SqlCondition;
 import lombok.Data;
+import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.BranchType;
 
 import java.io.Serializable;
@@ -123,11 +127,13 @@ public class SBranch implements Serializable {
      * H hot分支，修复生产bug，或开发紧急投产内容的分支
      * R release分支
      */
+    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
     private BranchType branchType;
 
     /**
      * 代码全路径:冗余设计
      */
+    @TableField(condition = SqlCondition.LIKE)
     private String fullPath;
 
     /**
@@ -143,6 +149,7 @@ public class SBranch implements Serializable {
     /**
      * 分支作用说明:创建这个分支的目的说明
      */
+    @TableField(condition = SqlCondition.LIKE)
     private String branchFor;
 
     /**
