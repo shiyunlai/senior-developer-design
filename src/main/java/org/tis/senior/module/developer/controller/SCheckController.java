@@ -14,6 +14,7 @@ import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.DeliveryProcessRequest;
 import org.tis.senior.module.developer.entity.SCheck;
 import org.tis.senior.module.developer.entity.SDeliveryList;
+import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.enums.CheckStatus;
 import org.tis.senior.module.developer.entity.enums.PackTime;
 import org.tis.senior.module.developer.entity.vo.CheckMergeDetail;
@@ -135,14 +136,14 @@ public class SCheckController extends BaseController<SCheck>  {
     public ResultVO deliveryExportExcel(HttpServletResponse response,
                                         @PathVariable @NotBlank(message = "工作项guid不能为空") Integer guidDelivery) {
 
-//        SSvnAccount user = getUser();
+        SSvnAccount user = getUser();
         List<SDeliveryList> sDeliveryLists = deliveryListService.selectDeliveryListExcel(guidDelivery);
 
         OutputStream os = null;
         InputStream is = null;
         try {
             is = new FileInputStream("src\\main\\resources\\template\\excel.xls");
-            System.out.println("文件导入成功");
+            System.out.println("文件导入成功======");
             HSSFWorkbook hssfWorkbook = new HSSFWorkbook(is);
             HSSFSheet hssfSheet = hssfWorkbook.getSheetAt(0);
             for (int i=0;i < sDeliveryLists.size();i++){
@@ -159,7 +160,7 @@ public class SCheckController extends BaseController<SCheck>  {
                 }
                 row.createCell(5).setCellValue("all");
                 row.createCell(6).setCellValue("all");
-//                row.createCell(6).setCellValue(user.getUserId());
+                row.createCell(6).setCellValue(user.getUserId());
             }
             String fileName = "清单"+ new SimpleDateFormat("");
             response.setContentType("application/vnd.ms-excel;");
