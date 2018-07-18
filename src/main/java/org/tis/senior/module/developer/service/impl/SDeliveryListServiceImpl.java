@@ -119,19 +119,27 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 String projectName = DeveloperUtils.getProjectName(svnFile.getPath());
                 SProject sProject = projectMap.get(projectName);
                 if (sProject == null) {
-                    sProject = projectMap.get("default");
+                    throw new DeveloperException("基础参数中没有"+ projectName +"+此工程，如要整理清单，请在工程参数中添加此工程！");
                 }
                 sdl.setPartOfProject(sProject.getProjectName());
                 String deployConfig = sProject.getDeployConfig();
-                if (ProjectType.SPECIAL.equals(sProject.getProjectType()) || ProjectType.DEFAULT.equals(sProject.getProjectType())) {
+                if (ProjectType.SPECIAL.equals(sProject.getProjectType())) {
                     JSONArray jsonArray = JSONArray.parseArray(deployConfig);
+                    String exportType = "";
+                    Set<String> setStr = new HashSet<>();
                     for (Object object : jsonArray) {
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
-                        String exportType = jsonObject.getString("exportType");
+                        if(exportType == ""){
+                            exportType = jsonObject.getString("exportType");
+                        }else{
+                            exportType = exportType + "," + jsonObject.getString("exportType");
+                        }
                         String deployType = jsonObject.getString("deployType");
-                        sdl.setPatchType(exportType);
-                        sdl.setDeployWhere(deployType);
+                        Collections.addAll(setStr,deployType.split(","));
                     }
+                    sdl.setPatchType(exportType);
+                    String deploy = setStr.toString().replace("[","").replace("]","");
+                    sdl.setDeployWhere(deploy);
                 } else if(ProjectType.IBS.equals(sProject.getProjectType())) {
                     JSONArray jsonArray = JSONArray.parseArray(deployConfig);
                     //here  跳出循环的标记
