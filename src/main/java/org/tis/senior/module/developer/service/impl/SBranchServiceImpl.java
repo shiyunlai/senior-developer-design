@@ -156,7 +156,7 @@ public class SBranchServiceImpl extends ServiceImpl<SBranchMapper, SBranch> impl
         try {
             lastRevision = svnKitService.getLastRevision(svnUrl);
         } catch (SVNException e) {
-            throw new DeveloperException("此url不符号svn的路径！");
+            throw new DeveloperException("此url不符合svn的路径！");
         }
         return lastRevision;
     }
