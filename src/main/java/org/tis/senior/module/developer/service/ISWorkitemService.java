@@ -1,11 +1,14 @@
 package org.tis.senior.module.developer.service;
 
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.plugins.Page;
 import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRequest;
 import org.tis.senior.module.developer.controller.request.WorkitemAndBranchAddRequest;
 import org.tis.senior.module.developer.controller.request.WorkitemBranchDetailRequest;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SWorkitem;
+import org.tis.senior.module.developer.entity.vo.WorkitemBranchDetail;
 
 import java.util.List;
 
@@ -76,5 +79,13 @@ public interface ISWorkitemService extends IService<SWorkitem>  {
      * @return
      */
     List<SBranch> mayRelevanceBranch();
+
+    /**
+     * 查询工作项详情及对应的分支路径
+     * @param page\
+     * @return
+     */
+    Page<WorkitemBranchDetail> workitemFullPathDetail(Page<WorkitemBranchDetail> page,
+                                                      EntityWrapper<WorkitemBranchDetail> wrapper);
 }
 

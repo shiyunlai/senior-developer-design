@@ -1,6 +1,7 @@
 package org.tis.senior.module.developer.service.impl;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.plugins.Page;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.tis.senior.module.developer.entity.SBranchMapping;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import org.tis.senior.module.developer.entity.enums.*;
+import org.tis.senior.module.developer.entity.vo.WorkitemBranchDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISBranchMappingService;
 import org.tis.senior.module.developer.service.ISBranchService;
@@ -161,7 +163,7 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         EntityWrapper<SBranchMapping> branchMappingEntityWrapper2 = new EntityWrapper<>();
         branchMappingEntityWrapper2.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,guidWorkitem);
         branchMappingEntityWrapper2.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
-        List<SBranchMapping> sBranchMappings2 = branchMappingService.selectList(branchMappingEntityWrapper);
+        List<SBranchMapping> sBranchMappings2 = branchMappingService.selectList(branchMappingEntityWrapper2);
         if(sBranchMappings2.size() > 0){
             throw new DeveloperException("此工作项已关联分支！");
         }
@@ -227,6 +229,15 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         branchEntityWrapper.ne(SBranch.COLUMN_BRANCH_TYPE,BranchType.RELEASE);
         return branchService.selectList(branchEntityWrapper);
     }
+
+    @Override
+    public Page<WorkitemBranchDetail> workitemFullPathDetail(Page<WorkitemBranchDetail> page,
+                                                             EntityWrapper<WorkitemBranchDetail> wrapper) {
+
+        return page.setRecords(this.baseMapper.selectWorkitemDetail(page, wrapper));
+    }
+
+
 
 }
 

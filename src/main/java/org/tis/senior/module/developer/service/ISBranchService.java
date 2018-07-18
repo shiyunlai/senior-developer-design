@@ -65,6 +65,11 @@ public interface ISBranchService extends IService<SBranch>  {
      */
     void syncBranchRevision(List<Integer> guidBranchs);
 
+    /**
+     * 验证是否是合法的svnUrl
+     * @param svnUrl
+     * @return
+     */
     Integer verificationUrl(String svnUrl);
 }
 

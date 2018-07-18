@@ -7,6 +7,7 @@ import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.text.ParseException;
 import java.util.List;
@@ -64,7 +65,7 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      * 删除投放申请及对应的投放代码
      * @param guidDelivery
      */
-    void deleteDeliveryAndDeliveryList(Integer guidDelivery);
+    void deleteDeliveryAndDeliveryList(Integer guidDelivery) throws SVNException;
 
     /**
      * 根据投放申请guid查询投放清单代码集合

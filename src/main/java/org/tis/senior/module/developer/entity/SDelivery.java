@@ -1,11 +1,11 @@
 package org.tis.senior.module.developer.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.baomidou.mybatisplus.annotations.TableName;
-import java.util.Date;
-import lombok.Data;
+import com.baomidou.mybatisplus.annotations.TableField;
 import com.baomidou.mybatisplus.annotations.TableId;
-import org.springframework.cache.annotation.Cacheable;
+import com.baomidou.mybatisplus.annotations.TableName;
+import com.baomidou.mybatisplus.mapper.SqlCondition;
+import lombok.Data;
 import org.tis.senior.module.core.entity.cascade.CommonCascadeSerializer;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.DeliveryResult;
@@ -13,6 +13,7 @@ import org.tis.senior.module.developer.entity.enums.DeliveryType;
 import org.tis.senior.module.developer.entity.enums.PackTime;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * sDelivery记录某个工作项的投放记录
@@ -199,6 +200,7 @@ public class SDelivery implements Serializable {
     /**
      * 投放申请人:提出投放申请的开发人员
      */
+    @TableField(condition = SqlCondition.LIKE)
     private String proposer;
 
     /**

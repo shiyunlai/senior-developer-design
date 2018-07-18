@@ -27,10 +27,7 @@ import org.tmatesoft.svn.core.SVNException;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -134,16 +131,14 @@ public class SCheckController extends BaseController<SCheck>  {
     @RequiresRoles(value = "rct")
     @GetMapping("/delivery/{guidDelivery}/excel")
     public ResultVO deliveryExportExcel(HttpServletResponse response,
-                                        @PathVariable @NotBlank(message = "工作项guid不能为空") Integer guidDelivery) {
+                                        @PathVariable @NotBlank(message = "工作项guid不能为空") Integer guidDelivery) throws FileNotFoundException {
 
         SSvnAccount user = getUser();
         List<SDeliveryList> sDeliveryLists = deliveryListService.selectDeliveryListExcel(guidDelivery);
 
         OutputStream os = null;
-        InputStream is = null;
+        InputStream is = new FileInputStream("src/main/resources/template/excel.xls");
         try {
-            System.out.println();
-            is = new FileInputStream("src\\main\\resources\\template\\excel.xls");
 
             HSSFWorkbook hssfWorkbook = new HSSFWorkbook(is);
             HSSFSheet hssfSheet = hssfWorkbook.getSheetAt(0);
