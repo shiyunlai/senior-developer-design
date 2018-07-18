@@ -1,6 +1,9 @@
 package org.tis.senior.module.developer.entity.vo;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.tis.senior.module.developer.entity.SCheckList;
 import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SProject;
@@ -51,6 +54,7 @@ public class DeliveryProjectDetail {
         Map<String, SProject> pjMap = projects.stream().collect(Collectors.toMap(SProject::getProjectName, p -> p));
         List<DeliveryProjectDetail> details = new ArrayList<>();
         deliveryLists.stream()
+                // 按工程名分组
                 .collect(Collectors.groupingBy(SDeliveryList::getPartOfProject))
                 .forEach((p, l) -> {
                     DeliveryProjectDetail detail = new DeliveryProjectDetail();
@@ -60,20 +64,29 @@ public class DeliveryProjectDetail {
                         detail.setProjectType(pjMap.get(p).getProjectType().getValue().toString());
                     }
                     detail.setProjectName(p);
+                    // 按导出粗类型分组
                     List<DeliveryPatchDetail> dpts = new ArrayList<>();
                     l.stream().collect(Collectors.groupingBy(SDeliveryList::getPatchType)).forEach((pt, list) -> {
-                        DeliveryPatchDetail dpt = new DeliveryPatchDetail();
-                        dpt.setPatchType(pt);
-                        dpt.setDeployWhere(list.get(0).getDeployWhere());
-                        dpt.setFileList(list);
-                        dpts.add(dpt);
-                        detail.setDeliveryPatchDetails(dpts);
+                        String[] types = pt.split(",");
+                        // 导出类型分割生成各自对应细分组
+                        for (String type : types) {
+                            if (StringUtils.isNotBlank(type)) {
+                                DeliveryPatchDetail dpt = new DeliveryPatchDetail();
+                                dpt.setPatchType(type);
+                                String where = JSONObject.parseObject(list.get(0).getDeployWhere()).getString(type);
+                                dpt.setDeployWhere(where);
+                                dpt.setFileList(list);
+                                dpts.add(dpt);
+                            }
+                        }
                     });
+                    detail.setDeliveryPatchDetails(dpts);
                     details.add(detail);
                 });
         return details;
     }
 
+    @Deprecated
     public static List<DeliveryProjectDetail> getDeliveryDetail(List<SDeliveryList> deliveryLists) {
         List<DeliveryProjectDetail> details = new ArrayList<>();
         deliveryLists.stream()
@@ -95,26 +108,56 @@ public class DeliveryProjectDetail {
         return details;
     }
 
-    public static List<DeliveryProjectDetail> getCheckDeliveryDetail(List<SCheckList> deliveryLists) {
+    public static List<DeliveryProjectDetail> getCheckDeliveryDetail(List<SCheckList> checkLists) {
         List<DeliveryProjectDetail> details = new ArrayList<>();
-        deliveryLists.stream()
+        checkLists.stream()
                 .collect(Collectors.groupingBy(SCheckList::getPartOfProject))
                 .forEach((p, l) -> {
                     DeliveryProjectDetail detail = new DeliveryProjectDetail();
                     detail.setProjectName(p);
                     List<DeliveryPatchDetail> dpts = new ArrayList<>();
                     l.stream().collect(Collectors.groupingBy(SCheckList::getPatchType)).forEach((pt, list) -> {
-                        DeliveryPatchDetail dpt = new DeliveryPatchDetail();
-                        dpt.setPatchType(pt);
-                        dpt.setDeployWhere(list.get(0).getDeployWhere());
-                        dpt.setFileList(list);
-                        dpts.add(dpt);
-                        detail.setDeliveryPatchDetails(dpts);
+                        String[] types = pt.split(",");
+                        // 导出类型分割生成各自对应细分组
+                        for (String type : types) {
+                            if (StringUtils.isNotBlank(type)) {
+                                DeliveryPatchDetail dpt = new DeliveryPatchDetail();
+                                dpt.setPatchType(pt);
+                                dpt.setDeployWhere(list.get(0).getDeployWhere());
+                                dpt.setFileList(list);
+                                dpts.add(dpt);
+                            }
+                        }
                     });
+                    detail.setDeliveryPatchDetails(dpts);
                     details.add(detail);
                 });
         return details;
     }
 
+    /**
+     * 获取部署类型
+     * @param patchType 导出类型
+     * @param deployConfig 导出配置
+     * @return
+     */
+    public static String generateDeployWhereString(String patchType, String deployConfig) {
+        JSONArray configs = JSONArray.parseArray(deployConfig);
+        String[] types = patchType.split(",");
+        for (String type : types) {
+            if (StringUtils.isNotBlank(type) && type.equals(patchType)) {
+                for (Object config : configs) {
+                    JSONObject jsonObject = JSONObject.parseObject(config.toString());
+                    if (patchType.equals(jsonObject.getString("exportType"))) {
+                        JSONObject j = new JSONObject();
+                        j.put(patchType, jsonObject.getString("deployType"));
+                        return j.toJSONString();
+                    }
+                }
+
+            }
+        }
+        return null;
+    }
 
 }

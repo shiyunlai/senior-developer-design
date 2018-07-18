@@ -164,6 +164,7 @@ public class DeveloperUtils {
                 if (i + 1 < size) {
                     inSql.append(",");
                 }
+                i++;
             }
             inSql.append(")");
             return inSql.toString();
@@ -181,24 +182,6 @@ public class DeveloperUtils {
             date = new Date();
         }
         return new SimpleDateFormat("yyyy-MM-dd").format(date);
-    }
-
-    public  <S> EntityWrapper<S> getWrapper(S s) {
-        EntityWrapper<S> wrapper = new EntityWrapper<>();
-        Field[] fields = s.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            field.setAccessible(true);
-            String name = field.getName();
-            try {
-                Object o = field.get(s);
-                if (o != null) {
-                    wrapper.like(DeveloperUtils.humpToUnderline(name).toLowerCase(), o.toString());
-                }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        return wrapper;
     }
 
     /**
