@@ -142,8 +142,7 @@ public class SCheckController extends BaseController<SCheck>  {
         OutputStream os = null;
         InputStream is = null;
         try {
-            is = new FileInputStream("src\\main\\resources\\template\\excel.xls");
-            System.out.println("文件导入成功======");
+            is = new FileInputStream("src/main/resources/template/excel.xls");
             HSSFWorkbook hssfWorkbook = new HSSFWorkbook(is);
             HSSFSheet hssfSheet = hssfWorkbook.getSheetAt(0);
             for (int i=0;i < sDeliveryLists.size();i++){

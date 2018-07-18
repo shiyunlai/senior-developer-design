@@ -1,15 +1,16 @@
 package org.tis.senior.module.developer.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.baomidou.mybatisplus.annotations.TableName;
-import java.util.Date;
-import lombok.Data;
+import com.baomidou.mybatisplus.annotations.TableField;
 import com.baomidou.mybatisplus.annotations.TableId;
-import lombok.Value;
+import com.baomidou.mybatisplus.annotations.TableName;
+import com.baomidou.mybatisplus.mapper.SqlCondition;
+import lombok.Data;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.ItemStatus;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * sWorkitem某个需要开发的需求或项目
@@ -151,11 +152,13 @@ public class SWorkitem implements Serializable {
     /**
      * 工作项名称
      */
+    @TableField(condition = SqlCondition.LIKE)
     private String itemName;
 
     /**
      * 需求编号:开发内容对应的需求编号（有需求编号的才进入系统）
      */
+    @TableField(condition = SqlCondition.LIKE)
     private String seqno;
 
     /**
