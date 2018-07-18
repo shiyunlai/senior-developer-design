@@ -1,10 +1,7 @@
 package org.tis.senior.module.developer.controller.request;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotBlank;
-import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
-import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
