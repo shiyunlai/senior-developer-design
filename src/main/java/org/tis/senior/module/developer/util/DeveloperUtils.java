@@ -162,6 +162,7 @@ public class DeveloperUtils {
                 if (i + 1 < size) {
                     inSql.append(",");
                 }
+                i++;
             }
             inSql.append(")");
             return inSql.toString();
@@ -180,5 +181,4 @@ public class DeveloperUtils {
         }
         return new SimpleDateFormat("yyyy-MM-dd").format(date);
     }
-
 }
