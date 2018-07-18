@@ -137,9 +137,8 @@ public class SDeliveryController extends BaseController<SDelivery>  {
      * 根据投放申请guid查询所投放的代码集合
      * @return
      */
-    @GetMapping("/{guidDelivery}/deliveryListDetail")
+    @GetMapping("/{guidDelivery}/deliveryLists")
     public ResultVO deliveryListDetail(@PathVariable @NotNull(message = "投放申请id不能为空")Integer guidDelivery){
-
         return ResultVO.success("查询成功",sDeliveryService.selectDeliveryListByGuidDelivery(guidDelivery));
     }
 

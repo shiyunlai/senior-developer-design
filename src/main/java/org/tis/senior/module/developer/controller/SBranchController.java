@@ -49,6 +49,7 @@ public class SBranchController extends BaseController<SBranch>  {
                                        BranchAddAndUpdateRequest request) {
         SBranch sBranch = new SBranch();
         BeanUtils.copyProperties(request,sBranch);
+        sBranch.setCurrVersion(request.getLastVersion());
         sBranchService.updateById(sBranch);
         return ResultVO.success("修改成功！");
     }

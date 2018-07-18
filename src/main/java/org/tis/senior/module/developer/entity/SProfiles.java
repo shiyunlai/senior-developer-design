@@ -1,9 +1,11 @@
 package org.tis.senior.module.developer.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.baomidou.mybatisplus.annotations.TableName;
-import lombok.Data;
+import com.baomidou.mybatisplus.annotations.TableField;
 import com.baomidou.mybatisplus.annotations.TableId;
+import com.baomidou.mybatisplus.annotations.TableName;
+import com.baomidou.mybatisplus.mapper.SqlCondition;
+import lombok.Data;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
 
@@ -143,6 +145,7 @@ public class SProfiles implements Serializable {
     /**
      * 环境名称
      */
+    @TableField(condition = SqlCondition.LIKE)
     private String profilesName;
 
     /**
