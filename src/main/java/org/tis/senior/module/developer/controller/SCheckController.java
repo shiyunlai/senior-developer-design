@@ -6,6 +6,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ResourceUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.tis.senior.module.core.web.controller.BaseController;
@@ -137,9 +138,9 @@ public class SCheckController extends BaseController<SCheck>  {
         List<SDeliveryList> sDeliveryLists = deliveryListService.selectDeliveryListExcel(guidDelivery);
 
         OutputStream os = null;
-        InputStream is = new FileInputStream("src/main/resources/template/excel.xls");
+        InputStream is = null;
         try {
-
+            is = new FileInputStream(ResourceUtils.getFile("classpath:template/excel.xls"));
             HSSFWorkbook hssfWorkbook = new HSSFWorkbook(is);
             HSSFSheet hssfSheet = hssfWorkbook.getSheetAt(0);
             for (int i=0;i < sDeliveryLists.size();i++){
