@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 /**
  * sDeliveryList的Service接口实现类
  *
- * @author Auto Generate Tools
+ * @author lijh
  * @date 2018/06/20
  */
 @Service
@@ -123,24 +123,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 }
                 sdl.setPartOfProject(sProject.getProjectName());
                 String deployConfig = sProject.getDeployConfig();
-                if (ProjectType.SPECIAL.equals(sProject.getProjectType())) {
-                    JSONArray jsonArray = JSONArray.parseArray(deployConfig);
-                    String exportType = "";
-                    Set<String> setStr = new HashSet<>();
-                    for (Object object : jsonArray) {
-                        JSONObject jsonObject = JSONObject.parseObject(object.toString());
-                        if(exportType == ""){
-                            exportType = jsonObject.getString("exportType");
-                        }else{
-                            exportType = exportType + "," + jsonObject.getString("exportType");
-                        }
-                        String deployType = jsonObject.getString("deployType");
-                        Collections.addAll(setStr,deployType.split(","));
-                    }
-                    sdl.setPatchType(exportType);
-                    String deploy = setStr.toString().replace("[","").replace("]","");
-                    sdl.setDeployWhere(deploy);
-                } else if(ProjectType.IBS.equals(sProject.getProjectType())) {
+                if(ProjectType.IBS.equals(sProject.getProjectType())) {
                     JSONArray jsonArray = JSONArray.parseArray(deployConfig);
                     //here  跳出循环的标记
                     here:
@@ -264,9 +247,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
 
             //移除已成功投放运行环境的投放申请
             choiceProfileGuid.removeAll(achieveProfileGuid);
-            if(choiceProfileGuid.size() == 0){
-                throw new DeveloperException("没有要投放的代码！");
-            }
 
             if(choiceProfileGuid.size() > 0){
                 //获取工作项的标准清单记录
@@ -299,6 +279,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
 
         }
 
+        //新增对应的投放申请的代码清单
         if(request.getDeliveryList().size() != 0) {
             for (SDelivery sDelivery : deliveryList) {
                 List<SDeliveryList> deliveryLists = new ArrayList<>();
@@ -339,7 +320,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         List<SDeliveryList> sdlList = selectList(deliveryListEntityWrapper);
 
         if(sdlList.size() == 0){
-            throw new DeveloperException("此清单没有要导出的代码清单！");
+            throw new DeveloperException("此投放申请没有要导出的代码清单！");
         }
         return disposeExportExcel(sdlList);
     }
@@ -356,7 +337,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         List<SDeliveryList> sdlList = selectList(deliveryListEntityWrapper);
 
         if(sdlList.size() == 0){
-            throw new DeveloperException("此清单没有要导出的代码清单！");
+            throw new DeveloperException("此投放申请没有要导出的代码清单！");
         }
         return disposeExportExcel(sdlList);
     }
