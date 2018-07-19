@@ -237,6 +237,45 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         return page.setRecords(this.baseMapper.selectWorkitemDetail(page, wrapper));
     }
 
+    @Override
+    public void updateStatus(Integer guidWorkitem) {
+        SWorkitem sWorkitem = selectById(guidWorkitem);
+        if(sWorkitem.getItemStatus().equals(ItemStatus.CANCEL)){
+            throw new DeveloperException("此工作项已关闭！");
+        }
+
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.ne(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,sWorkitem.getGuid());
+        if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
+            throw new DeveloperException("此工作项有投放申请未完成操作，不能关闭！");
+        }
+
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,sWorkitem.getGuid());
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
+        if(branchMappingService.selectList(branchMappingEntityWrapper).size() > 0){
+            throw new DeveloperException("此工作项有关联的分支，不能关闭！");
+        }
+
+
+        sWorkitem.setItemStatus(ItemStatus.CANCEL);
+        updateById(sWorkitem);
+    }
+
+    @Override
+    public void updateStatusPutProduct(Integer guidWorkitem) {
+        SWorkitem sWorkitem = selectById(guidWorkitem);
+
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.ne(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,sWorkitem.getGuid());
+        if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
+            throw new DeveloperException("此工作项有投放申请未完成操作，不能修改成已投产！");
+        }
+        sWorkitem.setItemStatus(ItemStatus.CANCEL);
+        updateById(sWorkitem);
+    }
 
 
 }
