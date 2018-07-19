@@ -292,9 +292,8 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 }
                 insertBatch(deliveryLists);
             }
+            branchService.recordBranchTempRevision(request.getGuidBranch());
         }
-        branchService.recordBranchTempRevision(request.getGuidBranch());
-
         return deliveryList;
     }
 
