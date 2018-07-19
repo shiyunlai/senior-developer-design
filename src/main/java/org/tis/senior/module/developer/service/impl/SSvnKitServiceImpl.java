@@ -23,6 +23,7 @@ import org.tmatesoft.svn.core.wc.*;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.tmatesoft.svn.core.wc.SVNStatusType.STATUS_NONE;
 
@@ -112,32 +113,54 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
         List<SvnFile> list = new ArrayList<>();
         SVNRepository repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(url));
         repository.setAuthenticationManager(this.svnAuthenticationManager);
+        long branchLatestRevision = repository.getLatestRevision();
+        if (branchLatestRevision <= Long.valueOf(startRevision)) {
+            return list;
+        }
         Collection entries = repository.getDir("", -1, null, (Collection) null);
-        for (Object entry1 : entries) {
-            SVNDirEntry entry = (SVNDirEntry) entry1;
+        for (Object o : entries) {
+            SVNDirEntry entry = (SVNDirEntry) o;
             if (entry.getKind() == SVNNodeKind.DIR) {
                 SVNRepository svnRepository = SVNRepositoryFactory.create(entry.getURL());
                 svnRepository.setAuthenticationManager(this.svnAuthenticationManager);
-                svnRepository.log(new String[] {""}, Long.valueOf(startRevision), repository.getLatestRevision(), true, true,
-                        1, false, null, logEntry -> {
-                    boolean isCopy = false;
-                    if (logEntry.getChangedPaths().size() > 0) {
-                        Set<String> changedPathsSet = logEntry.getChangedPaths().keySet();
-                        for (String aChangedPathsSet : changedPathsSet) {
-                            SVNLogEntryPath p = logEntry.getChangedPaths().get(aChangedPathsSet);
-                            if (p.getCopyPath() != null) {
-                                isCopy=true;
-                                break;
-                            }
-                        }
-                        if (isCopy) {
-                            list.addAll(doBranchDiffStatus(entry.getURL(), Long.toString(logEntry.getRevision()), null));
-                        } else {
-                            list.addAll(doBranchDiffStatus(entry.getURL().removePathTail(),
-                                    Long.toString(logEntry.getRevision() -1), entry.getURL().getPath()));
-                        }
-                    }
-                });
+                // 如果当前工程最后变动版本小于此次查询的起始版本，说明没有任何变动
+                if (svnRepository.getLatestRevision() <= Long.valueOf(startRevision)) {
+                    break;
+                }
+                // 获取当前工程第一次提交版本
+                AtomicLong firstRevision = new AtomicLong(0L);
+                svnRepository.log(new String[] {""}, 0, -1, false, true,
+                        1, false, null, logEntry ->
+                                firstRevision.set(logEntry.getRevision()));
+                // 如果查询起始版本大于工程的第一次提交版本号,无需判断是否为新增工程
+                if (Long.valueOf(startRevision) > firstRevision.get()) {
+                    svnRepository.log(new String[] {""}, Long.valueOf(startRevision), branchLatestRevision,
+                            false, true, 1, false, null, logEntry ->
+                                list.addAll(doBranchDiffStatus(entry.getURL(),
+                                        Long.toString(logEntry.getRevision()), null)));
+                } else {
+                    svnRepository.log(new String[]{""}, Long.valueOf(startRevision), branchLatestRevision,
+                            true, true, 1, false, null, logEntry -> {
+                                boolean isCopy = false;
+                                if (logEntry.getChangedPaths().size() > 0) {
+                                    Set<String> changedPathsSet = logEntry.getChangedPaths().keySet();
+                                    for (String aChangedPathsSet : changedPathsSet) {
+                                        SVNLogEntryPath p = logEntry.getChangedPaths().get(aChangedPathsSet);
+                                        if (p.getCopyPath() != null) {
+                                            isCopy = true;
+                                            break;
+                                        }
+                                    }
+                                    if (isCopy) {
+                                        list.addAll(doBranchDiffStatus(entry.getURL(),
+                                                Long.toString(logEntry.getRevision()), null));
+                                    } else {
+                                        list.addAll(doBranchDiffStatus(entry.getURL().removePathTail(),
+                                                Long.toString(logEntry.getRevision() - 1), entry.getURL().getPath()));
+                                    }
+                                }
+                            });
+                }
             }
         }
         return list;

@@ -1,11 +1,9 @@
 package org.tis.senior.module.developer.util;
 
 
-import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.toolkit.CollectionUtils;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collection;
