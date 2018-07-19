@@ -68,7 +68,8 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         // 验证当前日期-环境-窗口是否有核对记录未处理
         List<SCheck> sChecks = validateCanCheck(profiles, packTiming);
 
-        // 验证是否有未合并投放，获取该环境打包窗口的全部投产代码
+        // 验证是否有未合并投放，
+        // 获取该环境打包窗口的全部 投产申请（申请中和已合并）
         List<SDelivery> deliveryList = getProfileDeliveryList(profiles, packTiming, true);
         if (deliveryList.stream().anyMatch(d -> d.getDeliveryResult().equals(DeliveryResult.APPLYING))) {
             throw new DeveloperException("存在没有合并的投放申请，全部合并才能核对！");
@@ -292,8 +293,10 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         // 验证当前日期-环境-窗口是否有核对记录未处理
         validateCanCheck(profiles, packTiming);
         // 获取所有投产申请
-        // 获取该环境打包窗口的全部投产代码
-        List<SDelivery> deliveryList = getProfileDeliveryList(profiles, packTiming, false);
+        // 获取该环境打包窗口的全部申请中的投产申请
+        List<SDelivery> deliveryList = getProfileDeliveryList(profiles, packTiming, true).stream()
+                .filter(sDelivery -> sDelivery.getDeliveryResult().equals(DeliveryResult.APPLYING))
+                .collect(Collectors.toList());
         List<Integer> deliveryGuids = deliveryList.stream().map(SDelivery::getGuid).collect(Collectors.toList());
         List<Integer> workItemGuids = deliveryList.stream().map(SDelivery::getGuidWorkitem).collect(Collectors.toList());
         EntityWrapper<SDeliveryList> deliveryListWrapper = new EntityWrapper<>();
@@ -301,7 +304,6 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         List<SDeliveryList> sDeliveryLists = deliveryListService.selectList(deliveryListWrapper);
         Map<Integer, List<SDeliveryList>> deliveryListMap = sDeliveryLists.stream()
                 .collect(Collectors.groupingBy(SDeliveryList::getGuidDelivery));
-
         Map<String, Map> guidOfWhatsBranch = branchService
                 .selectListByForWhatIds(BranchForWhat.WORKITEM, workItemGuids).stream()
                 .collect(Collectors.toMap(map -> map.get("guidOfWhats").toString(), map -> map));
@@ -398,6 +400,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
                     sdl.setFullPath(scl.getFullPath());
                     sdl.setCommitType(scl.getCommitType());
                     sdl.setFromType(DeliveryListFromType.MERGE);
+                    sdl.setProgramName(scl.getPartOfProject());
                     list.add(sdl);
                 }
                 deliveryListService.insertBatch(list);
@@ -606,6 +609,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
      *
      * @param profiles
      * @param packTiming
+     * @param checkAllMerged
      * @return
      */
     private List<SDelivery> getProfileDeliveryList(SProfiles profiles, PackTime packTiming, boolean checkAllMerged) {
@@ -619,9 +623,12 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             throw new DeveloperException("当天环境" + profiles.getProfilesName() + "的打包窗口" + packTiming.getValue() +
                     "没有投产申请记录!");
         }
-        if (checkAllMerged &&
-                deliveryList.stream().anyMatch(d -> d.getDeliveryResult().equals(DeliveryResult.APPLYING))) {
-            throw new DeveloperException("存在没有合并的投放申请，全部合并才能核对！");
+        if (checkAllMerged) {
+            if (deliveryList.stream().anyMatch(d -> d.getDeliveryResult().equals(DeliveryResult.APPLYING))) {
+                throw new DeveloperException("存在没有合并的投放申请，全部合并才能核对！");
+            }
+        } else {
+
         }
         return deliveryList;
     }
