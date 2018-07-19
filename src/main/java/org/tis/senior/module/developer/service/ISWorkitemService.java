@@ -87,5 +87,17 @@ public interface ISWorkitemService extends IService<SWorkitem>  {
      */
     Page<WorkitemBranchDetail> workitemFullPathDetail(Page<WorkitemBranchDetail> page,
                                                       EntityWrapper<WorkitemBranchDetail> wrapper);
+
+    /**
+     * 修改工作项状态未已取消
+     * @param guidWorkitem
+     */
+    void updateStatus(Integer guidWorkitem);
+
+    /**
+     * 修改工作项状态未已投产
+     * @param guidWorkitem
+     */
+    void updateStatusPutProduct(Integer guidWorkitem);
 }
 

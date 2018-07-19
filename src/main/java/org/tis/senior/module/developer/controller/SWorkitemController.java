@@ -99,10 +99,20 @@ public class SWorkitemController extends BaseController<SWorkitem>  {
      */
     @PutMapping("/{workitemGuid}/status")
     public ResultVO updateItemStatus(@PathVariable @NotNull(message = "工作项id不能为空")Integer workitemGuid){
-        SWorkitem workitem = sWorkitemService.selectById(workitemGuid);
-        workitem.setItemStatus(ItemStatus.CANCEL);
-        sWorkitemService.updateById(workitem);
+
+        sWorkitemService.updateStatus(workitemGuid);
         return ResultVO.success("修改成功！");
+    }
+
+    /**
+     * 修改工作项状态为已投产
+     * @return
+     */
+    @PutMapping("/{workitemGuid}/putProductStatus")
+    public ResultVO updateStatusPutProduct(@PathVariable @NotNull(message = "工作项id不能为空")Integer workitemGuid){
+
+        sWorkitemService.updateStatusPutProduct(workitemGuid);
+        return ResultVO.success("修改成功!");
     }
 
 
