@@ -131,19 +131,20 @@ public class SCheckController extends BaseController<SCheck>  {
      *
      * @return
      */
-    @RequiresRoles(value = "rct")
     @GetMapping("/delivery/{guidDelivery}/excel")
     public ResultVO deliveryExportExcel(HttpServletResponse response,
                                         @PathVariable @NotBlank(message = "工作项guid不能为空") Integer guidDelivery) throws FileNotFoundException {
 
         SSvnAccount user = getUser();
+        if(user == null){
+            throw new DeveloperException("尚未登录，请登录后再操作！");
+        }
         List<SDeliveryList> sDeliveryLists = deliveryListService.selectDeliveryListExcel(guidDelivery);
 
         OutputStream os = null;
         InputStream is = null;
         try {
             is = this.getClass().getResourceAsStream("/template/excel.xls");
-//            is = new FileInputStream(ResourceUtils.getFile("classpath:template/excel.xls"));
             HSSFWorkbook hssfWorkbook = new HSSFWorkbook(is);
             HSSFSheet hssfSheet = hssfWorkbook.getSheetAt(0);
             for (int i=0;i < sDeliveryLists.size();i++){
