@@ -87,7 +87,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 if (StringUtils.isNotBlank(projectName)) {
                     SProject project = projectMap.get(projectName);
                     if (project == null) {
-                        project = projectMap.get("default");
+                        throw new DeveloperException("基础参数中没有"+ projectName +"+此工程，如要整理清单，请在工程参数中添加此工程！");
                     }
                     JSONArray jsonArray = JSONArray.parseArray(project.getDeployConfig());
                     for (Object object : jsonArray) {

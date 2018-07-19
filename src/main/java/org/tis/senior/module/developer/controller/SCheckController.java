@@ -6,7 +6,6 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ResourceUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.tis.senior.module.core.web.controller.BaseController;
@@ -28,7 +27,10 @@ import org.tmatesoft.svn.core.SVNException;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -140,7 +142,8 @@ public class SCheckController extends BaseController<SCheck>  {
         OutputStream os = null;
         InputStream is = null;
         try {
-            is = new FileInputStream(ResourceUtils.getFile("classpath:template/excel.xls"));
+            is = this.getClass().getResourceAsStream("/template/excel.xls");
+//            is = new FileInputStream(ResourceUtils.getFile("classpath:template/excel.xls"));
             HSSFWorkbook hssfWorkbook = new HSSFWorkbook(is);
             HSSFSheet hssfSheet = hssfWorkbook.getSheetAt(0);
             for (int i=0;i < sDeliveryLists.size();i++){
