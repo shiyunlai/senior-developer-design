@@ -167,6 +167,7 @@ public class SCheckController extends BaseController<SCheck>  {
             hssfWorkbook.write(os);
             os.flush();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new DeveloperException("导出清单异常！");
         } finally {
             try {
