@@ -161,7 +161,7 @@ public class SCheckController extends BaseController<SCheck>  {
                 }
                 row.createCell(5).setCellValue("all");
                 row.createCell(6).setCellValue("all");
-                row.createCell(6).setCellValue(user.getUserId());
+                row.createCell(7).setCellValue(user.getUserId());
             }
             String fileName = "清单"+ new SimpleDateFormat("");
             response.setContentType("application/vnd.ms-excel;");
