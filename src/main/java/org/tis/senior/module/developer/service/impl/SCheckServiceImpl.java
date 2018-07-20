@@ -117,14 +117,14 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         }
         Map<String, SvnFile> filePathMergeListMap = svnFiles.stream()
                 .filter(s -> StringUtils.equals(s.getNodeType(), "file"))
-                .collect(Collectors.toMap(f -> DeveloperUtils.getFilePath(f.getPath()), f -> f));
+                .collect(Collectors.toMap(f -> DeveloperUtils.getFilePath(f.getPath(), sBranch.getFullPath()), f -> f));
         // 不在合并清单中的投放清单
         List<SCheckList> notInMerge = new ArrayList<>();
         // 不在投放清单的合并清单
         List<SCheckList> notInDelivery = new ArrayList<>();
         // 遍历所有投产申请的文件清单，根据工程名开始的路径匹配，如果合并清单中有该路径，则为核对正确
         for (SDeliveryList d : sDeliveryLists) {
-            String fp = DeveloperUtils.getFilePath(d.getFullPath());
+            String fp = DeveloperUtils.getFilePath(d.getFullPath(), sBranch.getFullPath());
             if (filePathMergeListMap.containsKey(fp)) {
                 filePathMergeListMap.remove(fp);
             } else {
@@ -149,7 +149,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             checkList.setGuidCheck(check.getGuid());
             checkList.setProgramName(m.getProgramName());
             checkList.setFullPath(m.getPath());
-            checkList.setPartOfProject(m.getProjectName());
+            checkList.setPartOfProject(DeveloperUtils.getProjectName(m.getPath(), sBranch.getFullPath()));
             checkList.setCommitType(m.getType());
             checkList.setConfirmStatus(ConfirmStatus.WAIT);
             notInDelivery.add(checkList);
@@ -487,7 +487,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
                             if (d.getPatchType().equals(PatchType.EPD.getValue().toString())) {
                                 EntityWrapper<SStandardList> wrapper = new EntityWrapper<>();
                                 wrapper.like(SStandardList.COLUMN_FULL_PATH,
-                                        DeveloperUtils.getModulePath(d.getFullPath()), SqlLike.LEFT)
+                                        DeveloperUtils.getModulePath(d.getFullPath(), d.getPartOfProject()), SqlLike.LEFT)
                                         .eq(SStandardList.COLUMN_PATCH_TYPE, PatchType.ECD);
                                 if (standardListService.selectCount(wrapper) > 0) {
                                     newSSD.setPatchType(PatchType.ECD.getValue().toString());

@@ -19,20 +19,15 @@ public class DeveloperUtils {
      * @param path
      * @return
      */
-    public static String getProjectName(String path) {
+    public static String getProjectName(String path, String branchPath) {
 
-        String[] pathSplit = path.split("/");
-
-        if(pathSplit.length < 11) {
-            return "";
+        if(branchPath.length() > path.length()){
+            return null;
         }
-        if (pathSplit[8].equals("Feature") || pathSplit[8].equals("Hotfix")) {
+        String project = path.substring(branchPath.length()+1);
+        String[] pathSplit = project.split("/");
 
-            return pathSplit[10];
-        } else {
-
-            return pathSplit[9];
-        }
+        return pathSplit[0];
     }
 
     /**
@@ -52,8 +47,8 @@ public class DeveloperUtils {
      * @param svnPath
      * @return
      */
-    public static String getFilePath(String svnPath)  {
-        return svnPath.substring(svnPath.indexOf(getProjectName(svnPath)));
+    public static String getFilePath(String svnPath, String branchPath)  {
+        return svnPath.substring(svnPath.indexOf(getProjectName(svnPath,branchPath)));
     }
 
     /**
@@ -61,39 +56,32 @@ public class DeveloperUtils {
      * @param path
      * @return
      */
-    public static String getModule(String path){
-
-        String[] pathSplit = path.split("/");
-
-        if(pathSplit.length < 12) {
-            return "";
+    public static String getModule(String path, String branchPath){
+        if(branchPath.length() > path.length()){
+            return null;
         }
-        if (pathSplit[8].equals("Feature") || pathSplit[8].equals("Hotfix")) {
+        String module = path.substring(branchPath.length()+1);
+        String[] pathSplit = module.split("/");
 
-            return pathSplit[11];
-        } else {
-            return pathSplit[10];
-        }
+        return pathSplit[1];
     }
 
     /**
      * 获取模块全路径
-     * @param path
+     * @param
      * @return
      */
-    public static String getModulePath(String path) {
-        String[] pathSplit = path.split("/");
-
-        if(pathSplit.length < 12) {
-            return "";
+    public static String getModulePath(String fullPath, String projectName) {
+        String[] pathSplit = fullPath.split("/");
+        int index = 1;
+        for (String path : pathSplit) {
+            if (path.equals(projectName)) {
+                return Arrays.stream(pathSplit).limit(index + 1)
+                        .reduce("", (r, t) -> "".equals(r) ?t:(r + "/" + t));
+            }
+            index++;
         }
-        if (pathSplit[8].equals("Feature") || pathSplit[8].equals("Hotfix")) {
-            return Arrays.stream(pathSplit).limit(12)
-                    .reduce("", (r, t) -> "".equals(r) ?t:(r + "/" + t));
-        } else {
-            return Arrays.stream(pathSplit).limit(11)
-                    .reduce("", (r, t) -> "".equals(r) ?t:(r + "/" + t));
-        }
+        return null;
     }
 
     /**
@@ -101,9 +89,9 @@ public class DeveloperUtils {
      * @param fullPath
      * @return
      */
-    public static String getEcdPath(String fullPath){
-        String project = getProjectName(fullPath);
-        String module = getModule(fullPath);
+    public static String getEcdPath(String fullPath, String branchPth){
+        String project = getProjectName(fullPath, branchPth);
+        String module = getModule(fullPath, branchPth);
         return project+"/"+module+"/src";
     }
 
@@ -207,4 +195,11 @@ public class DeveloperUtils {
         return result.toString();
     }
 
+    public static void main(String[] args) {
+        String str = "svn://47.96.147.236/svn/repos/tip/development/branches/Feature/Feature20180626_test1";
+
+        String s = "svn://47.96.147.236/svn/repos/tip/development/branches/Feature/Feature20180626_test1/bos.tis.tws.version.tools/新.txt";
+
+        System.out.println(s.substring(str.length()+1));
+    }
 }
