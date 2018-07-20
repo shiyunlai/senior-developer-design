@@ -1,5 +1,6 @@
 package org.tis.senior.module.developer.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.enums.SqlLike;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.mapper.Wrapper;
@@ -279,7 +280,9 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         l.setConfirmStatus(ConfirmStatus.DELIVERY);
         l.setGuidDelivery(Integer.valueOf(deliveryId));
         l.setPatchType(patchType);
-        l.setDeployWhere(deployWhere);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(patchType, deployWhere);
+        l.setDeployWhere(jsonObject.toJSONString());
         checkListService.updateById(l);
     }
 
