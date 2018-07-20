@@ -333,9 +333,9 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, check.getPackTiming().getValue());
         // 处理投放结果
         if (status.equals(CheckStatus.FAILURE)) {
-            // 如果核对作废，所有相关申请状态全部重置为核对中
+            // 如果核对作废，所有相关申请状态全部重置为申请中
             SDelivery delivery = new SDelivery();
-            delivery.setDeliveryResult(DeliveryResult.CHECKING);
+            delivery.setDeliveryResult(DeliveryResult.APPLYING);
             // FIXME 核对失败的不回滚
             deliveryWrapper.ne(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.FAILED);
             List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
@@ -486,7 +486,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
                             if (d.getPatchType().equals(PatchType.EPD.getValue().toString())) {
                                 EntityWrapper<SStandardList> wrapper = new EntityWrapper<>();
                                 wrapper.like(SStandardList.COLUMN_FULL_PATH,
-                                        DeveloperUtils.getModulePath(d.getFullPath()), SqlLike.LEFT)
+                                        DeveloperUtils.getModulePath(d.getFullPath(), d.getPartOfProject()), SqlLike.LEFT)
                                         .eq(SStandardList.COLUMN_PATCH_TYPE, PatchType.ECD);
                                 if (standardListService.selectCount(wrapper) > 0) {
                                     newSSD.setPatchType(PatchType.ECD.getValue().toString());
