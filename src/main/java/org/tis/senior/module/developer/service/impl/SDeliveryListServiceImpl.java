@@ -186,6 +186,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
         }
 
+
         EntityWrapper<SBranchMapping> sbmEntityWrapper = new EntityWrapper<>();
         sbmEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH, request.getGuidBranch());
         List<SBranchMapping> sbmList = branchMappingService.selectList(sbmEntityWrapper);
@@ -213,7 +214,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         for (DeliveryProfileRequest req : guidPro) {
             for (SDelivery delivery:deliverys){
                 if(req.getGuidProfiles().equals(delivery.getGuidProfiles()) && request.getDeliveryList().size() == 0){
-                    throw new DeveloperException("你没有选择代码清单，不允许再往已成功的投放申请环境中继续投放！");
+                    throw new DeveloperException("没有新的提交清单，只能向新环境投放申请！");
                 }
             }
             //组装投放申请
@@ -233,6 +234,14 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             delivery.setDeliveryTime(dliveryAddRequest.getDeliveryTime());
             delivery.setDeliveryResult(DeliveryResult.APPLYING);
             deliveryList.add(delivery);
+        }
+
+        EntityWrapper<SDelivery> deliveryEntityWrapper1 = new EntityWrapper<>();
+        deliveryEntityWrapper1.in(SDelivery.COLUMN_GUID_PROFILES,choiceProfileGuid);
+        deliveryEntityWrapper1.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.CHECKING);
+        deliveryEntityWrapper1.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
+        if(deliveryService.selectList(deliveryEntityWrapper1).size() > 0){
+            throw new DeveloperException("你本次投放的环境有申请正在核对中，请等一等再申请！");
         }
         deliveryService.insertBatch(deliveryList);
 
@@ -342,12 +351,30 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     }
 
     @Override
-    public List<SDelivery> addToDeliveryList(DeliveryListSuperadditionRequest request) {
+    public List<SDelivery> addToDeliveryList(DeliveryListSuperadditionRequest request) throws SVNException {
 
+        if(request.getDeliveryList().size() == 0){
+            throw new DeveloperException("请选择需要追加的投放代码清单！");
+        }
+
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,request.getGuidWorkitem());
+        List<SBranchMapping> branchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(branchMappings.size() == 0){
+            throw new DeveloperException("此工作项没有分支信息，可能已取消关联！");
+        }
+
+        //查询所有工程
+        Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
+                collect(Collectors.toMap(SProject::getProjectName, p -> p));
+        //追加投放申请代码清单
         List<SDeliveryList> deliveryLists = new ArrayList<>();
         for (Integer guidDelivery:request.getGuidDelivery()){
             for (SDeliveryList deliveryList:request.getDeliveryList()){
                 deliveryList.setGuidDelivery(guidDelivery);
+                deliveryList.setDeployWhere(DeliveryProjectDetail.generateDeployWhereString(
+                        deliveryList.getPatchType(), projectMap.get(deliveryList.getPartOfProject()).getDeployConfig()));
                 deliveryLists.add(deliveryList);
             }
         }
@@ -357,6 +384,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         deliveryEntityWrapper.in(SDelivery.COLUMN_GUID,request.getGuidDelivery());
         List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
 
+        branchService.recordBranchTempRevision(branchMappings.get(0).getGuidBranch());
         return deliverys;
     }
 
