@@ -39,6 +39,17 @@ public class ShiroController {
     }
 
     /**
+     * 退出登录
+     * @return
+     */
+    @PostMapping("/logout")
+    public ResultVO logout() {
+        Subject subject = SecurityUtils.getSubject();
+        subject.logout();
+        return ResultVO.success("退出登录成功！");
+    }
+
+    /**
      * 未登录，shiro应重定向到登录界面，此处返回未登录状态信息由前端控制跳转页面
      * @return
      */
