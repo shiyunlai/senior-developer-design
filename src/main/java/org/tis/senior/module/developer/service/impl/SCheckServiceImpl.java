@@ -632,6 +632,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
                 new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, profiles.getGuid());
+        deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.MERGED);
         deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, packTiming.getValue());
         deliveryService.update(updateDelivery, deliveryWrapper);
     }
