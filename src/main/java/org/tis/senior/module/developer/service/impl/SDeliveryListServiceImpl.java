@@ -130,7 +130,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                     for (Object object : jsonArray) {
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
                         String exportType = jsonObject.getString("exportType");
-                        String deployWhere = jsonObject.getString("deployWhere");
+                        String deployWhere = jsonObject.getString("deployType");
                         if (exportType.equals("ecd")) {
                             if (ecdSet.size() > 0) {
                                 for (String ecd : ecdSet) {
