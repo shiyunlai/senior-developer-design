@@ -52,7 +52,7 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      * 追加投放申请
      * @param request
      */
-    List<SDelivery> addToDeliveryList(DeliveryListSuperadditionRequest request);
+    List<SDelivery> addToDeliveryList(DeliveryListSuperadditionRequest request) throws SVNException;
 
     /**
      * 填充对象
