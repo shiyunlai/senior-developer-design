@@ -22,7 +22,6 @@ import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISCheckService;
 import org.tis.senior.module.developer.service.ISDeliveryListService;
-import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
 import javax.servlet.http.HttpServletResponse;
@@ -157,7 +156,7 @@ public class SCheckController extends BaseController<SCheck>  {
                 if("ecd".equals(sdl.getPatchType())){
                     row.createCell(4).setCellValue(sdl.getFullPath());
                 }else {
-                    row.createCell(4).setCellValue(DeveloperUtils.getFilePath(sdl.getFullPath()));
+                    row.createCell(4).setCellValue(sdl.getFullPath().substring(sdl.getFullPath().indexOf(sdl.getPartOfProject())));
                 }
                 row.createCell(5).setCellValue("all");
                 row.createCell(6).setCellValue("all");

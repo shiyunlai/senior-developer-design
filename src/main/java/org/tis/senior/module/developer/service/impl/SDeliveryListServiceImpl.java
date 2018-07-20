@@ -58,6 +58,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     @Autowired
     private ISProfilesService profilesService;
 
+    @Autowired
+    private ISWorkitemService workitemService;
+
     @Override
     public List<DeliveryProjectDetail> assembleDelivery(String branchGuid){
 
@@ -83,7 +86,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         Set<String> ecdSet = new HashSet<>();
         if (commitMap.get("dir") != null) {
             commitMap.get("dir").forEach(f -> {
-                String projectName = DeveloperUtils.getProjectName(f.getPath());
+                String projectName = DeveloperUtils.getProjectName(f.getPath(),branch.getFullPath());
                 if (StringUtils.isNotBlank(projectName)) {
                     SProject project = projectMap.get(projectName);
                     if (project == null) {
@@ -94,13 +97,13 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
                         String exportType = jsonObject.getString("exportType");
                         if ("ecd".equals(exportType)) {
-                            String eoe = DeveloperUtils.getModule(f.getPath());
-                            if (StringUtils.isNoneBlank(eoe) && f.getType().equals(CommitType.ADDED)) {
+                            String module = DeveloperUtils.getModule(f.getPath(), branch.getFullPath());
+                            if (StringUtils.isNoneBlank(module) && f.getType().equals(CommitType.ADDED)) {
 
                                 String path = f.getPath();
                                 String subPath = path.substring(0, path.indexOf(path) + path.length());
                                 if (subPath.equals(f.getPath())) {
-                                    ecdSet.add(projectName+"/"+eoe);
+                                    ecdSet.add(projectName+"/"+module);
                                 }
                             }
                         }
@@ -116,7 +119,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 sdl.setFromType(DeliveryListFromType.BRANCH);
                 String programName = DeveloperUtils.getProgramName(svnFile.getPath());
                 sdl.setProgramName(programName);
-                String projectName = DeveloperUtils.getProjectName(svnFile.getPath());
+                String projectName = DeveloperUtils.getProjectName(svnFile.getPath(),branch.getFullPath());
                 SProject sProject = projectMap.get(projectName);
                 if (sProject == null) {
                     throw new DeveloperException("基础参数中没有"+ projectName +"+此工程，如要整理清单，请在工程参数中添加此工程！");
@@ -306,7 +309,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         return deliveryList;
     }
 
-    @Override
+    /*@Override
     public List<SDeliveryList> selectDeliveryListOutPutExcel(Integer guidWorkitem, Integer guidProfiles) {
 
         EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
@@ -331,15 +334,26 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             throw new DeveloperException("此投放申请没有要导出的代码清单！");
         }
         return disposeExportExcel(sdlList);
-    }
+    }*/
 
     @Override
     public List<SDeliveryList> selectDeliveryListExcel(Integer guidDelivery) {
-
         SDelivery delivery = deliveryService.selectById(guidDelivery);
         if(delivery == null){
             throw new DeveloperException("没有找到对应的投放申请！");
         }
+        SWorkitem workitem = workitemService.selectById(delivery.getGuidWorkitem());
+        if(workitem == null){
+            throw new DeveloperException("没有找到对应的工作项信息！");
+        }
+
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,workitem.getGuid());
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
+        List<SBranchMapping> branchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+
+        SBranch branch = branchService.selectById(branchMappings.get(0).getGuidBranch());
+
         EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
         deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY, delivery.getGuid());
         List<SDeliveryList> sdlList = selectList(deliveryListEntityWrapper);
@@ -347,7 +361,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         if(sdlList.size() == 0){
             throw new DeveloperException("此投放申请没有要导出的代码清单！");
         }
-        return disposeExportExcel(sdlList);
+        return disposeExportExcel(sdlList, branch.getFullPath());
     }
 
     @Override
@@ -388,7 +402,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         return deliverys;
     }
 
-    @Override
+    /*@Override
     public void fillDeliveryList(String path, SDeliveryList deliveryList) {
         Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
                 collect(Collectors.toMap(SProject::getProjectName, p -> p));
@@ -415,15 +429,15 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         deliveryList.setPatchType(exportType);
         deliveryList.setDeployWhere(deployType);
 
-    }
+    }*/
 
-    private List<SDeliveryList> disposeExportExcel(List<SDeliveryList> sdlList){
+    private List<SDeliveryList> disposeExportExcel(List<SDeliveryList> sdlList, String branchPath){
         List<SDeliveryList> deliveryLists = new ArrayList<>();
 
         sdlList.stream().collect(Collectors.groupingBy(SDeliveryList::getPatchType)).forEach((p, list) -> {
             if (p.equals(PatchType.ECD.getValue())) {
                 list.stream().collect(Collectors.groupingBy(SDeliveryList::getPartOfProject,
-                        Collectors.groupingBy(dl -> DeveloperUtils.getModule(dl.getFullPath()))))
+                        Collectors.groupingBy(dl -> DeveloperUtils.getModule(dl.getFullPath(), branchPath))))
                         .forEach((pj, m) -> m.forEach((module, l) -> {
                             // 导出ecd 的同工程清单
                             JSONObject jsonObject = JSONObject.parseObject(l.get(0).getDeployWhere());
@@ -434,7 +448,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                                 sdl.setPatchType(l.get(0).getPatchType());
                                 sdl.setDeployWhere(deployWhere);
                                 sdl.setPartOfProject(pj);
-                                sdl.setFullPath(DeveloperUtils.getEcdPath(l.get(0).getFullPath()));
+                                sdl.setFullPath(DeveloperUtils.getEcdPath(l.get(0).getFullPath(), branchPath));
                                 deliveryLists.add(sdl);
                             }
                         }));
@@ -450,7 +464,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                             sdl.setPatchType(patchType);
                             sdl.setDeployWhere(dw);
                             sdl.setPartOfProject(sd.getPartOfProject());
-                            sdl.setFullPath(DeveloperUtils.getFilePath(sd.getFullPath()));
+                            sdl.setFullPath(DeveloperUtils.getFilePath(sd.getFullPath(),branchPath));
                             deliveryLists.add(sdl);
                         }
                     }

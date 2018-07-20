@@ -35,7 +35,4 @@ public class SvnFile {
         return DeveloperUtils.getProgramName(this.path);
     }
 
-    public String getProjectName() {
-        return DeveloperUtils.getProjectName(this.path);
-    }
 }
