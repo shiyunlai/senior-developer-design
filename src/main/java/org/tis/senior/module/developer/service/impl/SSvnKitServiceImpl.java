@@ -113,7 +113,8 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
         List<SvnFile> list = new ArrayList<>();
         SVNRepository repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(url));
         repository.setAuthenticationManager(this.svnAuthenticationManager);
-        long branchLatestRevision = repository.getLatestRevision();
+        // 分支最新版本
+        long branchLatestRevision = getLastRevision(url);
         if (branchLatestRevision <= Long.valueOf(startRevision)) {
             return list;
         }
@@ -124,8 +125,8 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
                 SVNRepository svnRepository = SVNRepositoryFactory.create(entry.getURL());
                 svnRepository.setAuthenticationManager(this.svnAuthenticationManager);
                 // 如果当前工程最后变动版本小于此次查询的起始版本，说明没有任何变动
-                if (svnRepository.getLatestRevision() <= Long.valueOf(startRevision)) {
-                    break;
+                if (entry.getRevision() <= Long.valueOf(startRevision)) {
+                    continue;
                 }
                 // 获取当前工程第一次提交版本
                 AtomicLong firstRevision = new AtomicLong(0L);
@@ -137,7 +138,7 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
                     svnRepository.log(new String[] {""}, Long.valueOf(startRevision), branchLatestRevision,
                             false, true, 1, false, null, logEntry ->
                                 list.addAll(doBranchDiffStatus(entry.getURL(),
-                                        Long.toString(logEntry.getRevision()), null)));
+                                        startRevision, null)));
                 } else {
                     svnRepository.log(new String[]{""}, Long.valueOf(startRevision), branchLatestRevision,
                             true, true, 1, false, null, logEntry -> {
