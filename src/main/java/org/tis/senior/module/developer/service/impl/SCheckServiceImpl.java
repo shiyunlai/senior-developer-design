@@ -62,9 +62,9 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
     private ISStandardListService standardListService;
 
     @Override
-    public CheckResultDetail check(String profileId, PackTime packTiming, String userId) throws SVNException {
+    public CheckResultDetail check(String profileId, String packTiming, String userId) throws SVNException {
         // 验证环境
-        SProfiles profiles = validateProfiles(profileId, packTiming);
+        SProfiles profiles = profilesService.validateProfiles(profileId, packTiming);
         // 验证当前日期-环境-窗口是否有核对记录未处理
         List<SCheck> sChecks = validateCanCheck(profiles, packTiming);
         // 验证是否有未合并投放，
@@ -82,7 +82,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         SCheck check = new SCheck();
         check.setCheckAlias(profiles.getProfilesName()
                 + "|" + new SimpleDateFormat("yyyyMMdd").format(new Date())
-                + "|" + packTiming.getValue()
+                + "|" + packTiming
                 + "|第" + (sChecks.size() + 1) + "次核对");
         check.setCheckDate(new Date());
         check.setCheckUser(userId);
@@ -183,7 +183,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
                 new SimpleDateFormat("yyyy-MM-dd").format(check.getCheckDate()))
                 .eq(SDelivery.COLUMN_GUID_PROFILES, check.getGuidProfiles())
-                .eq(SDelivery.COLUMN_PACK_TIMING, check.getPackTiming().getValue());
+                .eq(SDelivery.COLUMN_PACK_TIMING, check.getPackTiming());
         List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
 
         //对有问题的清单按类型分类
@@ -287,10 +287,10 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
     }
 
     @Override
-    public List<CheckMergeDetail> getMergeList(String profileId, PackTime packTiming) {
+    public List<CheckMergeDetail> getMergeList(String profileId, String packTiming) {
         List<CheckMergeDetail> result = new ArrayList<>();
         // 验证环境-窗口
-        SProfiles profiles = validateProfiles(profileId, packTiming);
+        SProfiles profiles = profilesService.validateProfiles(profileId, packTiming);
         // 验证当前日期-环境-窗口是否有核对记录未处理
         validateCanCheck(profiles, packTiming);
         // 获取所有投产申请
@@ -333,7 +333,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
                 new SimpleDateFormat("yyyy-MM-dd").format(check.getDeliveryTime()));
         deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, check.getGuidProfiles());
-        deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, check.getPackTiming().getValue());
+        deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, check.getPackTiming());
         // 处理投放结果
         if (status.equals(CheckStatus.FAILURE)) {
             // 如果核对作废，所有相关申请状态全部重置为申请中
@@ -557,23 +557,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         return workitemService.selectList(wrapper).stream().collect(Collectors.toMap(SWorkitem::getGuid, w -> w));
     }
 
-    /**
-     * 验证环境及窗口是否错误，返回环境信息
-     *
-     * @param profileId
-     * @param packTiming
-     * @return
-     */
-    private SProfiles validateProfiles(String profileId, PackTime packTiming) {
-        List<SProfiles> list = profilesService.selectProfilesAll().stream().filter(p ->
-                StringUtils.equals(p.getGuid().toString(), profileId) &&
-                        Arrays.asList(p.getPackTiming().split(",")).contains(packTiming.getValue().toString()))
-                .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(list)) {
-            throw new DeveloperException(profileId + packTiming.getValue() + "对应的环境或打包窗口不存在!");
-        }
-        return list.get(0);
-    }
+
 
     /**
      * 验证当前环境及窗口能否核对，返回所有核对记录
@@ -582,22 +566,22 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
      * @param packTiming
      * @return
      */
-    private List<SCheck> validateCanCheck(SProfiles profiles, PackTime packTiming) {
+    private List<SCheck> validateCanCheck(SProfiles profiles, String packTiming) {
         EntityWrapper<SCheck> wrapper = new EntityWrapper<>();
         wrapper.eq("DATE_FORMAT(" + SCheck.COLUMN_CHECK_DATE + ", '%Y-%m-%d')",
                 new SimpleDateFormat("yyyy-MM-dd").format(new Date()))
                 .eq(SCheck.COLUMN_GUID_PROFILES, profiles.getGuid())
-                .eq(SCheck.COLUMN_PACK_TIMING, packTiming.getValue())
+                .eq(SCheck.COLUMN_PACK_TIMING, packTiming)
                 .orderBy(SCheck.COLUMN_GUID, false);
         List<SCheck> sChecks = this.baseMapper.selectList(wrapper);
         if (sChecks.size() > 0) {
             SCheck lastCheck = sChecks.get(0);
             if (lastCheck.getCheckStatus().equals(CheckStatus.SUCCESS)) {
                 throw new DeveloperException("今天环境" + profiles.getProfilesName() + "的打包窗口"
-                        + packTiming.getValue() + "已经核对成功，无需再次核对！");
+                        + packTiming + "已经核对成功，无需再次核对！");
             } else if (lastCheck.getCheckStatus().equals(CheckStatus.WAIT)) {
                 throw new DeveloperException("今天环境" + profiles.getProfilesName() + "的打包窗口"
-                        + packTiming.getValue() + "已经有一次核对记录尚未完成！");
+                        + packTiming + "已经有一次核对记录尚未完成！");
             }
         }
         return sChecks;
@@ -610,25 +594,25 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
      * @param packTiming 打包窗口
      * @return
      */
-    private List<SDelivery> getProfileDeliveryListInApplyOrMerged(SProfiles profiles, PackTime packTiming) {
+    private List<SDelivery> getProfileDeliveryListInApplyOrMerged(SProfiles profiles, String packTiming) {
         EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
         deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
                 new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, profiles.getGuid());
-        deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, packTiming.getValue());
+        deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, packTiming);
         List<String> results = new ArrayList<>();
         results.add(DeliveryResult.APPLYING.getValue().toString());
         results.add(DeliveryResult.MERGED.getValue().toString());
         deliveryWrapper.in(SDelivery.COLUMN_DELIVERY_RESULT, results);
         List<SDelivery> deliveryList = deliveryService.selectList(deliveryWrapper);
         if (CollectionUtils.isEmpty(deliveryList)) {
-            throw new DeveloperException("当天环境" + profiles.getProfilesName() + "的打包窗口" + packTiming.getValue() +
+            throw new DeveloperException("当天环境" + profiles.getProfilesName() + "的打包窗口" + packTiming +
                     "没有投产申请记录!");
         }
         return deliveryList;
     }
 
-    private void updateDeliveryResult(SProfiles profiles, PackTime packTiming, DeliveryResult deliveryResult) {
+    private void updateDeliveryResult(SProfiles profiles, String packTiming, DeliveryResult deliveryResult) {
         SDelivery updateDelivery = new SDelivery();
         updateDelivery.setDeliveryResult(deliveryResult);
         EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
@@ -636,7 +620,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
                 new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, profiles.getGuid());
         deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.MERGED);
-        deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, packTiming.getValue());
+        deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING, packTiming);
         deliveryService.update(updateDelivery, deliveryWrapper);
     }
 

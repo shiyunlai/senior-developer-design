@@ -10,7 +10,6 @@ import org.tis.senior.module.core.entity.cascade.CommonCascadeSerializer;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.DeliveryResult;
 import org.tis.senior.module.developer.entity.enums.DeliveryType;
-import org.tis.senior.module.developer.entity.enums.PackTime;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -222,8 +221,7 @@ public class SDelivery implements Serializable {
      * 打包窗口:本环境对应的打包窗口时间，用业务字典来实现
      * 如：SIT_PACK_TIMING，其中字典值为，09:00、12:30、16:00
      */
-    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
-    private PackTime packTiming;
+    private String packTiming;
 
     /**
      * 投放时间
