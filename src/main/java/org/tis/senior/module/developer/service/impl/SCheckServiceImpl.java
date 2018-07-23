@@ -109,8 +109,8 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
             throw new DeveloperException("环境" + profiles.getProfilesName() + "关联分支不存在！");
         }
         // 获取环境分支下的代码
-        List<SvnFile> svnFiles = svnKitService.getDiffStatus(sBranch.getFullPath(),
-                sBranch.getCurrVersion().toString(), false);
+        List<SvnFile> svnFiles = svnKitService.getBranchDiffStatus(sBranch.getFullPath(),
+                sBranch.getCurrVersion().toString());
         if (svnFiles.size() < 1) {
             throw new DeveloperException("环境" + profiles.getProfilesName() + "对应分支：" + sBranch.getFullPath() + "从版本\"" +
                     sBranch.getCurrVersion() + "\"开始没有文件变动！");
