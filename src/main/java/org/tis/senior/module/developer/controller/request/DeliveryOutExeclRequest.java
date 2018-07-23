@@ -1,7 +1,6 @@
 package org.tis.senior.module.developer.controller.request;
 
 import lombok.Data;
-import org.tis.senior.module.developer.entity.enums.PackTime;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -15,7 +14,7 @@ public class DeliveryOutExeclRequest {
     private Date deliveryTime;
 
     @Pattern(regexp = "^(20|21|22|23|[0-1]\\d):[0-5]\\d$", message = "打包窗口不能为空或格式错误")
-    private PackTime packTiming;
+    private String packTiming;
 
     @NotNull(message = "运行环境guid不能为空")
     private Integer guidProfile;
