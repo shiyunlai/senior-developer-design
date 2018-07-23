@@ -11,6 +11,7 @@ import org.tis.senior.module.developer.controller.request.DeliveryOutExeclReques
 import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
+import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.service.ISDeliveryService;
 import org.tmatesoft.svn.core.SVNException;
 
@@ -51,10 +52,17 @@ public class SDeliveryController extends BaseController<SDelivery>  {
         }
         return ResultVO.success("查询成功", sDelivery);
     }
-    
+
+    /**
+     * 查询登录用户的所有投放申请
+     * @param page
+     * @return
+     */
     @PostMapping("/list")
     public ResultVO list(@RequestBody @Validated SmartPage<SDelivery> page) {
-        return  ResultVO.success("查询成功", sDeliveryService.selectPage(getPage(page), getCondition(page)));
+
+        SSvnAccount svnAccount = getUser();
+        return  ResultVO.success("查询成功", sDeliveryService.getDeliveryAll(getPage(page),getCondition(page),svnAccount.getUserId()));
     }
 
     /**
