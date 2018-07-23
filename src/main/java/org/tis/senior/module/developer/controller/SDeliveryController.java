@@ -12,6 +12,7 @@ import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.SSvnAccount;
+import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISDeliveryService;
 import org.tmatesoft.svn.core.SVNException;
 
@@ -62,6 +63,9 @@ public class SDeliveryController extends BaseController<SDelivery>  {
     public ResultVO list(@RequestBody @Validated SmartPage<SDelivery> page) {
 
         SSvnAccount svnAccount = getUser();
+        if(svnAccount == null){
+            throw new DeveloperException("尚未登录，请登录后再试！");
+        }
         return  ResultVO.success("查询成功", sDeliveryService.getDeliveryAll(getPage(page),getCondition(page),svnAccount.getUserId()));
     }
 
