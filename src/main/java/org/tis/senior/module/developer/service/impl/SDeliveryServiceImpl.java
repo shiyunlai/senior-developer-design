@@ -1,6 +1,7 @@
 package org.tis.senior.module.developer.service.impl;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.plugins.Page;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,12 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     private ISDeliveryListService deliveryListService;
     @Autowired
     private ISProjectService projectService;
+
+    @Override
+    public Page<SDelivery> getDeliveryAll(Page<SDelivery> page, EntityWrapper<SDelivery> wrapper, String userId) {
+        wrapper.like(SDelivery.COLUMN_PROPOSER, userId);
+        return page.setRecords(this.baseMapper.selectPage(page, wrapper));
+    }
 
     @Override
     public DeliveryDetail getMergeInfo(MergeDeliveryRequest mergeDelivery, String userId) {

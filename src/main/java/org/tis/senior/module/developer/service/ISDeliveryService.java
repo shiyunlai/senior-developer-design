@@ -1,5 +1,7 @@
 package org.tis.senior.module.developer.service;
 
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.plugins.Page;
 import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
 import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
@@ -19,6 +21,10 @@ import java.util.List;
  * @date 2018/06/20
  */
 public interface ISDeliveryService extends IService<SDelivery>  {
+
+
+    Page<SDelivery> getDeliveryAll(Page<SDelivery> page,
+                                   EntityWrapper<SDelivery> wrapper,String userId);
 
     /**
      * 获取合并投放信息
