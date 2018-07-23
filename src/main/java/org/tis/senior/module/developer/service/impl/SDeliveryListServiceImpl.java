@@ -281,7 +281,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                     List<SDelivery> sDeliveries1 = deliveryList.stream().filter(sDelivery -> choiceProfileGuid.contains(
                             sDelivery.getGuidProfiles())).collect(Collectors.toList());
                     //组装并新增标准清单内容
-                    List<SDeliveryList> sd = new ArrayList<>();
                     for(SDelivery delivery:sDeliveries1){
                         for(SStandardList sStandard:sStandardLists){
                             SDeliveryList sdl = new SDeliveryList();
@@ -289,10 +288,10 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                             sdl.setGuidDelivery(delivery.getGuid());
                             sdl.setGuid(null);
                             sdl.setFromType(DeliveryListFromType.STANDARD);
-                            sd.add(sdl);
+                            standardlList.add(sdl);
                         }
                     }
-                    insertBatch(sd);
+                    insertBatch(standardlList);
                 }
             }
         }
