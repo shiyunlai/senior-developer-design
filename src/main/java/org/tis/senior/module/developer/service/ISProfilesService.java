@@ -41,7 +41,7 @@ public interface ISProfilesService extends IService<SProfiles>  {
     void deleteProfileAndBranchMapping(Integer profileGuid);
 
     /**
-     * 修改运行环境状态为不允许投放
+     * 修改运行环境状态
      * @param profileGuid
      */
     void updateProfileStatus(Integer profileGuid, IsAllowDelivery isAllowDelivery);

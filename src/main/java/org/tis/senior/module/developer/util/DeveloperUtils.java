@@ -194,12 +194,4 @@ public class DeveloperUtils {
         }
         return result.toString();
     }
-
-    public static void main(String[] args) {
-        String str = "svn://47.96.147.236/svn/repos/tip/development/branches/Feature/Feature20180626_test1";
-
-        String s = "svn://47.96.147.236/svn/repos/tip/development/branches/Feature/Feature20180626_test1/bos.tis.tws.version.tools/新.txt";
-
-        System.out.println(s.substring(str.length()+1));
-    }
 }
