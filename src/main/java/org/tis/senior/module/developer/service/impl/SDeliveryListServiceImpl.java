@@ -189,15 +189,12 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         if(sDeliveries.size() > 0){
             throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
         }
-
         //保存本次投放的打包窗口及投放环境的guid
-        List<String> packTime = new ArrayList<>();
+        List<String> packTime = request.getDliveryAddRequest().getProfiles().stream().map(
+                DeliveryProfileRequest::getPackTiming).collect(Collectors.toList());
         //创建已选择的环境的投放申请中的运行环境guid集合
-        List<Integer> choiceProfileGuid = new ArrayList<>();
-        for (DeliveryProfileRequest profile:request.getDliveryAddRequest().getProfiles()){
-            packTime.add(profile.getPackTiming().toString());
-            choiceProfileGuid.add(profile.getGuidProfiles());
-        }
+        List<Integer> choiceProfileGuid = request.getDliveryAddRequest().getProfiles().stream().map(
+                DeliveryProfileRequest::getGuidProfiles).collect(Collectors.toList());
         //获取投放日期以及具体打包窗口是否已经完成投放
         EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
         deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
@@ -244,7 +241,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             delivery.setDeliveryResult(DeliveryResult.APPLYING);
             deliveryList.add(delivery);
         }
-        //获取这个投放申请的运行是否有正在核对中
+        //获取这个投放申请的运行环境是否有正在核对中
         EntityWrapper<SDelivery> deliveryEntityWrapper1 = new EntityWrapper<>();
         deliveryEntityWrapper1.in(SDelivery.COLUMN_GUID_PROFILES,choiceProfileGuid);
         deliveryEntityWrapper1.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.CHECKING);
@@ -269,10 +266,8 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             choiceProfileGuid.removeAll(achieveProfileGuid);
             if(choiceProfileGuid.size() > 0){
                 //保存新投放代码清单的代码全路径
-                List<String> fullPathList = new ArrayList<>();
-                for (SDeliveryList dl:request.getDeliveryList()){
-                    fullPathList.add(dl.getFullPath());
-                }
+                List<String> fullPathList = request.getDeliveryList().stream().map(
+                        SDeliveryList::getFullPath).collect(Collectors.toList());
                 //获取工作项的标准清单记录
                 EntityWrapper<SStandardList> standardListEntityWrapper = new EntityWrapper<>();
                 standardListEntityWrapper.eq(SStandardList.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
@@ -282,18 +277,22 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 }
                 List<SStandardList> sStandardLists = standardListService.selectList(standardListEntityWrapper);
                 if(sStandardLists.size() > 0){
+                    //此次的投放申请选择的环境过滤掉已成功投放的环境后的投放申请集合
+                    List<SDelivery> sDeliveries1 = deliveryList.stream().filter(sDelivery -> choiceProfileGuid.contains(
+                            sDelivery.getGuidProfiles())).collect(Collectors.toList());
                     //组装并新增标准清单内容
-                    for(Integer guid:choiceProfileGuid){
+                    List<SDeliveryList> sd = new ArrayList<>();
+                    for(SDelivery delivery:sDeliveries1){
                         for(SStandardList sStandard:sStandardLists){
                             SDeliveryList sdl = new SDeliveryList();
                             BeanUtils.copyProperties(sStandard,sdl);
-                            sdl.setGuidDelivery(guid);
+                            sdl.setGuidDelivery(delivery.getGuid());
                             sdl.setGuid(null);
                             sdl.setFromType(DeliveryListFromType.STANDARD);
-                            standardlList.add(sdl);
+                            sd.add(sdl);
                         }
                     }
-                    insertBatch(standardlList);
+                    insertBatch(sd);
                 }
             }
         }
