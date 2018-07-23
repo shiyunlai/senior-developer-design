@@ -88,5 +88,13 @@ public interface ISProfilesService extends IService<SProfiles>  {
      */
     Page<ProfileBranchDetail> profileFullPathDetail(Page<ProfileBranchDetail> page,
                                                      EntityWrapper<ProfileBranchDetail> wrapper);
+
+    /**
+     * 校验环境,正确返回环境信息
+     * @param profileId 环境ID
+     * @param packTiming 打包窗口
+     * @return
+     */
+    SProfiles validateProfiles(String profileId, String packTiming);
 }
 

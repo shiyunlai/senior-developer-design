@@ -7,7 +7,6 @@ import lombok.Data;
 import org.tis.senior.module.core.entity.cascade.CommonCascadeSerializer;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.CheckStatus;
-import org.tis.senior.module.developer.entity.enums.PackTime;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -137,8 +136,7 @@ public class SCheck implements Serializable {
     /**
      * 打包窗口
      */
-    @JSONField(deserializeUsing = CommonEnumDeserializer.class)
-    private PackTime packTiming;
+    private String packTiming;
 
     /**
      * 核对时间

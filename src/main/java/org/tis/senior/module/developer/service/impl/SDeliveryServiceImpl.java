@@ -101,7 +101,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
             sDelivery.setMergeList(mergeDelivery.getMergeList().stream().reduce("", (r, s) -> r + "," + s));
             String appAlias = deliveryList.stream()
                     .map(SDelivery::getApplyAlias).reduce("合并投放:", (r, s) -> r + s + "，");
-            sDelivery.setApplyAlias(appAlias.substring(0, appAlias.length() -1));
+            sDelivery.setApplyAlias(appAlias.substring(0, appAlias.length() - 1));
             sDelivery.setApplyTime(new Date());
             sDelivery.setProposer(userId);
             sDelivery.setDeliveryResult(DeliveryResult.APPLYING);
@@ -159,10 +159,10 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         SDelivery delivery = selectById(guidDelivery);
 
         EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
-        deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY,delivery.getGuid());
+        deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY, delivery.getGuid());
         List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListEntityWrapper);
         Set<String> str = new HashSet<>();
-        for (SDeliveryList deliveryList:deliveryLists){
+        for (SDeliveryList deliveryList : deliveryLists) {
             str.add(deliveryList.getPartOfProject());
         }
         projectNameList.addAll(str);
@@ -173,15 +173,15 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     public void whetherPutDelivery(IsPutDeliveryRequest request) {
 
         String deliveryTime = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(request.getDeliveryTime());
-        for (DeliveryProfileRequest deliveryProfileRequest:request.getProfiles()){
+        for (DeliveryProfileRequest deliveryProfileRequest : request.getProfiles()) {
             EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
-            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
-            deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_TIME,deliveryTime);
-            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,deliveryProfileRequest.getGuidProfiles());
-            deliveryEntityWrapper.eq(SDelivery.COLUMN_PACK_TIMING,deliveryProfileRequest.getPackTiming());
-            deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM, request.getGuidWorkitem());
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_TIME, deliveryTime);
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, deliveryProfileRequest.getGuidProfiles());
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_PACK_TIMING, deliveryProfileRequest.getPackTiming());
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.APPLYING);
             List<SDelivery> deliveryList = selectList(deliveryEntityWrapper);
-            if(deliveryList.size() > 0){
+            if (deliveryList.size() > 0) {
                 throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
             }
         }
@@ -190,10 +190,10 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     @Override
     public List<SDelivery> selectAddToDelivery(Integer workitemGuid) {
         EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
-        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,workitemGuid);
-        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM, workitemGuid);
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.APPLYING);
         List<SDelivery> deliveryList = selectList(deliveryEntityWrapper);
-        if(deliveryList == null){
+        if (deliveryList == null) {
             throw new DeveloperException("没有对应的投放申请可以追加！");
         }
         return deliveryList;
@@ -203,39 +203,39 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     public void deleteDeliveryAndDeliveryList(Integer guidDelivery) throws SVNException {
 
         SDelivery delivery = selectById(guidDelivery);
-        if(delivery == null){
+        if (delivery == null) {
             throw new DeveloperException("没有找到对应的投放申请！");
         }
 
-        if(delivery.getDeliveryResult().equals(DeliveryResult.DELIVERED)){
+        if (delivery.getDeliveryResult().equals(DeliveryResult.DELIVERED)) {
             throw new DeveloperException("此投放申请已成功投放，不允许删除！");
         }
 
         EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
-        deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY,delivery.getGuid());
+        deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY, delivery.getGuid());
         List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListEntityWrapper);
 
         EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
-        deliveryEntityWrapper.ne(SDelivery.COLUMN_GUID,delivery.getGuid());
-        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,delivery.getGuidWorkitem());
-        deliveryEntityWrapper.in(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.unfinished());
+        deliveryEntityWrapper.ne(SDelivery.COLUMN_GUID, delivery.getGuid());
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM, delivery.getGuidWorkitem());
+        deliveryEntityWrapper.in(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.unfinished());
         List<SDelivery> deliveryList = selectList(deliveryEntityWrapper);
 
-        if(deliveryList.size() < 1){
-            SWorkitem workitem  = workitemService.selectById(delivery.getGuidWorkitem());
+        if (deliveryList.size() < 1) {
+            SWorkitem workitem = workitemService.selectById(delivery.getGuidWorkitem());
 
             EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
-            branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,workitem.getGuid());
-            branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
+            branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS, workitem.getGuid());
+            branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT, BranchForWhat.WORKITEM);
             List<SBranchMapping> branchMapping = branchMappingService.selectList(branchMappingEntityWrapper);
 
-            if(branchMapping.size() > 0){
+            if (branchMapping.size() > 0) {
                 branchService.revertBranchRevision(branchMapping.get(0).getGuidBranch());
 
             }
 
         }
-        if(deliveryLists.size() > 0){
+        if (deliveryLists.size() > 0) {
             deliveryListService.deleteBatchIds(deliveryLists.stream().map(SDeliveryList::getGuid).collect(Collectors.toList()));
         }
         deleteById(delivery.getGuid());
@@ -246,24 +246,24 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     public List<DeliveryProjectDetail> selectDeliveryListByGuidDelivery(Integer guidDelivery) {
 
         EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
-        deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY,guidDelivery);
+        deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY, guidDelivery);
         List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListEntityWrapper);
 
-        return DeliveryProjectDetail.getDeliveryDetail(deliveryLists,projectService.selectProjectAll());
+        return DeliveryProjectDetail.getDeliveryDetail(deliveryLists, projectService.selectProjectAll());
     }
 
     @Override
     public List<SDelivery> selectDeliveryOutExecl(DeliveryOutExeclRequest request) {
 
         EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
-        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,request.getGuidProfile());
-        deliveryEntityWrapper.eq(SDelivery.COLUMN_PACK_TIMING,request.getPackTiming());
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, request.getGuidProfile());
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_PACK_TIMING, request.getPackTiming());
         deliveryEntityWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
                 new SimpleDateFormat("yyyy-MM-dd").format(request.getDeliveryTime()));
-        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.DELIVERED);
         List<SDelivery> deliveries = selectList(deliveryEntityWrapper);
 
-        if(deliveries.size() == 0){
+        if (deliveries.size() == 0) {
             throw new DeveloperException("没有找到对应的投放申请！");
         }
         return deliveries;

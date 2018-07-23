@@ -225,6 +225,15 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         return page.setRecords(this.baseMapper.selectProfileDetail(page,wrapper));
     }
 
+    @Override
+    public SProfiles validateProfiles(String profileId, String packTiming) {
+        SProfiles profiles = this.baseMapper.selectById(profileId);
+        if (profiles == null || !profiles.getPackTiming().contains(packTiming)) {
+            throw new DeveloperException(profileId + "对应的环境或打包窗口" + packTiming + "不存在!");
+        }
+        return profiles;
+    }
+
 
 }
 

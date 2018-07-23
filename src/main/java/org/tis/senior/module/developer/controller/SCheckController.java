@@ -16,7 +16,6 @@ import org.tis.senior.module.developer.entity.SCheck;
 import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.enums.CheckStatus;
-import org.tis.senior.module.developer.entity.enums.PackTime;
 import org.tis.senior.module.developer.entity.vo.CheckMergeDetail;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
@@ -25,8 +24,7 @@ import org.tis.senior.module.developer.service.ISDeliveryListService;
 import org.tmatesoft.svn.core.SVNException;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
-import java.io.FileNotFoundException;
+import javax.validation.constraints.Pattern;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -58,8 +56,10 @@ public class SCheckController extends BaseController<SCheck>  {
     @RequiresRoles(value = "rct")
     @PostMapping("/profiles/{profileId}/packTiming/{packTiming}")
     public ResultVO check(@PathVariable @NotBlank(message = "环境ID不能为空") String profileId,
-                        @PathVariable @NotNull(message = "打包窗口不能为空") String packTiming) throws SVNException {
-        CheckResultDetail detail = sCheckService.check(profileId, PackTime.what(packTiming), getUser().getUserId());
+                        @PathVariable
+                        @Pattern(regexp = "^(20|21|22|23|[0-1]\\d):[0-5]\\d$", message = "打包窗口不能为空或格式错误")
+                                String packTiming) throws SVNException {
+        CheckResultDetail detail = sCheckService.check(profileId, packTiming, getUser().getUserId());
         return ResultVO.success(detail);
     }
 
@@ -82,8 +82,10 @@ public class SCheckController extends BaseController<SCheck>  {
     @GetMapping("/profiles/{profileId}/packTiming/{packTiming}")
     @RequiresRoles(value = "rct")
     public ResultVO merge(@PathVariable @NotBlank(message = "环境ID不能为空") String profileId,
-                          @PathVariable @NotNull(message = "打包窗口不能为空") String packTiming) {
-        List<CheckMergeDetail> detail = sCheckService.getMergeList(profileId, PackTime.what(packTiming));
+                          @PathVariable
+                          @Pattern(regexp = "^(20|21|22|23|[0-1]\\d):[0-5]\\d$", message = "打包窗口不能为空或格式错误")
+                                  String packTiming) {
+        List<CheckMergeDetail> detail = sCheckService.getMergeList(profileId, packTiming);
         return ResultVO.success("查询成功", detail);
     }
 
@@ -132,7 +134,7 @@ public class SCheckController extends BaseController<SCheck>  {
      */
     @GetMapping("/delivery/{guidDelivery}/excel")
     public ResultVO deliveryExportExcel(HttpServletResponse response,
-                                        @PathVariable @NotBlank(message = "工作项guid不能为空") Integer guidDelivery) throws FileNotFoundException {
+                                        @PathVariable @NotBlank(message = "工作项guid不能为空") Integer guidDelivery)  {
 
         SSvnAccount user = getUser();
         if(user == null){

@@ -5,7 +5,6 @@ import org.tis.senior.module.developer.entity.SCheck;
 import org.tis.senior.module.developer.entity.enums.CheckStatus;
 import org.tis.senior.module.developer.entity.enums.ConfirmStatus;
 import org.tis.senior.module.developer.entity.enums.DeliveryResult;
-import org.tis.senior.module.developer.entity.enums.PackTime;
 import org.tis.senior.module.developer.entity.vo.CheckMergeDetail;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tmatesoft.svn.core.SVNException;
@@ -26,7 +25,7 @@ public interface ISCheckService extends IService<SCheck>  {
      * @param packTiming 打包窗口
      * @return
      */
-    CheckResultDetail check(String profileId, PackTime packTiming, String userId) throws SVNException;
+    CheckResultDetail check(String profileId, String packTiming, String userId) throws SVNException;
 
     /**
      * 查看核对结果
@@ -64,10 +63,10 @@ public interface ISCheckService extends IService<SCheck>  {
     /**
      * 查看环境及窗口下的申请合并详情
      * @param profileId
-     * @param what
+     * @param packTiming
      * @return
      */
-    List<CheckMergeDetail> getMergeList(String profileId, PackTime what);
+    List<CheckMergeDetail> getMergeList(String profileId, String packTiming);
 
     /**
      * 完成核对
