@@ -122,12 +122,12 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
         for (Object o : entries) {
             SVNDirEntry entry = (SVNDirEntry) o;
             if (entry.getKind() == SVNNodeKind.DIR) {
-                SVNRepository svnRepository = SVNRepositoryFactory.create(entry.getURL());
-                svnRepository.setAuthenticationManager(this.svnAuthenticationManager);
                 // 如果当前工程最后变动版本小于此次查询的起始版本，说明没有任何变动
                 if (entry.getRevision() <= Long.valueOf(startRevision)) {
                     continue;
                 }
+                SVNRepository svnRepository = SVNRepositoryFactory.create(entry.getURL());
+                svnRepository.setAuthenticationManager(this.svnAuthenticationManager);
                 // 获取当前工程第一次提交版本
                 AtomicLong firstRevision = new AtomicLong(0L);
                 svnRepository.log(new String[] {""}, 0, -1, false, true,
@@ -140,7 +140,7 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
                                 list.addAll(doBranchDiffStatus(entry.getURL(),
                                         startRevision, null)));
                 } else {
-                    svnRepository.log(new String[]{""}, Long.valueOf(startRevision), branchLatestRevision,
+                    svnRepository.log(new String[]{""}, firstRevision.get(), branchLatestRevision,
                             true, true, 1, false, null, logEntry -> {
                                 boolean isCopy = false;
                                 if (logEntry.getChangedPaths().size() > 0) {
@@ -156,8 +156,8 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
                                         list.addAll(doBranchDiffStatus(entry.getURL(),
                                                 Long.toString(logEntry.getRevision()), null));
                                     } else {
-                                        list.addAll(doBranchDiffStatus(entry.getURL().removePathTail(),
-                                                Long.toString(logEntry.getRevision() - 1), entry.getURL().getPath()));
+                                        list.addAll(doBranchDiffStatus(entry.getURL(),
+                                                Long.toString(logEntry.getRevision() - 1), null));
                                     }
                                 }
                             });
@@ -176,15 +176,11 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
     }
 
 
-    private SVNInfo getLastRevision(SVNURL url) {
+    private SVNInfo getLastRevision(SVNURL url) throws SVNException {
         DefaultSVNOptions defaultOptions = SVNWCUtil.createDefaultOptions(true);
         SVNWCClient svnwcClient = new SVNWCClient(svnAuthenticationManager, defaultOptions);
-        try {
-            return svnwcClient.doInfo(url, SVNRevision.HEAD, SVNRevision.HEAD);
-        } catch (SVNException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return svnwcClient.doInfo(url, SVNRevision.HEAD, SVNRevision.HEAD);
+
     }
 
     private List<SvnFile> doBranchDiffStatus(SVNURL url, String startRevision, String filter) throws SVNException {
