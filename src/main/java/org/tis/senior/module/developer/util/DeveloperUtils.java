@@ -26,7 +26,9 @@ public class DeveloperUtils {
         }
         String project = path.substring(branchPath.length()+1);
         String[] pathSplit = project.split("/");
-
+        if(pathSplit.length == 0){
+            return null;
+        }
         return pathSplit[0];
     }
 
@@ -62,6 +64,9 @@ public class DeveloperUtils {
         }
         String module = path.substring(branchPath.length()+1);
         String[] pathSplit = module.split("/");
+        if(pathSplit.length < 2){
+            return null;
+        }
 
         return pathSplit[1];
     }
