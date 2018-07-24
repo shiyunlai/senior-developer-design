@@ -399,6 +399,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
 
         EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
         deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY, delivery.getGuid());
+        deliveryListEntityWrapper.ne(SDeliveryList.COLUMN_COMMIT_TYPE, CommitType.DELETED);
         List<SDeliveryList> sdlList = selectList(deliveryListEntityWrapper);
 
         if(sdlList.size() == 0){
@@ -428,7 +429,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         EntityWrapper<SDeliveryList> sDeliveryListEntityWrapper = new EntityWrapper<>();
         sDeliveryListEntityWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, request.getGuidDelivery());
         List<SDeliveryList> deliveryLists = selectList(sDeliveryListEntityWrapper);
-
+        if(deliveryLists.size() == 0){
+            throw new DeveloperException("追加的投放申请正在被处理！");
+        }
         // 接受需要新增或修改的投放清单
         List<SDeliveryList> insertOrUpdate = new ArrayList<>();
         // 接受需要删除的投放清单ID
@@ -439,6 +442,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             for (SDeliveryList deliveryList:request.getDeliveryList()){
                 for(SDeliveryList dl:deliveryLists){
                     if(guidDelivery.equals(dl.getGuidDelivery())){
+                        //判断文件是否是相同的，如果是
                         if(deliveryList.getFullPath().equals(dl.getFullPath())){
                             if(!deliveryList.getCommitType().equals(dl.getCommitType())){
                                 // 原-现—终 (修改类型的变化)
@@ -464,6 +468,8 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                                     insertOrUpdate.add(dl);
                                 } else if (dl.getCommitType().equals(CommitType.ADDED) &&
                                         deliveryList.getCommitType().equals(CommitType.MODIFIED)) {
+                                } else {
+                                    throw new DeveloperException("追加投放发生了预料之外的异常！");
                                 }
                             }
                             continue sd;
@@ -476,7 +482,12 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 insertOrUpdate.add(deliveryList);
             }
         }
-        insertBatch(insertOrUpdate);
+        if(insertOrUpdate.size() > 0){
+            insertOrUpdateBatch(insertOrUpdate);
+        }
+        if(deletes.size() > 0){
+            deleteBatchIds(deletes);
+        }
         branchService.recordBranchTempRevision(branchMappings.get(0).getGuidBranch());
 
         //获取本次追加投放申请的详情
