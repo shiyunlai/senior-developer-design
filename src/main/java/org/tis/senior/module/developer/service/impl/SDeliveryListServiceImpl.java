@@ -127,11 +127,25 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 }
                 sdl.setPartOfProject(sProject.getProjectName());
                 String deployConfig = sProject.getDeployConfig();
-                if(ProjectType.IBS.equals(sProject.getProjectType())) {
+                if(ProjectType.SPECIAL.equals(sProject.getProjectType())){
+                    JSONArray jsonArray = JSONArray.parseArray(deployConfig);
+                    String exportType = "";
+                    for (Object object : jsonArray) {
+                        JSONObject jsonObject = JSONObject.parseObject(object.toString());
+                        if("".equals(exportType)){
+                            exportType = jsonObject.getString("exportType");
+                        }else{
+                            exportType = exportType + "," + jsonObject.getString("exportType");
+                        }
+                    }
+                    sdl.setPatchType(exportType);
+                    sdl.setDeployWhere(DeliveryProjectDetail.generateDeployWhereString(exportType, deployConfig));
+                }else if(ProjectType.IBS.equals(sProject.getProjectType())) {
                     JSONArray jsonArray = JSONArray.parseArray(deployConfig);
                     //here  跳出循环的标记
                     here:
                     for (Object object : jsonArray) {
+                        //解析json字符串获取导出类型和部署到那
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
                         String exportType = jsonObject.getString("exportType");
                         String deployWhere = jsonObject.getString("deployType");
@@ -180,7 +194,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         //查询所有工程
         Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
                 collect(Collectors.toMap(SProject::getProjectName, p -> p));
-
         //判断是否是新投放
         EntityWrapper<SDelivery> deliverysEntityWrapper = new EntityWrapper<>();
         deliverysEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
@@ -400,7 +413,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         if(request.getDeliveryList().size() == 0){
             throw new DeveloperException("请选择需要追加的投放代码清单！");
         }
-
         EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
         branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
         branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS,request.getGuidWorkitem());
@@ -408,27 +420,69 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         if(branchMappings.size() == 0){
             throw new DeveloperException("此工作项没有分支信息，可能已取消关联！");
         }
-
         //查询所有工程
         Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
                 collect(Collectors.toMap(SProject::getProjectName, p -> p));
-        //追加投放申请代码清单
-        List<SDeliveryList> deliveryLists = new ArrayList<>();
+
+        //获取追加申请前的代码清单
+        EntityWrapper<SDeliveryList> sDeliveryListEntityWrapper = new EntityWrapper<>();
+        sDeliveryListEntityWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, request.getGuidDelivery());
+        List<SDeliveryList> deliveryLists = selectList(sDeliveryListEntityWrapper);
+
+        // 接受需要新增或修改的投放清单
+        List<SDeliveryList> insertOrUpdate = new ArrayList<>();
+        // 接受需要删除的投放清单ID
+        List<Integer> deletes = new ArrayList<>();
         for (Integer guidDelivery:request.getGuidDelivery()){
+            //sd  跳出循环的标记
+            sd:
             for (SDeliveryList deliveryList:request.getDeliveryList()){
+                for(SDeliveryList dl:deliveryLists){
+                    if(guidDelivery.equals(dl.getGuidDelivery())){
+                        if(deliveryList.getFullPath().equals(dl.getFullPath())){
+                            if(!deliveryList.getCommitType().equals(dl.getCommitType())){
+                                // 原-现—终 (修改类型的变化)
+                                // D  A  M
+                                // M  A  M 理论上不出现，如果发生抛出异常
+                                // A  D  X 移除
+                                // M  D  D
+                                // A  M  A 不处理
+                                // D  M  M 理论上不出现，如果发生抛出异常// D  A  M
+                                // A  A  A 不处理
+                                // M  M  M 不处理
+                                // D  D  D 不处理
+                                if (dl.getCommitType().equals(CommitType.DELETED) &&
+                                        deliveryList.getCommitType().equals(CommitType.ADDED)) {
+                                    dl.setCommitType(CommitType.MODIFIED);
+                                    insertOrUpdate.add(dl);
+                                }  else if (dl.getCommitType().equals(CommitType.ADDED) &&
+                                        deliveryList.getCommitType().equals(CommitType.DELETED)) {
+                                    deletes.add(dl.getGuid());
+                                } else if (dl.getCommitType().equals(CommitType.MODIFIED) &&
+                                        deliveryList.getCommitType().equals(CommitType.DELETED)) {
+                                    dl.setCommitType(CommitType.DELETED);
+                                    insertOrUpdate.add(dl);
+                                } else if (dl.getCommitType().equals(CommitType.ADDED) &&
+                                        deliveryList.getCommitType().equals(CommitType.MODIFIED)) {
+                                }
+                            }
+                            continue sd;
+                        }
+                    }
+                }
                 deliveryList.setGuidDelivery(guidDelivery);
                 deliveryList.setDeployWhere(DeliveryProjectDetail.generateDeployWhereString(
                         deliveryList.getPatchType(), projectMap.get(deliveryList.getPartOfProject()).getDeployConfig()));
-                deliveryLists.add(deliveryList);
+                insertOrUpdate.add(deliveryList);
             }
         }
-        insertBatch(deliveryLists);
+        insertBatch(insertOrUpdate);
+        branchService.recordBranchTempRevision(branchMappings.get(0).getGuidBranch());
 
+        //获取本次追加投放申请的详情
         EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
         deliveryEntityWrapper.in(SDelivery.COLUMN_GUID,request.getGuidDelivery());
         List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
-
-        branchService.recordBranchTempRevision(branchMappings.get(0).getGuidBranch());
         return deliverys;
     }
 
