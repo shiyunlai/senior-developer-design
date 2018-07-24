@@ -8,7 +8,7 @@ import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
-import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
+import org.tis.senior.module.developer.entity.vo.SDeliveryListDetail;
 import org.tmatesoft.svn.core.SVNException;
 
 import java.text.ParseException;
@@ -79,7 +79,7 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      * @param guidDelivery 投放申请的guid
      * @return
      */
-    List<DeliveryProjectDetail> selectDeliveryListByGuidDelivery(Integer guidDelivery);
+    SDeliveryListDetail selectDeliveryListByGuidDelivery(Integer guidDelivery);
 
     /**
      * 根据投放时间、打包窗口、运行环境获取投放申请
