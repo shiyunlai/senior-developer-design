@@ -124,7 +124,7 @@ public class SCheckServiceImpl extends ServiceImpl<SCheckMapper, SCheck> impleme
         List<SCheckList> notInDelivery = new ArrayList<>();
         // 遍历所有投产申请的文件清单，根据工程名开始的路径匹配，如果合并清单中有该路径，则为核对正确
         for (SDeliveryList d : sDeliveryLists) {
-            String fp = DeveloperUtils.getFilePath(d.getFullPath(), sBranch.getFullPath());
+            String fp = d.getFullPath().substring(d.getFullPath().indexOf(d.getPartOfProject()));
             if (filePathMergeListMap.containsKey(fp)) {
                 filePathMergeListMap.remove(fp);
             } else {
