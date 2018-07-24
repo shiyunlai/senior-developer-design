@@ -112,6 +112,14 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
     @Override
     public void updateProfileStatus(Integer profileGuid, IsAllowDelivery isAllowDelivery) {
         SProfiles profiles = selectById(profileGuid);
+        if(IsAllowDelivery.NOTALLOW.equals(isAllowDelivery)){
+            EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, profileGuid);
+            deliveryEntityWrapper.ne(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
+            if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
+                throw new DeveloperException("还有投放申请使用此环境未投放完成，不允许关闭！");
+            }
+        }
         profiles.setIsAllowDelivery(isAllowDelivery);
         updateById(profiles);
     }

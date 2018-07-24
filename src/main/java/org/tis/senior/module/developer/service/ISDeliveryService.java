@@ -1,12 +1,14 @@
 package org.tis.senior.module.developer.service;
 
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.plugins.Page;
 import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
 import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
-import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
+import org.tis.senior.module.developer.entity.vo.SDeliveryListDetail;
 import org.tmatesoft.svn.core.SVNException;
 
 import java.text.ParseException;
@@ -19,6 +21,10 @@ import java.util.List;
  * @date 2018/06/20
  */
 public interface ISDeliveryService extends IService<SDelivery>  {
+
+
+    Page<SDelivery> getDeliveryAll(Page<SDelivery> page,
+                                   EntityWrapper<SDelivery> wrapper,String userId);
 
     /**
      * 获取合并投放信息
@@ -73,7 +79,7 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      * @param guidDelivery 投放申请的guid
      * @return
      */
-    List<DeliveryProjectDetail> selectDeliveryListByGuidDelivery(Integer guidDelivery);
+    SDeliveryListDetail selectDeliveryListByGuidDelivery(Integer guidDelivery);
 
     /**
      * 根据投放时间、打包窗口、运行环境获取投放申请

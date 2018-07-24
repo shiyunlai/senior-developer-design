@@ -1,6 +1,7 @@
 package org.tis.senior.module.developer.util;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.toolkit.CollectionUtils;
 
 import java.io.UnsupportedEncodingException;
@@ -26,7 +27,9 @@ public class DeveloperUtils {
         }
         String project = path.substring(branchPath.length()+1);
         String[] pathSplit = project.split("/");
-
+        if(pathSplit.length == 0){
+            return null;
+        }
         return pathSplit[0];
     }
 
@@ -62,6 +65,9 @@ public class DeveloperUtils {
         }
         String module = path.substring(branchPath.length()+1);
         String[] pathSplit = module.split("/");
+        if(pathSplit.length < 2){
+            return null;
+        }
 
         return pathSplit[1];
     }
@@ -195,4 +201,22 @@ public class DeveloperUtils {
         return result.toString();
     }
 
+    /**
+     * 解析部署到哪的json数据
+     * @param patchType
+     * @return
+     */
+    public static String getDeployWhere(String patchType, String deployWhere){
+        JSONObject jsonObject = JSONObject.parseObject(deployWhere);
+        String[] patchTypeSplit = patchType.split(",");
+        String deploy = "";
+        for(String str:patchTypeSplit){
+            if("".equals(deploy)){
+                deploy = jsonObject.getString(str);
+            }else {
+                deploy = deploy + "," + jsonObject.getString(str);
+            }
+        }
+        return deploy;
+    }
 }

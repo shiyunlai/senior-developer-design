@@ -1,6 +1,7 @@
 package org.tis.senior.module.developer.service.impl;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.plugins.Page;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,10 @@ import org.tis.senior.module.developer.entity.enums.DeliveryResult;
 import org.tis.senior.module.developer.entity.enums.DeliveryType;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
+import org.tis.senior.module.developer.entity.vo.SDeliveryListDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
+import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
 import java.text.SimpleDateFormat;
@@ -45,6 +48,12 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     private ISDeliveryListService deliveryListService;
     @Autowired
     private ISProjectService projectService;
+
+    @Override
+    public Page<SDelivery> getDeliveryAll(Page<SDelivery> page, EntityWrapper<SDelivery> wrapper, String userId) {
+        wrapper.like(SDelivery.COLUMN_PROPOSER, userId);
+        return page.setRecords(this.baseMapper.selectPage(page, wrapper));
+    }
 
     @Override
     public DeliveryDetail getMergeInfo(MergeDeliveryRequest mergeDelivery, String userId) {
@@ -243,13 +252,43 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     }
 
     @Override
-    public List<DeliveryProjectDetail> selectDeliveryListByGuidDelivery(Integer guidDelivery) {
+    public SDeliveryListDetail selectDeliveryListByGuidDelivery(Integer guidDelivery) {
 
+        SDelivery delivery = selectById(guidDelivery);
+        if(delivery == null){
+            throw new DeveloperException("没有guid为"+guidDelivery+"投放申请！");
+        }
+        //根本投放申请的工作项guid查询关联的信息
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS, delivery.getGuidWorkitem());
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT, BranchForWhat.WORKITEM);
+        List<SBranchMapping> branchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(branchMappings.size() == 0){
+            throw new DeveloperException("没有找到此投放申请的工作项关联分支的信息！");
+        }
+        SBranch branch = branchService.selectById(branchMappings.get(0).getGuidBranch());
+        if(branch == null){
+            throw new DeveloperException("没有找到对应的分支信息！");
+        }
         EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
         deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY, guidDelivery);
         List<SDeliveryList> deliveryLists = deliveryListService.selectList(deliveryListEntityWrapper);
-
-        return DeliveryProjectDetail.getDeliveryDetail(deliveryLists, projectService.selectProjectAll());
+        if(deliveryLists.size() == 0){
+            throw new DeveloperException("没有找到投放申请下的代码清单集合！");
+        }
+        List<SDeliveryList> deliveryList = new ArrayList<>();
+        //截掉工程前面的分支字符
+        for(SDeliveryList sdl:deliveryLists){
+            sdl.setFullPath(sdl.getFullPath().substring(branch.getFullPath().length()));
+            sdl.setDeployWhere(DeveloperUtils.getDeployWhere(sdl.getPatchType(), sdl.getDeployWhere()));
+            deliveryList.add(sdl);
+        }
+        List<DeliveryProjectDetail> details = DeliveryProjectDetail.getDeliveryDetail(deliveryLists, projectService.selectProjectAll());
+        SDeliveryListDetail detail = new SDeliveryListDetail();
+        detail.setCount(deliveryLists.size());
+        detail.setDeliveryProjectDetails(details);
+        detail.setFullPath(branch.getFullPath());
+        return detail;
     }
 
     @Override

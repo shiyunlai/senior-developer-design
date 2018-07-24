@@ -17,6 +17,7 @@ public class DeliveryListAndDeliveryAddRequest {
     @NotNull(message = "投产申请信息不能为空")
     private SDliveryAddRequest dliveryAddRequest;
 
+    @NotNull
     private List<SDeliveryList> deliveryList;
 
     @NotNull(message = "分支的guid不能为空")
