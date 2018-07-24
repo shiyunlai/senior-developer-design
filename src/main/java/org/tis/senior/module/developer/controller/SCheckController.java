@@ -16,6 +16,7 @@ import org.tis.senior.module.developer.entity.SCheck;
 import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.enums.CheckStatus;
+import org.tis.senior.module.developer.entity.enums.PatchType;
 import org.tis.senior.module.developer.entity.vo.CheckMergeDetail;
 import org.tis.senior.module.developer.entity.vo.CheckResultDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
@@ -151,14 +152,14 @@ public class SCheckController extends BaseController<SCheck>  {
             for (int i=0;i < sDeliveryLists.size();i++){
                 SDeliveryList sdl = sDeliveryLists.get(i);
                 HSSFRow row = hssfSheet.createRow(i+2);
-                row.createCell(0).setCellValue(sdl.getPartOfProject());
+                row.createCell(0).setCellValue("/"+sdl.getPartOfProject());
                 row.createCell(1).setCellValue(sdl.getPatchType());
                 row.createCell(2).setCellValue("*." + sdl.getPatchType());
                 row.createCell(3).setCellValue(sdl.getDeployWhere());
-                if("ecd".equals(sdl.getPatchType())){
-                    row.createCell(4).setCellValue(sdl.getFullPath());
+                if(PatchType.ECD.equals(sdl.getPatchType())){
+                    row.createCell(4).setCellValue("/"+sdl.getFullPath());
                 }else {
-                    row.createCell(4).setCellValue(sdl.getFullPath().substring(sdl.getFullPath().indexOf(sdl.getPartOfProject())));
+                    row.createCell(4).setCellValue("/"+sdl.getFullPath().substring(sdl.getFullPath().indexOf(sdl.getPartOfProject())));
                 }
                 row.createCell(5).setCellValue("all");
                 row.createCell(6).setCellValue("all");
