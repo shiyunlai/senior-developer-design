@@ -23,6 +23,7 @@ import org.tis.senior.module.developer.service.*;
 import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -189,8 +190,12 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     }
 
     @Override
-    public List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException {
+    public List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException, ParseException {
 
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        if(format.parse(format.format(new Date())).getTime() > request.getDliveryAddRequest().getDeliveryTime().getTime()){
+            throw new DeveloperException("你投放的时间已过期，请重新选择投放时间！");
+        }
         //查询所有工程
         Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
                 collect(Collectors.toMap(SProject::getProjectName, p -> p));
