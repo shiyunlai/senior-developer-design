@@ -178,10 +178,10 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     @Override
     public List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException, ParseException {
 
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        /*SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         if(format.parse(format.format(new Date())).getTime() > request.getDliveryAddRequest().getDeliveryTime().getTime()){
             throw new DeveloperException("你投放的时间已过期，请重新选择投放时间！");
-        }
+        }*/
         //查询所有工程
         Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
                 collect(Collectors.toMap(SProject::getProjectName, p -> p));
@@ -201,17 +201,24 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 DeliveryProfileRequest::getGuidProfiles).collect(Collectors.toList());
         //获取投放日期以及具体打包窗口是否已经完成投放
         EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
-        deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
-        deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
-                new SimpleDateFormat("yyyy-MM-dd").format(request.getDliveryAddRequest().getDeliveryTime()));
-        deliveryWrapper.in(SDelivery.COLUMN_PACK_TIMING,packTime);
-        deliveryWrapper.in(SDelivery.COLUMN_GUID_PROFILES,choiceProfileGuid);
+        int delIndex = 0;
+        for (DeliveryProfileRequest profileRequest:request.getDliveryAddRequest().getProfiles()){
+            deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
+            deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
+                    new SimpleDateFormat("yyyy-MM-dd").format(request.getDliveryAddRequest().getDeliveryTime()));
+            deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING,profileRequest.getPackTiming());
+            deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,profileRequest.getGuidProfiles());
+            delIndex++;
+            if(delIndex != request.getDliveryAddRequest().getProfiles().size()){
+                deliveryWrapper.orNew();
+            }
+        }
         List<SDelivery> deliveries = deliveryService.selectList(deliveryWrapper);
-        if(deliveries.size() > 0){
+                if(deliveries.size() > 0){
             throw new DeveloperException("你选择的投放环境对应的打包窗口已完成投放，请选择其他时间投放！");
         }
 
-        //获取已成功合并的投放申请
+    //获取已成功合并的投放申请
         EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
         deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
         deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
@@ -241,7 +248,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             delivery.setProposer(userId);
             delivery.setApplyTime(new Date());
             delivery.setPackTiming(req.getPackTiming());
-            delivery.setDeliveryTime(dliveryAddRequest.getDeliveryTime());
+            delivery.setDeliveryTime(request.getDliveryAddRequest().getDeliveryTime());
             delivery.setDeliveryResult(DeliveryResult.APPLYING);
             deliveryList.add(delivery);
         }
@@ -251,10 +258,20 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         checkStatuses.add(CheckStatus.SUCCESS);
         //获取这个投放申请的运行环境是否有正在核对中
         EntityWrapper<SCheck> checkEntityWrapper = new EntityWrapper<>();
-        checkEntityWrapper.in(SCheck.COLUMN_GUID_PROFILES, choiceProfileGuid);
-        checkEntityWrapper.in(SCheck.COLUMN_CHECK_STATUS, checkStatuses);
+        int index = 0;
+        for(DeliveryProfileRequest profileRequest:request.getDliveryAddRequest().getProfiles()){
+            checkEntityWrapper.eq(SCheck.COLUMN_GUID_PROFILES, profileRequest.getGuidProfiles());
+            checkEntityWrapper.in(SCheck.COLUMN_CHECK_STATUS, checkStatuses);
+            checkEntityWrapper.eq(SCheck.COLUMN_PACK_TIMING, profileRequest.getPackTiming());
+            checkEntityWrapper.eq("DATE_FORMAT(" + SCheck.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
+                    new SimpleDateFormat("yyyy-MM-dd").format(request.getDliveryAddRequest().getDeliveryTime()));
+            index++;
+            if(index != request.getDliveryAddRequest().getProfiles().size()){
+                checkEntityWrapper.orNew();
+            }
+        }
         if(checkService.selectList(checkEntityWrapper).size() > 0){
-            throw new DeveloperException("你本次投放的环境有申请正在核对中，请等一等再申请！");
+            throw new DeveloperException("你本次投放的环境窗口有申请正在核对中！");
         }
         //批量添加投放申请
         deliveryService.insertBatch(deliveryList);
