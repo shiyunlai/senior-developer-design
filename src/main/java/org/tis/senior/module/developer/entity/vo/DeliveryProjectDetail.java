@@ -8,6 +8,7 @@ import org.tis.senior.module.developer.entity.SCheckList;
 import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SProject;
 import org.tis.senior.module.developer.entity.enums.ProjectType;
+import org.tis.senior.module.developer.util.DeveloperUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -67,7 +68,11 @@ public class DeliveryProjectDetail {
                     l.stream().collect(Collectors.groupingBy(SDeliveryList::getPatchType)).forEach((pt, list) -> {
                         DeliveryPatchDetail dpt = new DeliveryPatchDetail();
                         dpt.setPatchType(pt);
-                        dpt.setDeployWhere(list.get(0).getDeployWhere());
+                        if (pjMap.get(p).getProjectType().equals(ProjectType.SPECIAL)){
+                            dpt.setDeployWhere(list.get(0).getDeployWhere());
+                        }else{
+                            dpt.setDeployWhere(DeveloperUtils.getDeployWhere(pt,list.get(0).getDeployWhere()));
+                        }
                         dpt.setFileList(list);
                         dpts.add(dpt);
                         detail.setDeliveryPatchDetails(dpts);

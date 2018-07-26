@@ -21,7 +21,6 @@ import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.entity.vo.SDeliveryListDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
-import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
 import java.text.SimpleDateFormat;
@@ -280,7 +279,6 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         //截掉工程前面的分支字符
         for(SDeliveryList sdl:deliveryLists){
             sdl.setFullPath(sdl.getFullPath().substring(branch.getFullPath().length()));
-            sdl.setDeployWhere(DeveloperUtils.getDeployWhere(sdl.getPatchType(), sdl.getDeployWhere()));
             deliveryList.add(sdl);
         }
         List<DeliveryProjectDetail> details = DeliveryProjectDetail.getDeliveryDetail(deliveryLists, projectService.selectProjectAll());

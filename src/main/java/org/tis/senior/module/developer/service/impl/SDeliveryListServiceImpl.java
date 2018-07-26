@@ -23,6 +23,7 @@ import org.tis.senior.module.developer.service.*;
 import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -61,6 +62,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
 
     @Autowired
     private ISWorkitemService workitemService;
+
+    @Autowired
+    private ISCheckService checkService;
 
     @Override
     public List<DeliveryProjectDetail> assembleDelivery(String branchGuid){
@@ -127,20 +131,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 }
                 sdl.setPartOfProject(sProject.getProjectName());
                 String deployConfig = sProject.getDeployConfig();
-                if(ProjectType.SPECIAL.equals(sProject.getProjectType())){
-                    JSONArray jsonArray = JSONArray.parseArray(deployConfig);
-                    String exportType = "";
-                    for (Object object : jsonArray) {
-                        JSONObject jsonObject = JSONObject.parseObject(object.toString());
-                        if("".equals(exportType)){
-                            exportType = jsonObject.getString("exportType");
-                        }else{
-                            exportType = exportType + "," + jsonObject.getString("exportType");
-                        }
-                    }
-                    sdl.setPatchType(exportType);
-                    sdl.setDeployWhere(DeliveryProjectDetail.generateDeployWhereString(exportType, deployConfig));
-                }else if(ProjectType.IBS.equals(sProject.getProjectType())) {
+                if(ProjectType.IBS.equals(sProject.getProjectType())) {
                     JSONArray jsonArray = JSONArray.parseArray(deployConfig);
                     //here  跳出循环的标记
                     here:
@@ -154,20 +145,19 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                                 for (String ecd : ecdSet) {
                                     if (svnFile.getPath().contains(ecd)) {
                                         sdl.setPatchType(exportType);
-                                        sdl.setDeployWhere(deployWhere);
+                                        sdl.setDeployWhere(DeliveryProjectDetail.generateDeployWhereString(exportType, deployConfig));
                                         break here;
                                     }
                                 }
                             }
                         } else {
                             sdl.setPatchType(exportType);
-                            sdl.setDeployWhere(deployWhere);;
+                            sdl.setDeployWhere(DeliveryProjectDetail.generateDeployWhereString(exportType, deployConfig));
                         }
                     }
                 }else{
                     JSONArray jsonArray = JSONArray.parseArray(deployConfig);
                     String exportType = "";
-                    Set<String> setStr = new HashSet<>();
                     for (Object object : jsonArray) {
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
                         if("".equals(exportType)){
@@ -175,12 +165,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                         }else{
                             exportType = exportType + "," + jsonObject.getString("exportType");
                         }
-                        String deployType = jsonObject.getString("deployType");
-                        Collections.addAll(setStr,deployType.split(","));
                     }
                     sdl.setPatchType(exportType);
-                    String deploy = setStr.toString().replace("[","").replace("]","");
-                    sdl.setDeployWhere(deploy);
+                    sdl.setDeployWhere(DeliveryProjectDetail.generateDeployWhereString(exportType, deployConfig));
                 }
                 sdList.add(sdl);
             });
@@ -189,8 +176,12 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     }
 
     @Override
-    public List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException {
+    public List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException, ParseException {
 
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        if(format.parse(format.format(new Date())).getTime() > request.getDliveryAddRequest().getDeliveryTime().getTime()){
+            throw new DeveloperException("你投放的时间已过期，请重新选择投放时间！");
+        }
         //查询所有工程
         Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
                 collect(Collectors.toMap(SProject::getProjectName, p -> p));
@@ -254,12 +245,15 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             delivery.setDeliveryResult(DeliveryResult.APPLYING);
             deliveryList.add(delivery);
         }
+        //集合添加核对中及核对成功状态，控制投放申请的环境是否可投放
+        List<CheckStatus> checkStatuses = new ArrayList<>();
+        checkStatuses.add(CheckStatus.WAIT);
+        checkStatuses.add(CheckStatus.SUCCESS);
         //获取这个投放申请的运行环境是否有正在核对中
-        EntityWrapper<SDelivery> deliveryEntityWrapper1 = new EntityWrapper<>();
-        deliveryEntityWrapper1.in(SDelivery.COLUMN_GUID_PROFILES,choiceProfileGuid);
-        deliveryEntityWrapper1.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.CHECKING);
-        deliveryEntityWrapper1.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
-        if(deliveryService.selectList(deliveryEntityWrapper1).size() > 0){
+        EntityWrapper<SCheck> checkEntityWrapper = new EntityWrapper<>();
+        checkEntityWrapper.in(SCheck.COLUMN_GUID_PROFILES, choiceProfileGuid);
+        checkEntityWrapper.in(SCheck.COLUMN_CHECK_STATUS, checkStatuses);
+        if(checkService.selectList(checkEntityWrapper).size() > 0){
             throw new DeveloperException("你本次投放的环境有申请正在核对中，请等一等再申请！");
         }
         //批量添加投放申请
@@ -399,6 +393,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
 
         EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
         deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY, delivery.getGuid());
+        deliveryListEntityWrapper.ne(SDeliveryList.COLUMN_COMMIT_TYPE, CommitType.DELETED);
         List<SDeliveryList> sdlList = selectList(deliveryListEntityWrapper);
 
         if(sdlList.size() == 0){
@@ -428,7 +423,9 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         EntityWrapper<SDeliveryList> sDeliveryListEntityWrapper = new EntityWrapper<>();
         sDeliveryListEntityWrapper.in(SDeliveryList.COLUMN_GUID_DELIVERY, request.getGuidDelivery());
         List<SDeliveryList> deliveryLists = selectList(sDeliveryListEntityWrapper);
-
+        if(deliveryLists.size() == 0){
+            throw new DeveloperException("追加的投放申请正在被处理！");
+        }
         // 接受需要新增或修改的投放清单
         List<SDeliveryList> insertOrUpdate = new ArrayList<>();
         // 接受需要删除的投放清单ID
@@ -439,6 +436,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             for (SDeliveryList deliveryList:request.getDeliveryList()){
                 for(SDeliveryList dl:deliveryLists){
                     if(guidDelivery.equals(dl.getGuidDelivery())){
+                        //判断文件是否是相同的，如果是
                         if(deliveryList.getFullPath().equals(dl.getFullPath())){
                             if(!deliveryList.getCommitType().equals(dl.getCommitType())){
                                 // 原-现—终 (修改类型的变化)
@@ -464,6 +462,8 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                                     insertOrUpdate.add(dl);
                                 } else if (dl.getCommitType().equals(CommitType.ADDED) &&
                                         deliveryList.getCommitType().equals(CommitType.MODIFIED)) {
+                                } else {
+                                    throw new DeveloperException("追加投放发生了预料之外的异常！");
                                 }
                             }
                             continue sd;
@@ -476,7 +476,12 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 insertOrUpdate.add(deliveryList);
             }
         }
-        insertBatch(insertOrUpdate);
+        if(insertOrUpdate.size() > 0){
+            insertOrUpdateBatch(insertOrUpdate);
+        }
+        if(deletes.size() > 0){
+            deleteBatchIds(deletes);
+        }
         branchService.recordBranchTempRevision(branchMappings.get(0).getGuidBranch());
 
         //获取本次追加投放申请的详情
