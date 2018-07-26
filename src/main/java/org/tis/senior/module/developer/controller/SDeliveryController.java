@@ -66,7 +66,7 @@ public class SDeliveryController extends BaseController<SDelivery>  {
         if(svnAccount == null){
             throw new DeveloperException("尚未登录，请登录后再试！");
         }
-        return  ResultVO.success("查询成功", sDeliveryService.getDeliveryAll(getPage(page),getCondition(page),svnAccount.getUserId()));
+        return  ResultVO.success("查询成功", sDeliveryService.getDeliveryAll(getPage(page),getCondition(page),svnAccount));
     }
 
     /**
