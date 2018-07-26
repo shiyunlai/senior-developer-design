@@ -16,6 +16,7 @@ import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.BranchForWhat;
 import org.tis.senior.module.developer.entity.enums.DeliveryResult;
 import org.tis.senior.module.developer.entity.enums.DeliveryType;
+import org.tis.senior.module.developer.entity.enums.SvnRole;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.entity.vo.SDeliveryListDetail;
@@ -49,8 +50,10 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     private ISProjectService projectService;
 
     @Override
-    public Page<SDelivery> getDeliveryAll(Page<SDelivery> page, EntityWrapper<SDelivery> wrapper, String userId) {
-        wrapper.like(SDelivery.COLUMN_PROPOSER, userId);
+    public Page<SDelivery> getDeliveryAll(Page<SDelivery> page, EntityWrapper<SDelivery> wrapper, SSvnAccount svnAccount) {
+        if(!svnAccount.getRole().equals(SvnRole.RCT)){
+            wrapper.like(SDelivery.COLUMN_PROPOSER, svnAccount.getUserId());
+        }
         return page.setRecords(this.baseMapper.selectPage(page, wrapper));
     }
 

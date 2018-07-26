@@ -7,6 +7,7 @@ import org.tis.senior.module.developer.controller.request.DeliveryOutExeclReques
 import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
+import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 import org.tis.senior.module.developer.entity.vo.SDeliveryListDetail;
 import org.tmatesoft.svn.core.SVNException;
@@ -24,7 +25,7 @@ public interface ISDeliveryService extends IService<SDelivery>  {
 
 
     Page<SDelivery> getDeliveryAll(Page<SDelivery> page,
-                                   EntityWrapper<SDelivery> wrapper,String userId);
+                                   EntityWrapper<SDelivery> wrapper,SSvnAccount sSvnAccount);
 
     /**
      * 获取合并投放信息
