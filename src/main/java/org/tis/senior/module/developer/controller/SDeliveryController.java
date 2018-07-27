@@ -8,7 +8,6 @@ import org.tis.senior.module.core.web.controller.BaseController;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
-import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.SDeliveryUpdateRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
@@ -109,17 +108,6 @@ public class SDeliveryController extends BaseController<SDelivery>  {
     public ResultVO projectName(@PathVariable @NotBlank(message = "id不能为空") String guidDelivery){
 
         return ResultVO.success("查询成功",sDeliveryService.selectDeliveryProName(guidDelivery));
-    }
-
-    /**
-     * 判断此次投放申请的之前是否有相同的投放申请未必处理
-     *
-     * @return
-     */
-    @PostMapping("/putDelivery")
-    public ResultVO putDelivery(@RequestBody @Validated IsPutDeliveryRequest request){
-        sDeliveryService.whetherPutDelivery(request);
-        return ResultVO.success("可以投放！");
     }
 
     /**

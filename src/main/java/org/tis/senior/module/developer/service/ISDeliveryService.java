@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.plugins.Page;
 import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
-import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.SDeliveryUpdateRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
@@ -50,12 +49,6 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      * @return
      */
     List<String> selectDeliveryProName(String guidDelivery);
-
-    /**
-     * 判断此次投放申请的环境以及投放窗口在之前是否有投放申请
-     * @param request
-     */
-    void whetherPutDelivery(IsPutDeliveryRequest request);
 
     /**
      * 查询工作项所要追加的投放申请集合
