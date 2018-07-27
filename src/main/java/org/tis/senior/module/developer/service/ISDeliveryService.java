@@ -6,10 +6,12 @@ import com.baomidou.mybatisplus.service.IService;
 import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
 import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
+import org.tis.senior.module.developer.controller.request.SDeliveryUpdateRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
 import org.tis.senior.module.developer.entity.vo.SDeliveryListDetail;
+import org.tis.senior.module.developer.entity.vo.SProfileDetail;
 import org.tmatesoft.svn.core.SVNException;
 
 import java.text.ParseException;
@@ -88,5 +90,19 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      * @return
      */
     List<SDelivery> selectDeliveryOutExecl(DeliveryOutExeclRequest request);
+
+    /**
+     * 修改清单的投放时间及打包窗口
+     * @param request
+     */
+    void updateDelivery(SDeliveryUpdateRequest request) throws ParseException;
+
+    /**
+     * 根据guid查询投放申请对应的运行环境并验证每个窗口
+     * @return
+     */
+    SProfileDetail selectProfileDeteilVerify(Integer guidDelivery) throws ParseException;
+
+
 }
 

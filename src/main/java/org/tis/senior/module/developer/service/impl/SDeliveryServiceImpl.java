@@ -7,23 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
-import org.tis.senior.module.developer.controller.request.DeliveryProfileRequest;
-import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
-import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
+import org.tis.senior.module.developer.controller.request.*;
 import org.tis.senior.module.developer.dao.SDeliveryMapper;
 import org.tis.senior.module.developer.entity.*;
-import org.tis.senior.module.developer.entity.enums.BranchForWhat;
-import org.tis.senior.module.developer.entity.enums.DeliveryResult;
-import org.tis.senior.module.developer.entity.enums.DeliveryType;
-import org.tis.senior.module.developer.entity.enums.SvnRole;
-import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
-import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
-import org.tis.senior.module.developer.entity.vo.SDeliveryListDetail;
+import org.tis.senior.module.developer.entity.enums.*;
+import org.tis.senior.module.developer.entity.vo.*;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
 import org.tmatesoft.svn.core.SVNException;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,6 +41,10 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     private ISDeliveryListService deliveryListService;
     @Autowired
     private ISProjectService projectService;
+    @Autowired
+    private ISCheckService checkService;
+    @Autowired
+    private ISProfilesService profilesService;
 
     @Override
     public Page<SDelivery> getDeliveryAll(Page<SDelivery> page, EntityWrapper<SDelivery> wrapper, SSvnAccount svnAccount) {
@@ -307,6 +304,158 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
             throw new DeveloperException("没有找到对应的投放申请！");
         }
         return deliveries;
+    }
+
+    @Override
+    public void updateDelivery(SDeliveryUpdateRequest request) throws ParseException {
+        SDelivery sDelivery = selectById(request.getGuidDelivery());
+        if(sDelivery == null){
+            throw new DeveloperException("此投放申请不存在！");
+        }
+
+        if(!sDelivery.getDeliveryResult().equals(DeliveryResult.APPLYING)){
+            throw new DeveloperException("你要修改的投放申请不处于申请中状态！");
+        }
+        //判断投放时间及投放窗口是否合理
+        Date date = new Date();
+        SimpleDateFormat ymdFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat hmFormat = new SimpleDateFormat("HH:mm");
+        if (ymdFormat.format(request.getDeliveryTime()).equals(ymdFormat.format(date))){
+            //投放窗口的时间戳
+            long time1 = hmFormat.parse(request.getPackTiming()).getTime();
+            //当前时间的时间戳
+            long time2 = hmFormat.parse(hmFormat.format(date)).getTime();
+            if(time2 > time1){
+                throw new DeveloperException("你修改投放的窗口已经过期，请选择下一个窗口投放！");
+            }
+        }else{
+            //将投放时间转成时间戳
+            long deliverTime1 = ymdFormat.parse(ymdFormat.format(request.getDeliveryTime())).getTime();
+            //当前时间的时间戳
+            long time2 = ymdFormat.parse(ymdFormat.format(request.getDeliveryTime())).getTime();
+            if(time2 > deliverTime1){
+                throw new DeveloperException("你选择的投放日期已是过去日期，请重新投放时间！");
+            }
+        }
+        EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
+        deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
+        deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
+                new SimpleDateFormat("yyyy-MM-dd").format(request.getDeliveryTime()));
+        deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING,request.getPackTiming());
+        deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,sDelivery.getGuidProfiles());
+        List<SDelivery> deliveries = selectList(deliveryWrapper);
+        if(deliveries.size() > 0){
+            throw new DeveloperException("你选择的投放环境对应的打包窗口已完成投放，请重新选择！");
+        }
+
+        //集合添加核对中及核对成功状态，控制投放申请的环境是否可投放
+        List<CheckStatus> checkStatuses = new ArrayList<>();
+        checkStatuses.add(CheckStatus.WAIT);
+        checkStatuses.add(CheckStatus.SUCCESS);
+        //获取这个投放申请的运行环境是否有正在核对中
+        EntityWrapper<SCheck> checkEntityWrapper = new EntityWrapper<>();
+        checkEntityWrapper.eq(SCheck.COLUMN_GUID_PROFILES, sDelivery.getGuidProfiles());
+        checkEntityWrapper.in(SCheck.COLUMN_CHECK_STATUS, checkStatuses);
+        checkEntityWrapper.eq(SCheck.COLUMN_PACK_TIMING, request.getPackTiming());
+        checkEntityWrapper.eq("DATE_FORMAT(" + SCheck.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
+                new SimpleDateFormat("yyyy-MM-dd").format(request.getDeliveryTime()));
+        if(checkService.selectList(checkEntityWrapper).size() > 0){
+            throw new DeveloperException("你本次选择投放的环境窗口有申请正在核对中！");
+        }
+
+        sDelivery.setDeliveryTime(request.getDeliveryTime());
+        sDelivery.setPackTiming(request.getPackTiming());
+
+        updateById(sDelivery);
+    }
+
+    @Override
+    public SProfileDetail selectProfileDeteilVerify(Integer guidDelivery) throws ParseException {
+        SDelivery delivery = selectById(guidDelivery);
+        if(delivery == null){
+            throw new DeveloperException("查询不到对应的投放申请!");
+        }
+        SProfiles sProfiles = profilesService.selectById(delivery.getGuidProfiles());
+        if(sProfiles == null){
+            throw new DeveloperException("查询不到对应的运行环境!");
+        }
+        //获取当前时间
+        Date date = new Date();
+        //将时间格式定为时分
+        SimpleDateFormat simpleDateFormat =new SimpleDateFormat("HH:mm");
+        //将时间格式定为年月日
+        SimpleDateFormat dateFormat =new SimpleDateFormat("yyyy-MM-dd");
+        //获取当前时间的字符串时分格式
+        String dateString = simpleDateFormat.format(date);
+        //将时间转换成时间戳
+        long nowDate = simpleDateFormat.parse(dateString).getTime();
+        //大于当前时间的窗口集合
+        List<String> bigPackTimeList = new ArrayList<>();
+        //小于当前时间的窗口集合
+        List<String> smallPackTimeList = new ArrayList<>();
+        SProfileDetail sProfileDetail = new SProfileDetail();
+        String[] packTimeSplit = sProfiles.getPackTiming().split(",");
+        //循环所有窗口判断是否大于当前的时间，有大于的保存
+        for(String packTime:packTimeSplit){
+            try {
+                //时间戳比较
+                if(nowDate < simpleDateFormat.parse(packTime).getTime()){
+                    bigPackTimeList.add(packTime);
+                }else{
+                    smallPackTimeList.add(packTime);
+                }
+            } catch (ParseException e) {
+                throw new DeveloperException("打包窗口不是时间格式的!");
+            }
+        }
+        List<PackTimeDetail> packTimeDetails = new ArrayList<>();
+        //判断今天是否有大于当前时间的窗口
+        if(bigPackTimeList.size() > 0){
+            sProfileDetail.setDeliveryTime(date);
+            //把小于当前时间的打包窗口置为不可选状态
+            if(smallPackTimeList.size() > 0){
+                smallPackTimeList.forEach(time ->{
+                    PackTimeDetail packTimeDetail = new PackTimeDetail();
+                    packTimeDetail.setPackTime(time);
+                    packTimeDetail.setIsOptions(OptionsPackTime.NO);
+                    packTimeDetails.add(packTimeDetail);
+                });
+            }
+            //把最近当前时间的打包窗口置为默认
+            for(int i = 0;i < bigPackTimeList.size();i++){
+                PackTimeDetail packTimeDetail = new PackTimeDetail();
+                if(i == 0){
+                    packTimeDetail.setPackTime(bigPackTimeList.get(i));
+                    packTimeDetail.setIsOptions(OptionsPackTime.DEFALIT);
+                }else {
+                    packTimeDetail.setPackTime(bigPackTimeList.get(i));
+                    packTimeDetail.setIsOptions(OptionsPackTime.YES);
+                }
+                packTimeDetails.add(packTimeDetail);
+            }
+        }else{
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+            //+1今天的时间加一天
+            calendar.add(Calendar.DAY_OF_MONTH, +1);
+            sProfileDetail.setDeliveryTime(calendar.getTime());
+            for(int i = 0;i < packTimeSplit.length;i++){
+                PackTimeDetail packTimeDetail = new PackTimeDetail();
+                if(i == 0){
+                    packTimeDetail.setPackTime(packTimeSplit[i]);
+                    packTimeDetail.setIsOptions(OptionsPackTime.DEFALIT);
+                }else {
+                    packTimeDetail.setPackTime(packTimeSplit[i]);
+                    packTimeDetail.setIsOptions(OptionsPackTime.YES);
+                }
+                packTimeDetails.add(packTimeDetail);
+            }
+        }
+        sProfileDetail.setApplyAlias(delivery.getApplyAlias());
+        sProfileDetail.setGuidProfile(sProfiles.getGuid());
+        sProfileDetail.setProfilesName(sProfiles.getProfilesName());
+        sProfileDetail.setPackTimeDetails(packTimeDetails);
+        return sProfileDetail;
     }
 
 }

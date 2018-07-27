@@ -325,7 +325,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
                     packTimeDetails.add(packTimeDetail);
                 }
             }
-            sProfileDetail.setGuid(pro.getGuid());
+            sProfileDetail.setGuidProfile(pro.getGuid());
             sProfileDetail.setProfilesName(pro.getProfilesName());
             sProfileDetail.setPackTimeDetails(packTimeDetails);
             sProfileDetails.add(sProfileDetail);
@@ -333,6 +333,8 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
 
         return sProfileDetails;
     }
+
+
 
 }
 
