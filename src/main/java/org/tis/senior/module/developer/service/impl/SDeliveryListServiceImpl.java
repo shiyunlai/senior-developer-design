@@ -177,11 +177,32 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
 
     @Override
     public List<SDelivery> addDeliveryList(DeliveryListAndDeliveryAddRequest request, String userId) throws SVNException, ParseException {
-
-        /*SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        if(format.parse(format.format(new Date())).getTime() > request.getDliveryAddRequest().getDeliveryTime().getTime()){
-            throw new DeveloperException("你投放的时间已过期，请重新选择投放时间！");
-        }*/
+        if(request.getDliveryAddRequest().getProfiles().size() == 0){
+            throw new DeveloperException("请选择要投放的环境及打包窗口再投放！");
+        }
+        //判断投放时间及投放窗口是否合理
+        Date date = new Date();
+        SimpleDateFormat ymdFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat hmFormat = new SimpleDateFormat("HH:mm");
+        for(DeliveryProfileRequest profile:request.getDliveryAddRequest().getProfiles()){
+            if (ymdFormat.format(profile.getDeliveryTime()).equals(ymdFormat.format(date))){
+                //投放窗口的时间戳
+                long time1 = hmFormat.parse(profile.getPackTiming()).getTime();
+                //当前时间的时间戳
+                long time2 = hmFormat.parse(hmFormat.format(date)).getTime();
+                if(time2 > time1){
+                    throw new DeveloperException("你投放的窗口已经过期，请选择下一个窗口投放！");
+                }
+            }else{
+                //将投放时间转成时间戳
+                long deliverTime1 = ymdFormat.parse(ymdFormat.format(profile.getDeliveryTime())).getTime();
+                //当前时间的时间戳
+                long time2 = ymdFormat.parse(ymdFormat.format(profile.getDeliveryTime())).getTime();
+                if(time2 > deliverTime1){
+                    throw new DeveloperException("你选择的投放日期已是过去日期，请重新投放时间！");
+                }
+            }
+        }
         //查询所有工程
         Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
                 collect(Collectors.toMap(SProject::getProjectName, p -> p));
@@ -193,9 +214,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         if(sDeliveries.size() > 0){
             throw new DeveloperException("你有投放申请正在申请中，如要投放，请追加投放！");
         }
-        //保存本次投放的打包窗口及投放环境的guid
-        List<String> packTime = request.getDliveryAddRequest().getProfiles().stream().map(
-                DeliveryProfileRequest::getPackTiming).collect(Collectors.toList());
         //创建已选择的环境的投放申请中的运行环境guid集合
         List<Integer> choiceProfileGuid = request.getDliveryAddRequest().getProfiles().stream().map(
                 DeliveryProfileRequest::getGuidProfiles).collect(Collectors.toList());
@@ -205,7 +223,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         for (DeliveryProfileRequest profileRequest:request.getDliveryAddRequest().getProfiles()){
             deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
             deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
-                    new SimpleDateFormat("yyyy-MM-dd").format(request.getDliveryAddRequest().getDeliveryTime()));
+                    new SimpleDateFormat("yyyy-MM-dd").format(profileRequest.getDeliveryTime()));
             deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING,profileRequest.getPackTiming());
             deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,profileRequest.getGuidProfiles());
             delIndex++;
@@ -248,7 +266,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             delivery.setProposer(userId);
             delivery.setApplyTime(new Date());
             delivery.setPackTiming(req.getPackTiming());
-            delivery.setDeliveryTime(request.getDliveryAddRequest().getDeliveryTime());
+            delivery.setDeliveryTime(req.getDeliveryTime());
             delivery.setDeliveryResult(DeliveryResult.APPLYING);
             deliveryList.add(delivery);
         }
@@ -264,7 +282,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             checkEntityWrapper.in(SCheck.COLUMN_CHECK_STATUS, checkStatuses);
             checkEntityWrapper.eq(SCheck.COLUMN_PACK_TIMING, profileRequest.getPackTiming());
             checkEntityWrapper.eq("DATE_FORMAT(" + SCheck.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
-                    new SimpleDateFormat("yyyy-MM-dd").format(request.getDliveryAddRequest().getDeliveryTime()));
+                    new SimpleDateFormat("yyyy-MM-dd").format(profileRequest.getDeliveryTime()));
             index++;
             if(index != request.getDliveryAddRequest().getProfiles().size()){
                 checkEntityWrapper.orNew();

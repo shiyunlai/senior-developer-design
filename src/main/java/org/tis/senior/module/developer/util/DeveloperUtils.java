@@ -219,4 +219,9 @@ public class DeveloperUtils {
         }
         return deploy;
     }
+
+    public static void main(String[] args) {
+        String str = "dsads/dsaddas/d/";
+        System.out.println(str.substring(str.lastIndexOf("/")));
+    }
 }

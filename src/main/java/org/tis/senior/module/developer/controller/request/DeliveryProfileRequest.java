@@ -4,11 +4,15 @@ import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import java.util.Date;
 
 @Data
 public class DeliveryProfileRequest {
 
     private String applyAlias;
+
+    @NotNull(message = "投放时间不能为空")
+    private Date deliveryTime;
 
     @NotNull(message = "运行环境的guid不能为空")
     private Integer guidProfiles;

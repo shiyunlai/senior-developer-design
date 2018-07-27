@@ -17,6 +17,7 @@ import org.tis.senior.module.developer.service.ISProfilesService;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.groups.Default;
+import java.text.ParseException;
 
 /**
  * sProfiles的Controller类
@@ -144,6 +145,16 @@ public class SProfilesController extends BaseController<SProfiles>  {
     @GetMapping("/relevanceBranch")
     public ResultVO relevanceBranch(){
         return ResultVO.success("查询成功",sProfilesService.mayRelevanceReleaseBranch());
+    }
+
+    /**
+     *
+     * @return
+     */
+    @GetMapping("/packTimeVerify")
+    public ResultVO packTimeVerify() throws ParseException {
+
+        return ResultVO.success("查询成功",sProfilesService.profileAllPackTimeVerify());
     }
 }
 
