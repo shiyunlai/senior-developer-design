@@ -10,11 +10,13 @@ import java.util.List;
 @Data
 public class SProfileDetail {
 
+    private String applyAlias;
+
     /**
      * 数据id:唯一标示某条数据（自增长）
      */
     @TableId
-    private Integer guid;
+    private Integer guidProfile;
 
     /**
      * 环境名称

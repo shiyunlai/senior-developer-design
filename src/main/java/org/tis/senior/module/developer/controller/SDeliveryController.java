@@ -10,6 +10,7 @@ import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
 import org.tis.senior.module.developer.controller.request.IsPutDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
+import org.tis.senior.module.developer.controller.request.SDeliveryUpdateRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.exception.DeveloperException;
@@ -165,6 +166,26 @@ public class SDeliveryController extends BaseController<SDelivery>  {
         return ResultVO.success("查询成功",sDeliveryService.selectDeliveryOutExecl(request));
     }
 
+    /**
+     * 修改投放的时间及打包窗口
+     * @return
+     */
+    @PutMapping("/deliveryTimePackTime")
+    public ResultVO updateDeliveryTimePackTime(@RequestBody @Validated SDeliveryUpdateRequest request) throws ParseException {
+
+        sDeliveryService.updateDelivery(request);
+        return ResultVO.success("修改成功");
+    }
+
+    /**
+     * 查询运行环境的详情及时间窗口的验证
+     * @return
+     */
+    @GetMapping("/{guidDelivery}/profileDateilVerify")
+    public ResultVO profileDateilVerify(@PathVariable @NotNull(message = "投放申请id不能为空")Integer guidDelivery) throws ParseException {
+
+        return ResultVO.success("查询成功",sDeliveryService.selectProfileDeteilVerify(guidDelivery));
+    }
     
 }
 
