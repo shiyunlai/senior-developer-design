@@ -37,6 +37,12 @@ public class SBranchController extends BaseController<SBranch>  {
         SSvnAccount user = getUser();
         SBranch sBranch = new SBranch();
         BeanUtils.copyProperties(request,sBranch);
+        String fullPaht = request.getFullPath().trim();
+        if("/".equals(fullPaht.substring(fullPaht.length()-1))){
+            sBranch.setFullPath(fullPaht.substring(0,fullPaht.length()-1));
+        }else{
+            sBranch.setFullPath(fullPaht);
+        }
         sBranch.setCreater(user.getUserId());
         sBranch.setCreateTime(new Date());
         sBranch.setCurrVersion(request.getLastVersion());
