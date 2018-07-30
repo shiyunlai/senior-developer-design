@@ -1,0 +1,1 @@
+ALTER TABLE s_project ADD full_path varchar(1024) NULL COMMENT '全路径';

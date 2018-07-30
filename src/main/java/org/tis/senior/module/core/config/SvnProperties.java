@@ -13,16 +13,33 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "tis.svn")
 public class SvnProperties {
 
-    private String userName;
+    /**
+     * SVN用户账号
+     */
+    private String username;
 
+    /**
+     * SVN用户密码
+     */
     private String password;
 
-    public String getUserName() {
-        return userName;
+    /**
+     * feature分支base路径
+     */
+    private String baseFeatureUrl;
+
+    /**
+     * hotfix分支base路径
+     */
+    private String baseHotfixUrl;
+
+
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
@@ -31,5 +48,21 @@ public class SvnProperties {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getBaseFeatureUrl() {
+        return baseFeatureUrl;
+    }
+
+    public void setBaseFeatureUrl(String baseFeatureUrl) {
+        this.baseFeatureUrl = baseFeatureUrl;
+    }
+
+    public String getBaseHotfixUrl() {
+        return baseHotfixUrl;
+    }
+
+    public void setBaseHotfixUrl(String baseHotfixUrl) {
+        this.baseHotfixUrl = baseHotfixUrl;
     }
 }

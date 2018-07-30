@@ -52,6 +52,11 @@ public class SProject implements Serializable {
     public static final String COLUMN_DEPLOY_CONFIG = "deploy_config";
 
     /**
+     * fullPath对应表字段
+     */
+    public static final String COLUMN_FULL_PATH = "full_path";
+
+    /**
      * guid逻辑名
      */
     public static final String NAME_GUID = "数据id";
@@ -70,6 +75,11 @@ public class SProject implements Serializable {
      * deployConfig逻辑名
      */
     public static final String NAME_DEPLOY_CONFIG = "部署配置";
+
+    /**
+     * fullPath逻辑名
+     */
+    public static final String NAME_FULL_PATH = "全路径";
 
     /**
      * 数据id:唯一标示某条数据（自增长）
@@ -94,6 +104,11 @@ public class SProject implements Serializable {
      * 用json的方式存储，前端解析后，提供多选
      */
     private String deployConfig;
+
+    /**
+     * 全路径
+     */
+    private String fullPath;
 
 }
 

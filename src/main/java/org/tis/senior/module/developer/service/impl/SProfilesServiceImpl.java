@@ -7,29 +7,25 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.tis.senior.module.core.config.SvnProperties;
 import org.tis.senior.module.developer.controller.request.ProfileAddAndUpdateRequest;
 import org.tis.senior.module.developer.controller.request.ProfileAndBranchAddRequest;
 import org.tis.senior.module.developer.dao.SProfilesMapper;
-import org.tis.senior.module.developer.entity.SBranch;
-import org.tis.senior.module.developer.entity.SBranchMapping;
-import org.tis.senior.module.developer.entity.SDelivery;
-import org.tis.senior.module.developer.entity.SProfiles;
+import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.*;
 import org.tis.senior.module.developer.entity.vo.PackTimeDetail;
 import org.tis.senior.module.developer.entity.vo.ProfileBranchDetail;
+import org.tis.senior.module.developer.entity.vo.ProjectDetail;
 import org.tis.senior.module.developer.entity.vo.SProfileDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
-import org.tis.senior.module.developer.service.ISBranchMappingService;
-import org.tis.senior.module.developer.service.ISBranchService;
-import org.tis.senior.module.developer.service.ISDeliveryService;
-import org.tis.senior.module.developer.service.ISProfilesService;
+import org.tis.senior.module.developer.service.*;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * sProfiles的Service接口实现类
@@ -51,6 +47,15 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
 
     @Autowired
     private ISDeliveryService deliveryService;
+
+    @Autowired
+    private ISSvnKitService svnKitService;
+
+    @Autowired
+    private ISProjectService projectService;
+
+    @Autowired
+    private SvnProperties svnProperties;
 
     @Override
     public List<SProfiles> selectProfilesAll() {
@@ -334,7 +339,83 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         return sProfileDetails;
     }
 
+    @Override
+    public void insertBranch(String guid, SBranch branch) throws SVNException {
+        SProfiles profiles = selectById(guid);
+        if (profiles == null) {
+            throw new DeveloperException(guid + "对应环境已删除或不存在！");
+        }
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper
+                .eq(SBranchMapping.COLUMN_GUID_OF_WHATS, guid)
+                .eq(SBranchMapping.COLUMN_FOR_WHAT, branch.getBranchType());
+        List<SBranchMapping> branchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+        if (!CollectionUtils.isEmpty(branchMappings)) {
+            throw new DeveloperException("该环境已经关联分支，不能重复添加！");
+        }
+        String message = String.format("[artf%s]:建分支", profiles.getArtf());
+        long revision = svnKitService.doMkDir(branch.getFullPath(), message);
+        try {
+            branch.setCurrVersion((int) revision);
+            branch.setLastVersion((int) revision);
+            branchService.insert(branch);
+            SBranchMapping sBranchMapping = new SBranchMapping();
+            sBranchMapping.setAllotTime(new Date());
+            sBranchMapping.setForWhat(BranchForWhat.RELEASE);
+            sBranchMapping.setStatus(BranchMappingStatus.TAKE);
+            sBranchMapping.setGuidBranch(branch.getGuid());
+            sBranchMapping.setGuidOfWhats(Integer.valueOf(guid));
+            branchMappingService.insert(sBranchMapping);
+        } catch (Exception e) {
+            svnKitService.doDelete(branch.getFullPath(), message + "异常回滚！");
+            throw e;
+        }
+    }
 
+    @Override
+    public void insertProjects(String guid, List<String> projectGuids) throws SVNException {
+        SProfiles profiles = selectById(guid);
+        if (profiles == null) {
+            throw new DeveloperException(guid + "对应环境已删除或不存在！");
+        }
+        List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.WORKITEM, Collections.singletonList(guid));
+        if (CollectionUtils.isEmpty(maps)) {
+            throw new DeveloperException(guid + "对应环境没有关联分支");
+        }
+        String destUrl = maps.get(0).get(SBranch.COLUMN_FULL_PATH).toString();
 
+        EntityWrapper<SProject> wrapper = new EntityWrapper<>();
+        wrapper.in(SProject.COLUMN_GUID, projectGuids);
+        List<SProject> sProjects = projectService.selectList(wrapper);
+        String[] sourceUrls = new String[sProjects.size()];
+        for (int i = 0; i < sProjects.size(); i++) {
+            if (!projectGuids.contains(sProjects.get(i).getGuid().toString())) {
+                throw new DeveloperException(guid + "对应工程已删除或不存在！");
+            }
+            sourceUrls[i] = sProjects.get(i).getFullPath();
+        }
+        String message = String.format("[artf%s]:拉工程", profiles.getArtf());
+        svnKitService.doCopy(sourceUrls, destUrl, message);
+    }
+
+    @Override
+    public ProjectDetail selectProjects(String guid) throws SVNException {
+        SProfiles profiles = selectById(guid);
+        if (profiles == null) {
+            throw new DeveloperException(guid + "对应环境已删除或不存在！");
+        }
+        List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.WORKITEM, Collections.singletonList(guid));
+        if (CollectionUtils.isEmpty(maps)) {
+            throw new DeveloperException(guid + "对应环境没有关联分支");
+        }
+        List<String> dir = svnKitService.getDir(maps.get(0).get(SBranch.COLUMN_FULL_PATH).toString());
+        List<SProject> sProjects = projectService.selectProjectAll();
+        Map<Boolean, List<SProject>> collect = sProjects.stream()
+                .collect(Collectors.groupingBy(p -> dir.contains(p.getProjectName())));
+        ProjectDetail projectDetail = new ProjectDetail();
+        projectDetail.setOwn(collect.get(true));
+        projectDetail.setOwn(collect.get(false));
+        return projectDetail;
+    }
 }
 

@@ -47,6 +47,11 @@ public class SProfiles implements Serializable {
     public static final String COLUMN_PROFILES_NAME = "profiles_name";
 
     /**
+     * artf对应表字段
+     */
+    public static final String COLUMN_ARTF = "artf";
+
+    /**
      * hostIp对应表字段
      */
     public static final String COLUMN_HOST_IP = "host_ip";
@@ -95,6 +100,11 @@ public class SProfiles implements Serializable {
      * profilesName逻辑名
      */
     public static final String NAME_PROFILES_NAME = "环境名称";
+
+    /**
+     * artf逻辑名
+     */
+    public static final String NAME_ARTF = "提交标识";
 
     /**
      * hostIp逻辑名
@@ -147,6 +157,11 @@ public class SProfiles implements Serializable {
      */
     @TableField(condition = SqlCondition.LIKE)
     private String profilesName;
+
+    /**
+     * 提交标识
+     */
+    private String artf;
 
     /**
      * 主机ip:环境对应的服务器IP地址

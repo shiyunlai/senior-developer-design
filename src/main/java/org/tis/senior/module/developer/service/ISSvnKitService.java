@@ -47,4 +47,36 @@ public interface ISSvnKitService {
      */
     int getLastRevision(String url) throws SVNException;
 
+    /**
+     * 新建目录
+     * @param url 分支路径
+     * @param commitMessage 提交注释
+     * @return 分支版本号
+     */
+    long doMkDir(String url, String commitMessage) throws SVNException;
+
+    /**
+     * 删除分支
+     * @param url 分支路径
+     * @param commitMessage 提交注释
+     * @return 分支版本号
+     */
+    long doDelete(String url, String commitMessage) throws SVNException;
+
+    /**
+     * 复制分支
+     * @param sourceUrls 源路径数组
+     * @param destUrl 目标路径
+     * @param commitMessage 提交注释
+     * @throws SVNException
+     */
+    void doCopy(String[] sourceUrls, String destUrl, String commitMessage) throws SVNException;
+
+    /**
+     * 获取目录
+     * @param url
+     * @return
+     * @throws SVNException
+     */
+    List<String> getDir(String url) throws SVNException;
 }

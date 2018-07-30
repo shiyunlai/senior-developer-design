@@ -36,6 +36,8 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
 
     private ISVNAuthenticationManager svnAuthenticationManager;
 
+    private SVNClientManager svnClientManager;
+
     /**
      * 获取svn的提交历史记录
      *
@@ -167,12 +169,55 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
         return list;
     }
 
+    @Override
+    public long doMkDir(String url, String commitMessage) throws SVNException {
+        SVNURL svnurl = SVNURL.parseURIEncoded(url);
+        SVNCommitInfo info = this.svnClientManager.getCommitClient().doMkDir(new SVNURL[]{svnurl}, commitMessage);
+        return info.getNewRevision();
+    }
+
+    @Override
+    public long doDelete(String url, String commitMessage) throws SVNException {
+        SVNURL svnurl = SVNURL.parseURIEncoded(url);
+        SVNCommitInfo info = this.svnClientManager.getCommitClient().doDelete(new SVNURL[]{svnurl}, commitMessage);
+        return info.getNewRevision();
+    }
+
+    @Override
+    public void doCopy(String[] sourceUrls, String destUrl, String commitMessage) throws SVNException {
+        SVNCopyClient svnCopyClient = this.svnClientManager.getCopyClient();
+        SVNCopySource[] copySources = new SVNCopySource[sourceUrls.length];
+        for (int i = 0; i < sourceUrls.length; i++) {
+            copySources[i] = new SVNCopySource(SVNRevision.HEAD, SVNRevision.HEAD, SVNURL.parseURIEncoded(sourceUrls[i]));
+        }
+        svnCopyClient.doCopy(copySources, SVNURL.parseURIEncoded(destUrl), false, false,
+                true, commitMessage, null);
+
+    }
+
+    @Override
+    public List<String> getDir(String url) throws SVNException {
+        List<String> list = new ArrayList<>();
+        SVNRepository repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(url));
+        repository.setAuthenticationManager(this.svnAuthenticationManager);
+        Collection entries = repository.getDir("", -1, null, (Collection) null);
+        for (Object o : entries) {
+            SVNDirEntry entry = (SVNDirEntry) o;
+            if (entry.getKind() == SVNNodeKind.DIR) {
+                list.add(entry.getName());
+            }
+        }
+        return list;
+    }
+
     @PostConstruct
     private void svnAuthenticationManagerInit() {
         setupLibrary();
         this.svnAuthenticationManager = SVNWCUtil.createDefaultAuthenticationManager(
-                svnProperties.getUserName(), svnProperties.getPassword().toCharArray()
+                svnProperties.getUsername(), svnProperties.getPassword().toCharArray()
         );
+        this.svnClientManager = SVNClientManager.newInstance(SVNWCUtil.createDefaultOptions(true),
+                this.svnAuthenticationManager);
     }
 
 
@@ -235,4 +280,5 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
 
         FSRepositoryFactory.setup();
     }
+
 }
