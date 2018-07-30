@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.tis.senior.module.core.config.SvnProperties;
 import org.tis.senior.module.developer.controller.request.ProfileAddAndUpdateRequest;
 import org.tis.senior.module.developer.controller.request.ProfileAndBranchAddRequest;
 import org.tis.senior.module.developer.dao.SProfilesMapper;
@@ -52,6 +53,9 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
 
     @Autowired
     private ISProjectService projectService;
+
+    @Autowired
+    private SvnProperties svnProperties;
 
     @Override
     public List<SProfiles> selectProfilesAll() {
@@ -336,7 +340,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
     }
 
     @Override
-    public void insertBranch(String guid, String message, SBranch branch) throws SVNException {
+    public void insertBranch(String guid, SBranch branch) throws SVNException {
         SProfiles profiles = selectById(guid);
         if (profiles == null) {
             throw new DeveloperException(guid + "对应环境已删除或不存在！");
@@ -347,8 +351,9 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
                 .eq(SBranchMapping.COLUMN_FOR_WHAT, branch.getBranchType());
         List<SBranchMapping> branchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
         if (!CollectionUtils.isEmpty(branchMappings)) {
-            throw new DeveloperException("该工环境已经关联分支，不能重复添加！");
+            throw new DeveloperException("该环境已经关联分支，不能重复添加！");
         }
+        String message = String.format("[artf%s]:建分支", profiles.getArtf());
         long revision = svnKitService.doMkDir(branch.getFullPath(), message);
         try {
             branch.setCurrVersion((int) revision);
@@ -368,7 +373,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
     }
 
     @Override
-    public void insertProjects(String guid, String message, List<String> projectGuids) throws SVNException {
+    public void insertProjects(String guid, List<String> projectGuids) throws SVNException {
         SProfiles profiles = selectById(guid);
         if (profiles == null) {
             throw new DeveloperException(guid + "对应环境已删除或不存在！");
@@ -389,6 +394,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
             }
             sourceUrls[i] = sProjects.get(i).getFullPath();
         }
+        String message = String.format("[artf%s]:拉工程", profiles.getArtf());
         svnKitService.doCopy(sourceUrls, destUrl, message);
     }
 

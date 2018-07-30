@@ -23,6 +23,17 @@ public class SvnProperties {
      */
     private String password;
 
+    /**
+     * feature分支base路径
+     */
+    private String baseFeatureUrl;
+
+    /**
+     * hotfix分支base路径
+     */
+    private String baseHotfixUrl;
+
+
     public String getUsername() {
         return username;
     }
@@ -37,5 +48,21 @@ public class SvnProperties {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getBaseFeatureUrl() {
+        return baseFeatureUrl;
+    }
+
+    public void setBaseFeatureUrl(String baseFeatureUrl) {
+        this.baseFeatureUrl = baseFeatureUrl;
+    }
+
+    public String getBaseHotfixUrl() {
+        return baseHotfixUrl;
+    }
+
+    public void setBaseHotfixUrl(String baseHotfixUrl) {
+        this.baseHotfixUrl = baseHotfixUrl;
     }
 }

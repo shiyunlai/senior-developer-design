@@ -16,8 +16,8 @@ public enum BranchType implements BaseEnum {
      * H hot分支，修复生产bug，或开发紧急投产内容的分支
      * R release分支
      */
-    FEATURE("F", "特性"),
-    HOT("H", "hot"),
+    FEATURE("F", "feature"),
+    HOT("H", "hotfix"),
     RELEASE("R", "release");
 
     private final String value;

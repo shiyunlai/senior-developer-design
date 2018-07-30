@@ -107,17 +107,20 @@ public interface ISProfilesService extends IService<SProfiles>  {
      */
     List<SProfileDetail> profileAllPackTimeVerify() throws ParseException;
 
-
-    void insertBranch(String guid, String message, SBranch sBranch) throws SVNException;
-
+    /**
+     * 建分支
+     * @param guid
+     * @param sBranch
+     * @throws SVNException
+     */
+    void insertBranch(String guid, SBranch sBranch) throws SVNException;
 
     /**
      * 为环境拉工程
      * @param guid
-     * @param message
      * @param projectGuids
      */
-    void insertProjects(String guid, String message, List<String> projectGuids) throws SVNException;
+    void insertProjects(String guid, List<String> projectGuids) throws SVNException;
 
     /**
      * 获取环境的工程详情

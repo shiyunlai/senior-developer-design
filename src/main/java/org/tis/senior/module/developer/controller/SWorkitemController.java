@@ -192,17 +192,11 @@ public class SWorkitemController extends BaseController<SWorkitem> {
             throw new DeveloperException("工作项不能创建RELEASE分支！");
         }
         SBranch sBranch = new SBranch();
-        String fullPath = request.getFullPath().trim();
-        if (fullPath.endsWith("/")) {
-            sBranch.setFullPath(fullPath.substring(0, fullPath.length() - 1));
-        }else{
-            sBranch.setFullPath(fullPath);
-        }
         sBranch.setBranchFor(request.getBranchFor());
         sBranch.setBranchType(request.getBranchType());
         sBranch.setCreater(getUser().getUserId());
         sBranch.setCreateTime(new Date());
-        sWorkitemService.insertBranch(guid, request.getMessage(), sBranch);
+        sWorkitemService.insertBranch(guid, sBranch);
         return ResultVO.success("新增工作项分支成功！");
     }
 

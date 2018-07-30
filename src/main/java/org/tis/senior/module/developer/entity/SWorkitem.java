@@ -49,6 +49,11 @@ public class SWorkitem implements Serializable {
     public static final String COLUMN_SEQNO = "seqno";
 
     /**
+     * artf对应表字段
+     */
+    public static final String COLUMN_ARTF = "artf";
+
+    /**
      * developers对应表字段
      */
     public static final String COLUMN_DEVELOPERS = "developers";
@@ -102,6 +107,11 @@ public class SWorkitem implements Serializable {
      * seqno逻辑名
      */
     public static final String NAME_SEQNO = "需求编号";
+
+    /**
+     * artf逻辑名
+     */
+    public static final String NAME_ARTF = "提交标识";
 
     /**
      * developers逻辑名
@@ -160,6 +170,11 @@ public class SWorkitem implements Serializable {
      */
     @TableField(condition = SqlCondition.LIKE)
     private String seqno;
+
+    /**
+     * 提交标识
+     */
+    private String artf;
 
     /**
      * 开发人员:一个工作项可有多个开发人员

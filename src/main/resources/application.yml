@@ -9,8 +9,10 @@ tis:
   shiro:
     enable: true
   svn:
-    userName: admin
+    username: admin
     password: administrator
+    base-feature-url: http://10.232.84.99/svn/repos/tip/development/branches/Feature/Feature_
+    base-hotfix-url: http://10.232.84.99/svn/repos/tip/development/branches/Hotfix/Hotfix_
 
 # :::::: spring ::::::
 

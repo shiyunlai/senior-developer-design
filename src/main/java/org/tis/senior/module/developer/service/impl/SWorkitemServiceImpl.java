@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.tis.senior.module.core.config.SvnProperties;
 import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRequest;
 import org.tis.senior.module.developer.controller.request.WorkitemAndBranchAddRequest;
 import org.tis.senior.module.developer.controller.request.WorkitemBranchDetailRequest;
@@ -20,6 +21,7 @@ import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
 import org.tmatesoft.svn.core.SVNException;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,6 +49,9 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
 
     @Autowired
     private ISProjectService projectService;
+
+    @Autowired
+    private SvnProperties svnProperties;
 
     private Map<String, SWorkitem> workitems = new HashMap<>();
 
@@ -282,8 +287,7 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
     }
 
     @Override
-    public void insertBranch(String guid, String message, SBranch branch)
-            throws SVNException {
+    public void insertBranch(String guid, SBranch branch) throws SVNException {
         SWorkitem sWorkitem = selectById(guid);
         if (sWorkitem == null) {
             throw new DeveloperException(guid + "对应工作项已删除或不存在！");
@@ -296,6 +300,10 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         if (!CollectionUtils.isEmpty(branchMappings)) {
             throw new DeveloperException("该工作项已经关联分支，不能重复添加！");
         }
+        String message = String.format("[artf%s]:建分支", sWorkitem.getArtf());
+        String fullPath = (branch.getBranchType().equals(BranchType.FEATURE) ? svnProperties.getBaseFeatureUrl()
+                : svnProperties.getBaseHotfixUrl()) + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        branch.setFullPath(fullPath);
         long revision = svnKitService.doMkDir(branch.getFullPath(), message);
         try {
             branch.setCurrVersion((int) revision);
@@ -315,7 +323,7 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
     }
 
     @Override
-    public void insertProjects(String guid, String message, List<String> projectGuids) throws SVNException {
+    public void insertProjects(String guid, List<String> projectGuids) throws SVNException {
         SWorkitem sWorkitem = selectById(guid);
         if (sWorkitem == null) {
             throw new DeveloperException(guid + "对应工作项已删除或不存在！");
@@ -325,7 +333,6 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
             throw new DeveloperException(guid + "对应工作项没有关联分支");
         }
         String destUrl = maps.get(0).get(SBranch.COLUMN_FULL_PATH).toString();
-
         EntityWrapper<SProject> wrapper = new EntityWrapper<>();
         wrapper.in(SProject.COLUMN_GUID, projectGuids);
         List<SProject> sProjects = projectService.selectList(wrapper);
@@ -336,6 +343,7 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
             }
             sourceUrls[i] = sProjects.get(i).getFullPath();
         }
+        String message = String.format("[artf%s]:拉工程", sWorkitem.getArtf());
         svnKitService.doCopy(sourceUrls, destUrl, message);
     }
 
