@@ -97,8 +97,8 @@ public class ShiroConfig {
     @Bean
     public MySessionManager sessionManager() {
         MySessionManager sessionManager = new MySessionManager();
-        // 设置全局会话超时时间，默认30分钟，即如果30分钟内没有访问会话将过期 1800000
-        sessionManager.setGlobalSessionTimeout(1800000);
+        // 设置全局会话超时时间，默认30分钟，即如果30 * 4 分钟内没有访问会话将过期 1000 * 60 * 30 * 4 = 7200000
+        sessionManager.setGlobalSessionTimeout(7200000);
         // 删除失效的session
         sessionManager.setDeleteInvalidSessions(true);
         // 是否开启会话验证器，默认是开启的
