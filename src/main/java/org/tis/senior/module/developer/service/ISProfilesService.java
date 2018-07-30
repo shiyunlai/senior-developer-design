@@ -9,7 +9,9 @@ import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SProfiles;
 import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
 import org.tis.senior.module.developer.entity.vo.ProfileBranchDetail;
+import org.tis.senior.module.developer.entity.vo.ProjectDetail;
 import org.tis.senior.module.developer.entity.vo.SProfileDetail;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.text.ParseException;
 import java.util.List;
@@ -106,5 +108,22 @@ public interface ISProfilesService extends IService<SProfiles>  {
     List<SProfileDetail> profileAllPackTimeVerify() throws ParseException;
 
 
+    void insertBranch(String guid, String message, SBranch sBranch) throws SVNException;
+
+
+    /**
+     * 为环境拉工程
+     * @param guid
+     * @param message
+     * @param projectGuids
+     */
+    void insertProjects(String guid, String message, List<String> projectGuids) throws SVNException;
+
+    /**
+     * 获取环境的工程详情
+     * @param guid
+     * @return
+     */
+    ProjectDetail selectProjects(String guid) throws SVNException;
 }
 

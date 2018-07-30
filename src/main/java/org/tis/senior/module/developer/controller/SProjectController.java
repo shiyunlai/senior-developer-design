@@ -1,16 +1,13 @@
 package org.tis.senior.module.developer.controller;
 
 import org.springframework.beans.BeanUtils;
-import org.tis.senior.module.core.web.vo.ResultVO;
-import org.springframework.validation.annotation.Validated;
-import org.tis.senior.module.core.web.vo.SmartPage;
-import org.tis.senior.module.core.web.controller.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.hibernate.validator.constraints.NotBlank;
-import org.tis.senior.module.developer.controller.request.BranchAddAndUpdateRequest;
+import org.tis.senior.module.core.web.controller.BaseController;
+import org.tis.senior.module.core.web.vo.ResultVO;
+import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.ProjectAddAndUpdateRequest;
-import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SProject;
 import org.tis.senior.module.developer.service.ISProjectService;
 
@@ -64,9 +61,7 @@ public class SProjectController extends BaseController<SProject>  {
     
     @PostMapping("/list")
     public ResultVO list(@RequestBody @Validated SmartPage<SProject> page) {
-
         return  ResultVO.success("查询成功", sProjectService.selectPage(getPage(page), getCondition(page)));
-
     }
     
 }

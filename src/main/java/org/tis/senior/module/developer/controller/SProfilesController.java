@@ -1,6 +1,9 @@
 package org.tis.senior.module.developer.controller;
 
+import com.alibaba.fastjson.support.spring.annotation.FastJsonFilter;
+import com.alibaba.fastjson.support.spring.annotation.FastJsonView;
 import com.baomidou.mybatisplus.plugins.Page;
+import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -9,15 +12,23 @@ import org.tis.senior.module.core.web.controller.BaseController;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.core.web.vo.SmartPage;
 import org.tis.senior.module.developer.controller.request.ProfileAddAndUpdateRequest;
+import org.tis.senior.module.developer.controller.request.ProfileAddBranchRequest;
 import org.tis.senior.module.developer.controller.request.ProfileUpdateStatusRequest;
+import org.tis.senior.module.developer.controller.request.WorkItemAddProjectRequest;
+import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SProfiles;
+import org.tis.senior.module.developer.entity.SProject;
+import org.tis.senior.module.developer.entity.enums.BranchType;
 import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
 import org.tis.senior.module.developer.entity.vo.ProfileBranchDetail;
+import org.tis.senior.module.developer.entity.vo.ProjectDetail;
 import org.tis.senior.module.developer.service.ISProfilesService;
+import org.tmatesoft.svn.core.SVNException;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.groups.Default;
 import java.text.ParseException;
+import java.util.Date;
 
 /**
  * sProfiles的Controller类
@@ -155,6 +166,57 @@ public class SProfilesController extends BaseController<SProfiles>  {
     public ResultVO packTimeVerify() throws ParseException {
 
         return ResultVO.success("查询成功",sProfilesService.profileAllPackTimeVerify());
+    }
+
+    /**
+     * 新增环境分支
+     * @param guid
+     * @param request
+     * @return
+     * @throws SVNException
+     */
+    @PostMapping("/{guid}/branch")
+    public ResultVO addBranch(@PathVariable @NotBlank(message = "环境id不能为空") String guid,
+                              @RequestBody @Validated ProfileAddBranchRequest request) throws SVNException {
+        SBranch sBranch = new SBranch();
+        String fullPath = request.getFullPath().trim();
+        if (fullPath.endsWith("/")) {
+            sBranch.setFullPath(fullPath.substring(0, fullPath.length() - 1));
+        }else{
+            sBranch.setFullPath(fullPath);
+        }
+        sBranch.setBranchFor(request.getBranchFor());
+        sBranch.setBranchType(BranchType.RELEASE);
+        sBranch.setCreater(getUser().getUserId());
+        sBranch.setCreateTime(new Date());
+        sProfilesService.insertBranch(guid, request.getMessage(), sBranch);
+        return ResultVO.success("新增环境分支成功！");
+    }
+
+    /**
+     * 获取环境的工程详情
+     * @param guid
+     * @return
+     */
+    @FastJsonView(exclude = {@FastJsonFilter(clazz = SProject.class, props = {"deployConfig"})})
+    @GetMapping("/{guid}/project")
+    public ResultVO selectProject(@PathVariable @NotBlank(message = "工作项id不能为空") String guid) throws SVNException {
+        ProjectDetail result = sProfilesService.selectProjects(guid);
+        return ResultVO.success("查询成功！", result);
+    }
+
+    /**
+     * 拉工程
+     * @param guid
+     * @param request
+     * @return
+     * @throws SVNException
+     */
+    @PostMapping("/{guid}/project")
+    public ResultVO addProject(@PathVariable @NotBlank(message = "工作项id不能为空") String guid,
+                               @RequestBody @Validated WorkItemAddProjectRequest request) throws SVNException {
+        sProfilesService.insertProjects(guid, request.getMessage(), request.getProjectGuids());
+        return ResultVO.success("拉取工程成功！");
     }
 }
 

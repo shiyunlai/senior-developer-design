@@ -13,16 +13,22 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "tis.svn")
 public class SvnProperties {
 
-    private String userName;
+    /**
+     * SVN用户账号
+     */
+    private String username;
 
+    /**
+     * SVN用户密码
+     */
     private String password;
 
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {

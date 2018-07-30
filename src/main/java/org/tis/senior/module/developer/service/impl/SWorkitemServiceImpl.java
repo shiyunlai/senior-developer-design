@@ -7,23 +7,21 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRequest;
 import org.tis.senior.module.developer.controller.request.WorkitemAndBranchAddRequest;
 import org.tis.senior.module.developer.controller.request.WorkitemBranchDetailRequest;
 import org.tis.senior.module.developer.dao.SWorkitemMapper;
-import org.tis.senior.module.developer.entity.SBranch;
-import org.tis.senior.module.developer.entity.SBranchMapping;
-import org.tis.senior.module.developer.entity.SDelivery;
-import org.tis.senior.module.developer.entity.SWorkitem;
+import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.*;
+import org.tis.senior.module.developer.entity.vo.ProjectDetail;
 import org.tis.senior.module.developer.entity.vo.WorkitemBranchDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
-import org.tis.senior.module.developer.service.ISBranchMappingService;
-import org.tis.senior.module.developer.service.ISBranchService;
-import org.tis.senior.module.developer.service.ISDeliveryService;
-import org.tis.senior.module.developer.service.ISWorkitemService;
+import org.tis.senior.module.developer.service.*;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * sWorkitem的Service接口实现类
@@ -43,6 +41,12 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
 
     @Autowired
     private ISDeliveryService deliveryService;
+
+    @Autowired
+    private ISSvnKitService svnKitService;
+
+    @Autowired
+    private ISProjectService projectService;
 
     private Map<String, SWorkitem> workitems = new HashMap<>();
 
@@ -277,6 +281,82 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         updateById(sWorkitem);
     }
 
+    @Override
+    public void insertBranch(String guid, String message, SBranch branch)
+            throws SVNException {
+        SWorkitem sWorkitem = selectById(guid);
+        if (sWorkitem == null) {
+            throw new DeveloperException(guid + "对应工作项已删除或不存在！");
+        }
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper
+                .eq(SBranchMapping.COLUMN_GUID_OF_WHATS, guid)
+                .eq(SBranchMapping.COLUMN_FOR_WHAT, branch.getBranchType());
+        List<SBranchMapping> branchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+        if (!CollectionUtils.isEmpty(branchMappings)) {
+            throw new DeveloperException("该工作项已经关联分支，不能重复添加！");
+        }
+        long revision = svnKitService.doMkDir(branch.getFullPath(), message);
+        try {
+            branch.setCurrVersion((int) revision);
+            branch.setLastVersion((int) revision);
+            branchService.insert(branch);
+            SBranchMapping sBranchMapping = new SBranchMapping();
+            sBranchMapping.setAllotTime(new Date());
+            sBranchMapping.setForWhat(BranchForWhat.WORKITEM);
+            sBranchMapping.setStatus(BranchMappingStatus.TAKE);
+            sBranchMapping.setGuidBranch(branch.getGuid());
+            sBranchMapping.setGuidOfWhats(Integer.valueOf(guid));
+            branchMappingService.insert(sBranchMapping);
+        } catch (Exception e) {
+            svnKitService.doDelete(branch.getFullPath(), message + "异常回滚！");
+            throw e;
+        }
+    }
 
+    @Override
+    public void insertProjects(String guid, String message, List<String> projectGuids) throws SVNException {
+        SWorkitem sWorkitem = selectById(guid);
+        if (sWorkitem == null) {
+            throw new DeveloperException(guid + "对应工作项已删除或不存在！");
+        }
+        List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.WORKITEM, Collections.singletonList(guid));
+        if (CollectionUtils.isEmpty(maps)) {
+            throw new DeveloperException(guid + "对应工作项没有关联分支");
+        }
+        String destUrl = maps.get(0).get(SBranch.COLUMN_FULL_PATH).toString();
+
+        EntityWrapper<SProject> wrapper = new EntityWrapper<>();
+        wrapper.in(SProject.COLUMN_GUID, projectGuids);
+        List<SProject> sProjects = projectService.selectList(wrapper);
+        String[] sourceUrls = new String[sProjects.size()];
+        for (int i = 0; i < sProjects.size(); i++) {
+            if (!projectGuids.contains(sProjects.get(i).getGuid().toString())) {
+                throw new DeveloperException(guid + "对应工程已删除或不存在！");
+            }
+            sourceUrls[i] = sProjects.get(i).getFullPath();
+        }
+        svnKitService.doCopy(sourceUrls, destUrl, message);
+    }
+
+    @Override
+    public ProjectDetail selectProjects(String guid) throws SVNException {
+        SWorkitem sWorkitem = selectById(guid);
+        if (sWorkitem == null) {
+            throw new DeveloperException(guid + "对应工作项已删除或不存在！");
+        }
+        List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.WORKITEM, Collections.singletonList(guid));
+        if (CollectionUtils.isEmpty(maps)) {
+            throw new DeveloperException(guid + "对应工作项没有关联分支");
+        }
+        List<String> dir = svnKitService.getDir(maps.get(0).get(SBranch.COLUMN_FULL_PATH).toString());
+        List<SProject> sProjects = projectService.selectProjectAll();
+        Map<Boolean, List<SProject>> collect = sProjects.stream()
+                .collect(Collectors.groupingBy(p -> dir.contains(p.getProjectName())));
+        ProjectDetail projectDetail = new ProjectDetail();
+        projectDetail.setOwn(collect.get(true));
+        projectDetail.setOwn(collect.get(false));
+        return projectDetail;
+    }
 }
 

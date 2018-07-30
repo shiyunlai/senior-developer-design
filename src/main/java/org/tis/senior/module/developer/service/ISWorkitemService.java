@@ -8,7 +8,9 @@ import org.tis.senior.module.developer.controller.request.WorkitemAndBranchAddRe
 import org.tis.senior.module.developer.controller.request.WorkitemBranchDetailRequest;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SWorkitem;
+import org.tis.senior.module.developer.entity.vo.ProjectDetail;
 import org.tis.senior.module.developer.entity.vo.WorkitemBranchDetail;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.util.List;
 
@@ -99,5 +101,27 @@ public interface ISWorkitemService extends IService<SWorkitem>  {
      * @param guidWorkitem
      */
     void updateStatusPutProduct(Integer guidWorkitem);
+
+    /**
+     * 为工作项添加分支
+     * @param guid
+     * @param branch
+     */
+    void insertBranch(String guid, String message, SBranch branch) throws SVNException;
+
+    /**
+     * 为工作项拉工程
+     * @param guid
+     * @param message
+     * @param projectGuids
+     */
+    void insertProjects(String guid, String message, List<String> projectGuids) throws SVNException;
+
+    /**
+     * 获取工作项的工程详情
+     * @param guid
+     * @return
+     */
+    ProjectDetail selectProjects(String guid) throws SVNException;
 }
 
