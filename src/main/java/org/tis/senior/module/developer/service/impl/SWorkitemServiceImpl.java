@@ -362,8 +362,8 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         Map<Boolean, List<SProject>> collect = sProjects.stream()
                 .collect(Collectors.groupingBy(p -> dir.contains(p.getProjectName())));
         ProjectDetail projectDetail = new ProjectDetail();
-        projectDetail.setOwn(collect.get(true));
-        projectDetail.setOthers(collect.get(false));
+        projectDetail.setOwn(collect.get(true) != null ? collect.get(true) : Collections.EMPTY_LIST);
+        projectDetail.setOthers(collect.get(false) != null ? collect.get(false) : Collections.EMPTY_LIST);
         return projectDetail;
     }
 }
