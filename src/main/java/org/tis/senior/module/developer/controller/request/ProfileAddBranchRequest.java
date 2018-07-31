@@ -2,7 +2,6 @@ package org.tis.senior.module.developer.controller.request;
 
 import lombok.Data;
 import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.URL;
 import org.tis.senior.module.core.entity.request.RestRequest;
 
 /**
@@ -14,7 +13,6 @@ import org.tis.senior.module.core.entity.request.RestRequest;
 @Data
 public class ProfileAddBranchRequest extends RestRequest {
 
-    @URL(message = "URL不合法！")
     @NotBlank(message = "分支路径不能为空！")
     private String fullPath;
 
