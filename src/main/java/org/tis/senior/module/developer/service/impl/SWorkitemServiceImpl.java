@@ -363,7 +363,7 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
                 .collect(Collectors.groupingBy(p -> dir.contains(p.getProjectName())));
         ProjectDetail projectDetail = new ProjectDetail();
         projectDetail.setOwn(collect.get(true));
-        projectDetail.setOwn(collect.get(false));
+        projectDetail.setOthers(collect.get(false));
         return projectDetail;
     }
 }
