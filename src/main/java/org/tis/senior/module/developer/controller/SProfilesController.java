@@ -3,6 +3,7 @@ package org.tis.senior.module.developer.controller;
 import com.alibaba.fastjson.support.spring.annotation.FastJsonFilter;
 import com.alibaba.fastjson.support.spring.annotation.FastJsonView;
 import com.baomidou.mybatisplus.plugins.Page;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,6 +177,7 @@ public class SProfilesController extends BaseController<SProfiles>  {
      * @throws SVNException
      */
     @PostMapping("/{guid}/branch")
+    @RequiresRoles("rct")
     public ResultVO addBranch(@PathVariable @NotBlank(message = "环境id不能为空") String guid,
                               @RequestBody @Validated ProfileAddBranchRequest request) throws SVNException {
         SBranch sBranch = new SBranch();
@@ -189,7 +191,7 @@ public class SProfilesController extends BaseController<SProfiles>  {
         sBranch.setBranchType(BranchType.RELEASE);
         sBranch.setCreater(getUser().getUserId());
         sBranch.setCreateTime(new Date());
-        sProfilesService.insertBranch(guid, request.getMessage(), sBranch);
+        sProfilesService.insertBranch(guid, sBranch);
         return ResultVO.success("新增环境分支成功！");
     }
 
@@ -213,9 +215,10 @@ public class SProfilesController extends BaseController<SProfiles>  {
      * @throws SVNException
      */
     @PostMapping("/{guid}/project")
+    @RequiresRoles("rct")
     public ResultVO addProject(@PathVariable @NotBlank(message = "工作项id不能为空") String guid,
                                @RequestBody @Validated WorkItemAddProjectRequest request) throws SVNException {
-        sProfilesService.insertProjects(guid, request.getMessage(), request.getProjectGuids());
+        sProfilesService.insertProjects(guid, request.getProjectGuids());
         return ResultVO.success("拉取工程成功！");
     }
 }
