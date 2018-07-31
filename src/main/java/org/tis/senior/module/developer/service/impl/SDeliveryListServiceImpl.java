@@ -16,6 +16,7 @@ import org.tis.senior.module.developer.controller.request.SDliveryAddRequest;
 import org.tis.senior.module.developer.dao.SDeliveryListMapper;
 import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.*;
+import org.tis.senior.module.developer.entity.vo.DeliveryListStashListDetail;
 import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.entity.vo.SvnFile;
 import org.tis.senior.module.developer.exception.DeveloperException;
@@ -66,15 +67,26 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
     @Autowired
     private ISCheckService checkService;
 
+    @Autowired
+    private ISStashListService stashListService;
+
     @Override
-    public List<DeliveryProjectDetail> assembleDelivery(String branchGuid){
+    public DeliveryListStashListDetail assembleDelivery(String branchGuid){
 
         SBranch branch = branchService.selectById(branchGuid);
         if (branch == null) {
             throw new DeveloperException("查询不到此分支！");
         }
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_BRANCH,branch.getGuid());
+        List<SBranchMapping> branchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(branchMappings.size() != 1){
+            throw new DeveloperException("查询不到此"+branchGuid+"关联的工作项！");
+        }
+        SWorkitem workitem = workitemService.selectById(branchMappings.get(0).getGuidOfWhats());
         //查询所有的工程
-        Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
+        List<SProject> projectList = projectService.selectProjectAll();
+        Map<String, SProject> projectMap = projectList.stream().
                 collect(Collectors.toMap(SProject::getProjectName, p -> p));
 
         List<SvnFile> svnCommits = null;
@@ -139,7 +151,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                         //解析json字符串获取导出类型和部署到那
                         JSONObject jsonObject = JSONObject.parseObject(object.toString());
                         String exportType = jsonObject.getString("exportType");
-                        String deployWhere = jsonObject.getString("deployType");
                         if (exportType.equals("ecd")) {
                             if (ecdSet.size() > 0) {
                                 for (String ecd : ecdSet) {
@@ -172,7 +183,104 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 sdList.add(sdl);
             });
         }
-        return DeliveryProjectDetail.getDeliveryDetail(sdList, projectService.selectProjectAll());
+        //保存需要删除的贮藏清单代码
+        List<SStashList> deletesStashList = new ArrayList<>();
+        //保存需要删除整理的清单代码
+        List<SDeliveryList> deleteDeliveryLists = new ArrayList<>();
+        //保存需要修改整理的清单代码
+        List<SDeliveryList> updateDeliveryLists = new ArrayList<>();
+
+        //查询贮藏清单列表
+        EntityWrapper<SStashList> stashListEntityWrapper = new EntityWrapper<>();
+        stashListEntityWrapper.eq(SStashList.COLUMN_GUID_WORKITEM, workitem.getGuid());
+        List<SStashList> sStashLists = stashListService.selectList(stashListEntityWrapper);
+
+        List<SDeliveryList> stashLists = new ArrayList<>();
+        if(sStashLists.size() > 0){
+            //遍历整理的清单代码
+            for (SDeliveryList deliveryList:sdList){
+                //遍历贮藏的清单代码
+                for(SStashList stashList:sStashLists){
+                    //判断贮藏清单和整理的清单的文件是否相同
+                    if((stashList.getFullPath()).equals(deliveryList.getFullPath())){
+                        //判断贮藏清单和整理的清单的文件提交类型是否相同
+                        if(!deliveryList.getCommitType().equals(stashList.getCommitType())){
+                            // 原-现—终 (修改类型的变化)
+                            // D  A  M
+                            // M  A  M 理论上不出现，如果发生抛出异常
+                            // A  D  X 移除
+                            // M  D  D
+                            // A  M  A 不处理
+                            // D  M  M 理论上不出现，如果发生抛出异常// D  A  M
+                            // A  A  A 不处理
+                            // M  M  M 不处理
+                            // D  D  D 不处理
+                            if(deliveryList.getCommitType().equals(CommitType.ADDED) &&
+                                    stashList.getCommitType().equals(CommitType.DELETED)){
+                                deliveryList.setCommitType(CommitType.MODIFIED);
+                                updateDeliveryLists.add(deliveryList);
+                            }else if(deliveryList.getCommitType().equals(CommitType.DELETED) &&
+                                    stashList.getCommitType().equals(CommitType.ADDED)){
+                                deleteDeliveryLists.add(deliveryList);
+                            }else if(deliveryList.getCommitType().equals(CommitType.MODIFIED) &&
+                                    stashList.getCommitType().equals(CommitType.ADDED)){
+                                deliveryList.setCommitType(CommitType.ADDED);
+                                updateDeliveryLists.add(deliveryList);
+                            }else if(deliveryList.getCommitType().equals(CommitType.DELETED) &&
+                                    stashList.getCommitType().equals(CommitType.MODIFIED)){
+
+                            } else {
+                                throw new DeveloperException("整理的清单与贮藏的清单提交类型不符合规则！");
+                            }
+                        }
+                        //保存与整理清单相同的文件
+                        deletesStashList.add(stashList);
+                        //跳出到本次循环的标识
+                        break;
+                    }
+                }
+            }
+            if(deletesStashList.size() > 0){
+                //移除贮藏与整理出的清单相同的文件
+                sStashLists.removeAll(deletesStashList);
+            }
+            if(sStashLists.size() > 0){
+                //将SStashList对象值copy到SDeliveryList对象中
+                sStashLists.forEach(stash ->{
+                    SDeliveryList delivery = new SDeliveryList();
+                    BeanUtils.copyProperties(stash,delivery);
+                    stashLists.add(delivery);
+                });
+            }
+
+        }
+        //移除相同文件：整理出的清单提交类型为删除，贮藏清单为新增的相同文件。
+        sdList.removeAll(deleteDeliveryLists);
+        List<SDeliveryList> deliveryLists = new ArrayList<>();
+        //遍历移除相同文件后的整理出的清单集合
+        for(SDeliveryList sd:sdList){
+            //遍历整理出的清单需要修改的文件
+            for(SDeliveryList sdl:updateDeliveryLists){
+                if(sdl.getFullPath().equals(sd.getFullPath())){
+                    sd.setCommitType(sdl.getCommitType());
+                    break;
+                }
+            }
+            deliveryLists.add(sd);
+        }
+        DeliveryListStashListDetail detail = new DeliveryListStashListDetail();
+
+        List<DeliveryProjectDetail> deliveryDetail = DeliveryProjectDetail.
+                        getDeliveryDetail(deliveryLists, projectList);
+        detail.setDeliveryDetail(deliveryDetail);
+        if(stashLists.size() > 0){
+            List<DeliveryProjectDetail> stashDetail = DeliveryProjectDetail.
+                    getDeliveryDetail(stashLists, projectList);
+            detail.setStashDetail(stashDetail);
+        }else{
+            detail.setStashDetail(null);
+        }
+        return detail;
     }
 
     @Override
@@ -236,7 +344,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             throw new DeveloperException("你选择的投放环境对应的打包窗口已完成投放，请选择其他时间投放！");
         }
 
-    //获取已成功合并的投放申请
+        //获取已成功合并的投放申请
         EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
         deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
         deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
@@ -378,6 +486,24 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             //将版本号
             branchService.recordBranchTempRevision(request.getGuidBranch());
         }
+
+        //先清除此工作项贮藏清单的所有内容
+        EntityWrapper<SStashList> stashListEntityWrapper = new EntityWrapper<>();
+        stashListEntityWrapper.eq(SStashList.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
+        List<SStashList> sStashLists = stashListService.selectList(stashListEntityWrapper);
+        if(sStashLists.size() > 0){
+            List<Integer> guidStash = sStashLists.stream().map(SStashList::getGuid).collect(Collectors.toList());
+            stashListService.deleteBatchIds(guidStash);
+        }
+        //保存未选择的代码清单
+        if(request.getStashList().size() > 0){
+            List<SStashList> sStashList = new ArrayList<>();
+            for (SStashList stash:request.getStashList()){
+                stash.setGuidWorkitem(request.getGuidWorkitem());
+                sStashList.add(stash);
+            }
+            stashListService.insertBatch(sStashList);
+        }
         return deliveryList;
     }
 
@@ -471,7 +597,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
             for (SDeliveryList deliveryList:request.getDeliveryList()){
                 for(SDeliveryList dl:deliveryLists){
                     if(guidDelivery.equals(dl.getGuidDelivery())){
-                        //判断文件是否是相同的，如果是
+                        //判断文件是否是相同的
                         if(deliveryList.getFullPath().equals(dl.getFullPath())){
                             if(!deliveryList.getCommitType().equals(dl.getCommitType())){
                                 // 原-现—终 (修改类型的变化)

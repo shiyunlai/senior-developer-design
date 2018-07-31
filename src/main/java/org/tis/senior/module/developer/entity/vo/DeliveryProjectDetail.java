@@ -148,5 +148,18 @@ public class DeliveryProjectDetail {
         return j.toJSONString();
     }
 
+    public static void main(String[] args) {
+        List<String> str = new ArrayList<>();
+        str.add("111");
+        str.add("222");
+        str.add("333");
+        str.add("444");
+        for (String s:str){
+            if(s.equals("111")){
+                str.remove(s);
+            }
+        }
+        System.out.println(str.size());
+    }
 
 }

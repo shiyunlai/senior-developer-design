@@ -4,9 +4,11 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotations.TableId;
 import com.baomidou.mybatisplus.annotations.TableName;
 import lombok.Data;
+import org.hibernate.validator.constraints.NotBlank;
 import org.tis.senior.module.core.entity.enums.CommonEnumDeserializer;
 import org.tis.senior.module.developer.entity.enums.CommitType;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -123,6 +125,7 @@ public class SStashList implements Serializable {
     /**
      * 程序名称:冗余设计
      */
+    @NotBlank(message = "程序名称不能为空！")
     private String programName;
 
     /**
@@ -132,28 +135,33 @@ public class SStashList implements Serializable {
      * CFG 作为配置文件
      * DBV 作为数据库脚本（SQL、DDL等数据库版本脚本）
      */
+    @NotBlank(message = "导出类型不能为空！")
     private String patchType;
 
     /**
      * 部署到
      */
+    @NotBlank(message = "部署到哪不能为空！")
     private String deployWhere;
 
     /**
      * 代码全路径
      */
+    @NotBlank(message = "代码全路径不能为空！")
     private String fullPath;
 
     /**
      * 代码所在工程:记录该代码所在的工程名称（s_project.project_name）
      * 冗余设计
      */
+    @NotBlank(message = "代码所在工程不能为空！")
     private String partOfProject;
 
     /**
      * 提交类型:提交类型
      */
     @JSONField(deserializeUsing = CommonEnumDeserializer.class)
+    @NotNull(message = "提交类型不能为空！")
     private CommitType commitType;
 
 }

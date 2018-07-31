@@ -160,7 +160,7 @@ public class SProfilesController extends BaseController<SProfiles>  {
     }
 
     /**
-     * 给出默认的投放时间及打包窗口
+     * 查询所有的运行环境给出默认的投放时间及打包窗口
      * @return
      */
     @GetMapping("/packTimeVerify")

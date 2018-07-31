@@ -3,21 +3,18 @@ package org.tis.senior.module.developer.service.impl;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.plugins.Page;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.toolkit.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.tis.senior.module.core.config.SvnProperties;
 import org.tis.senior.module.developer.controller.request.ProfileAddAndUpdateRequest;
 import org.tis.senior.module.developer.controller.request.ProfileAndBranchAddRequest;
 import org.tis.senior.module.developer.dao.SProfilesMapper;
 import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.*;
-import org.tis.senior.module.developer.entity.vo.PackTimeDetail;
-import org.tis.senior.module.developer.entity.vo.ProfileBranchDetail;
-import org.tis.senior.module.developer.entity.vo.ProjectDetail;
-import org.tis.senior.module.developer.entity.vo.SProfileDetail;
+import org.tis.senior.module.developer.entity.vo.*;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
 import org.tmatesoft.svn.core.SVNException;
@@ -253,90 +250,109 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
     }
 
     @Override
-    public List<SProfileDetail> profileAllPackTimeVerify() throws ParseException {
+    public List<SProfileDetail> profileAllPackTimeVerify() {
         List<SProfiles> profiles = selectProfilesAll();
-        //获取当前时间
-        Date date = new Date();
-        //将时间格式定为时分
-        SimpleDateFormat simpleDateFormat =new SimpleDateFormat("HH:mm");
-        //将时间格式定为年月日
-        SimpleDateFormat dateFormat =new SimpleDateFormat("yyyy-MM-dd");
-        //获取当前时间的字符串时分格式
-        String dateString = simpleDateFormat.format(date);
-        //将时间转换成时间戳
-        long nowDate = simpleDateFormat.parse(dateString).getTime();
         List<SProfileDetail> sProfileDetails = new ArrayList<>();
         //循环所有可投放的环境
         profiles.forEach(pro -> {
-            //大于当前时间的窗口集合
-            List<String> bigPackTimeList = new ArrayList<>();
-            //小于当前时间的窗口集合
-            List<String> smallPackTimeList = new ArrayList<>();
             SProfileDetail sProfileDetail = new SProfileDetail();
-            String[] packTimeSplit = pro.getPackTiming().split(",");
-            //循环所有窗口判断是否大于当前的时间，有大于的保存
-            for(String packTime:packTimeSplit){
-                try {
-                    //时间戳比较
-                    if(nowDate < simpleDateFormat.parse(packTime).getTime()){
-                        bigPackTimeList.add(packTime);
-                    }else{
-                        smallPackTimeList.add(packTime);
-                    }
-                } catch (ParseException e) {
-                    throw new DeveloperException("打包窗口不是时间格式的!");
-                }
+            PackTimeVerify packTimeVerify = null;
+            try {
+                packTimeVerify = packTimeVerify(pro.getPackTiming());
+            } catch (ParseException e) {
+                throw new DeveloperException("窗口不是时间格式!");
             }
-            List<PackTimeDetail> packTimeDetails = new ArrayList<>();
-            //判断今天是否有大于当前时间的窗口
-            if(bigPackTimeList.size() > 0){
-                sProfileDetail.setDeliveryTime(date);
-                //把小于当前时间的打包窗口置为不可选状态
-                if(smallPackTimeList.size() > 0){
-                    smallPackTimeList.forEach(time ->{
-                        PackTimeDetail packTimeDetail = new PackTimeDetail();
-                        packTimeDetail.setPackTime(time);
-                        packTimeDetail.setIsOptions(OptionsPackTime.NO);
-                        packTimeDetails.add(packTimeDetail);
-                    });
-                }
-                //把最近当前时间的打包窗口置为默认
-                for(int i = 0;i < bigPackTimeList.size();i++){
-                    PackTimeDetail packTimeDetail = new PackTimeDetail();
-                    if(i == 0){
-                        packTimeDetail.setPackTime(bigPackTimeList.get(i));
-                        packTimeDetail.setIsOptions(OptionsPackTime.DEFALIT);
-                    }else {
-                        packTimeDetail.setPackTime(bigPackTimeList.get(i));
-                        packTimeDetail.setIsOptions(OptionsPackTime.YES);
-                    }
-                    packTimeDetails.add(packTimeDetail);
-                }
-            }else{
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(date);
-                //+1今天的时间加一天
-                calendar.add(Calendar.DAY_OF_MONTH, +1);
-                sProfileDetail.setDeliveryTime(calendar.getTime());
-                for(int i = 0;i < packTimeSplit.length;i++){
-                    PackTimeDetail packTimeDetail = new PackTimeDetail();
-                    if(i == 0){
-                        packTimeDetail.setPackTime(packTimeSplit[i]);
-                        packTimeDetail.setIsOptions(OptionsPackTime.DEFALIT);
-                    }else {
-                        packTimeDetail.setPackTime(packTimeSplit[i]);
-                        packTimeDetail.setIsOptions(OptionsPackTime.YES);
-                    }
-                    packTimeDetails.add(packTimeDetail);
-                }
+            if(packTimeVerify == null){
+                throw new DeveloperException("找不到此投放申请运行环境的打包窗口!");
             }
+            sProfileDetail.setDeliveryTime(packTimeVerify.getDeliveryTime());
             sProfileDetail.setGuidProfile(pro.getGuid());
             sProfileDetail.setProfilesName(pro.getProfilesName());
-            sProfileDetail.setPackTimeDetails(packTimeDetails);
+            sProfileDetail.setPackTimeDetails(packTimeVerify.getPackTimeDetails());
             sProfileDetails.add(sProfileDetail);
         });
 
         return sProfileDetails;
+    }
+
+    @Override
+    public PackTimeVerify packTimeVerify(String packTimeing) throws ParseException {
+        String[] packTimeSplit = packTimeing.split(",");
+        //获取当前时间
+        Date date = new Date();
+        //将时间格式定为时分
+        SimpleDateFormat simpleDateFormat =new SimpleDateFormat("HH:mm");
+        //获取当前时间的字符串时分格式
+        String dateString = simpleDateFormat.format(date);
+        //将时间转换成时间戳
+        long nowDate = simpleDateFormat.parse(dateString).getTime();
+        //大于当前时间的窗口集合
+        List<String> bigPackTimeList = new ArrayList<>();
+        //小于当前时间的窗口集合
+        List<String> smallPackTimeList = new ArrayList<>();
+        //定义空投放时间
+        Date deliveryTime = null;
+        //循环所有窗口判断是否大于当前的时间，有大于的保存
+        for(String packTime:packTimeSplit){
+            try {
+                //时间戳比较
+                if(nowDate < simpleDateFormat.parse(packTime).getTime()){
+                    bigPackTimeList.add(packTime);
+                }else{
+                    smallPackTimeList.add(packTime);
+                }
+            } catch (ParseException e) {
+                throw new DeveloperException("打包窗口不是时间格式的!");
+            }
+        }
+        List<PackTimeDetail> packTimeDetails = new ArrayList<>();
+        //判断今天是否有大于当前时间的窗口
+        if(bigPackTimeList.size() > 0){
+            deliveryTime = date;
+            //把小于当前时间的打包窗口置为不可选状态
+            if(smallPackTimeList.size() > 0){
+                smallPackTimeList.forEach(time ->{
+                    PackTimeDetail packTimeDetail = new PackTimeDetail();
+                    packTimeDetail.setPackTime(time);
+                    packTimeDetail.setIsOptions(OptionsPackTime.NO);
+                    packTimeDetails.add(packTimeDetail);
+                });
+            }
+            //把最近当前时间的打包窗口置为默认
+            for(int i = 0;i < bigPackTimeList.size();i++){
+                PackTimeDetail packTimeDetail = new PackTimeDetail();
+                if(i == 0){
+                    packTimeDetail.setPackTime(bigPackTimeList.get(i));
+                    packTimeDetail.setIsOptions(OptionsPackTime.DEFALIT);
+                }else {
+                    packTimeDetail.setPackTime(bigPackTimeList.get(i));
+                    packTimeDetail.setIsOptions(OptionsPackTime.YES);
+                }
+                packTimeDetails.add(packTimeDetail);
+            }
+        }else{
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+            //+1今天的时间加一天
+            calendar.add(Calendar.DAY_OF_MONTH, +1);
+            deliveryTime = calendar.getTime();
+            for(int i = 0;i < packTimeSplit.length;i++){
+                PackTimeDetail packTimeDetail = new PackTimeDetail();
+                if(i == 0){
+                    packTimeDetail.setPackTime(packTimeSplit[i]);
+                    packTimeDetail.setIsOptions(OptionsPackTime.DEFALIT);
+                }else {
+                    packTimeDetail.setPackTime(packTimeSplit[i]);
+                    packTimeDetail.setIsOptions(OptionsPackTime.YES);
+                }
+                packTimeDetails.add(packTimeDetail);
+            }
+        }
+        PackTimeVerify packTimeVerify = new PackTimeVerify();
+        packTimeVerify.setDeliveryTime(deliveryTime);
+        packTimeVerify.setPackTimeDetails(packTimeDetails);
+
+        return packTimeVerify;
     }
 
     @Override
