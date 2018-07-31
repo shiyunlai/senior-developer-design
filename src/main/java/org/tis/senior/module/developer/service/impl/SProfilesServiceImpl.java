@@ -394,7 +394,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         if (profiles == null) {
             throw new DeveloperException(guid + "对应环境已删除或不存在！");
         }
-        List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.WORKITEM, Collections.singletonList(guid));
+        List<Map> maps = branchService.selectListByForWhatIds(BranchForWhat.RELEASE, Collections.singletonList(guid));
         if (CollectionUtils.isEmpty(maps)) {
             throw new DeveloperException(guid + "对应环境没有关联分支");
         }
@@ -430,7 +430,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
                 .collect(Collectors.groupingBy(p -> dir.contains(p.getProjectName())));
         ProjectDetail projectDetail = new ProjectDetail();
         projectDetail.setOwn(collect.get(true));
-        projectDetail.setOwn(collect.get(false));
+        projectDetail.setOthers(collect.get(false));
         return projectDetail;
     }
 }
