@@ -28,4 +28,7 @@ public class ProjectAddAndUpdateRequest {
 
     @NotBlank(message = "工程的导出类型和部署类型不能为空！")
     private String deployConfig;
+
+    @NotBlank(message = "工程全路径不能为空！")
+    private String fullPath;
 }

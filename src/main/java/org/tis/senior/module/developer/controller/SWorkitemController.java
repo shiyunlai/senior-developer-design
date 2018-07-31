@@ -51,7 +51,7 @@ public class SWorkitemController extends BaseController<SWorkitem> {
         BeanUtils.copyProperties(request, workitem);
         workitem.setItemStatus(ItemStatus.DEVELOP);
         sWorkitemService.insert(workitem);
-        return ResultVO.success("新增成功！");
+        return ResultVO.success("新增成功！", workitem);
     }
 
     @PutMapping
