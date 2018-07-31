@@ -3,6 +3,7 @@ package org.tis.senior.module.developer.controller;
 import com.alibaba.fastjson.support.spring.annotation.FastJsonFilter;
 import com.alibaba.fastjson.support.spring.annotation.FastJsonView;
 import com.baomidou.mybatisplus.plugins.Page;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -186,6 +187,7 @@ public class SWorkitemController extends BaseController<SWorkitem> {
      * @throws SVNException
      */
     @PostMapping("/{guid}/branch")
+    @RequiresRoles("rct")
     public ResultVO addBranch(@PathVariable @NotBlank(message = "工作项id不能为空") String guid,
                               @RequestBody @Validated WorkItemAddBranchRequest request) throws SVNException {
         if (request.getBranchType().equals(BranchType.RELEASE)) {
@@ -222,7 +224,7 @@ public class SWorkitemController extends BaseController<SWorkitem> {
     @PostMapping("/{guid}/project")
     public ResultVO addProject(@PathVariable @NotBlank(message = "工作项id不能为空") String guid,
                               @RequestBody @Validated WorkItemAddProjectRequest request) throws SVNException {
-        sWorkitemService.insertProjects(guid, request.getMessage(), request.getProjectGuids());
+        sWorkitemService.insertProjects(guid,  request.getProjectGuids());
         return ResultVO.success("拉取工程成功！");
     }
 }
