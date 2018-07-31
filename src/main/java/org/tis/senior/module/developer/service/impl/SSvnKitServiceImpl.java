@@ -190,8 +190,8 @@ public class SSvnKitServiceImpl implements ISSvnKitService {
         for (int i = 0; i < sourceUrls.length; i++) {
             copySources[i] = new SVNCopySource(SVNRevision.HEAD, SVNRevision.HEAD, SVNURL.parseURIEncoded(sourceUrls[i]));
         }
-        svnCopyClient.doCopy(copySources, SVNURL.parseURIEncoded(destUrl), false, false,
-                true, commitMessage, null);
+        svnCopyClient.doCopy(copySources, SVNURL.parseURIEncoded(destUrl + "/"), false, false,
+                false, commitMessage, null);
 
     }
 

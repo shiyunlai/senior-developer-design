@@ -19,6 +19,9 @@ public class ProfileAddAndUpdateRequest {
     @NotBlank(message = "运行环境的名称不能空")
     private String profilesName;
 
+    @NotBlank(message = "提交标识不能为空")
+    private String artf;
+
     @NotBlank(message = "运行环境的主机IP不能空")
     private String hostIp;
 

@@ -23,6 +23,9 @@ public class WorkitemAddAndUpdateRequest {
     @NotBlank(message = "工作项编号不能为空")
     private String seqno;
 
+    @NotBlank(message = "提交标识不能为空")
+    private String artf;
+
     @NotBlank(message = "工作项开发人员不能为空")
     private String developers;
 

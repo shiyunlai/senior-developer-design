@@ -52,7 +52,7 @@ public class SProfilesController extends BaseController<SProfiles>  {
         sProfiles.setProfilesCode(sProfiles.getProfilesName());
         sProfiles.setIsAllowDelivery(IsAllowDelivery.ALLOW);
         sProfilesService.insert(sProfiles);
-        return ResultVO.success("新增成功！");
+        return ResultVO.success("新增成功！", sProfiles);
     }
     
     @PutMapping

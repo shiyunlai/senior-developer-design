@@ -302,7 +302,7 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         }
         String message = String.format("[artf%s]:建分支", sWorkitem.getArtf());
         String fullPath = (branch.getBranchType().equals(BranchType.FEATURE) ? svnProperties.getBaseFeatureUrl()
-                : svnProperties.getBaseHotfixUrl()) + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+                : svnProperties.getBaseHotfixUrl()) + new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
         branch.setFullPath(fullPath);
         long revision = svnKitService.doMkDir(branch.getFullPath(), message);
         try {
@@ -332,7 +332,7 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         if (CollectionUtils.isEmpty(maps)) {
             throw new DeveloperException(guid + "对应工作项没有关联分支");
         }
-        String destUrl = maps.get(0).get(SBranch.COLUMN_FULL_PATH).toString();
+        String destUrl = maps.get(0).get("fullPath").toString();
         EntityWrapper<SProject> wrapper = new EntityWrapper<>();
         wrapper.in(SProject.COLUMN_GUID, projectGuids);
         List<SProject> sProjects = projectService.selectList(wrapper);
@@ -357,7 +357,7 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         if (CollectionUtils.isEmpty(maps)) {
             throw new DeveloperException(guid + "对应工作项没有关联分支");
         }
-        List<String> dir = svnKitService.getDir(maps.get(0).get(SBranch.COLUMN_FULL_PATH).toString());
+        List<String> dir = svnKitService.getDir(maps.get(0).get("fullPath").toString());
         List<SProject> sProjects = projectService.selectProjectAll();
         Map<Boolean, List<SProject>> collect = sProjects.stream()
                 .collect(Collectors.groupingBy(p -> dir.contains(p.getProjectName())));
