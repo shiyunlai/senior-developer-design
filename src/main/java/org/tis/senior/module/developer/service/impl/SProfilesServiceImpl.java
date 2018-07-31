@@ -372,6 +372,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         String message = String.format("[artf%s]:建分支", profiles.getArtf());
         long revision = svnKitService.doMkDir(branch.getFullPath(), message);
         try {
+            branch.setBranchType(BranchType.RELEASE);
             branch.setCurrVersion((int) revision);
             branch.setLastVersion((int) revision);
             branchService.insert(branch);
