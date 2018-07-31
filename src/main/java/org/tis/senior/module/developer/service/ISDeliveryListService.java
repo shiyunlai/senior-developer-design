@@ -5,7 +5,7 @@ import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliver
 import org.tis.senior.module.developer.controller.request.DeliveryListSuperadditionRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.SDeliveryList;
-import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
+import org.tis.senior.module.developer.entity.vo.DeliveryListStashListDetail;
 import org.tmatesoft.svn.core.SVNException;
 
 import java.text.ParseException;
@@ -25,7 +25,7 @@ public interface ISDeliveryListService extends IService<SDeliveryList>  {
      *
      * @return
      */
-    List<DeliveryProjectDetail> assembleDelivery(String branchGuid) throws SVNException;
+    DeliveryListStashListDetail assembleDelivery(String branchGuid) throws SVNException;
 
     /**
      * 添加投放申请和投产代码清单

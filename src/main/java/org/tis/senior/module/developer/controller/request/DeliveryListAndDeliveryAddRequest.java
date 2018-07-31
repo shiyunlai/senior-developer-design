@@ -2,6 +2,7 @@ package org.tis.senior.module.developer.controller.request;
 
 import lombok.Data;
 import org.tis.senior.module.developer.entity.SDeliveryList;
+import org.tis.senior.module.developer.entity.SStashList;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -19,6 +20,8 @@ public class DeliveryListAndDeliveryAddRequest {
 
     @NotNull
     private List<SDeliveryList> deliveryList;
+
+    private List<SStashList> stashList;
 
     @NotNull(message = "分支的guid不能为空")
     private Integer guidBranch;

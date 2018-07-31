@@ -8,6 +8,7 @@ import org.tis.senior.module.developer.controller.request.ProfileAndBranchAddReq
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SProfiles;
 import org.tis.senior.module.developer.entity.enums.IsAllowDelivery;
+import org.tis.senior.module.developer.entity.vo.PackTimeVerify;
 import org.tis.senior.module.developer.entity.vo.ProfileBranchDetail;
 import org.tis.senior.module.developer.entity.vo.ProjectDetail;
 import org.tis.senior.module.developer.entity.vo.SProfileDetail;
@@ -102,7 +103,7 @@ public interface ISProfilesService extends IService<SProfiles>  {
     SProfiles validateProfiles(String profileId, String packTiming);
 
     /**
-     * 查询所有运行环境同时验证窗口
+     * 查询所有运行环境
      * @return
      */
     List<SProfileDetail> profileAllPackTimeVerify() throws ParseException;
@@ -128,5 +129,11 @@ public interface ISProfilesService extends IService<SProfiles>  {
      * @return
      */
     ProjectDetail selectProjects(String guid) throws SVNException;
+    /**
+     * 验证所有窗口
+     * @param packTimeing
+     * @throws ParseException
+     */
+    PackTimeVerify packTimeVerify(String packTimeing) throws ParseException;
 }
 

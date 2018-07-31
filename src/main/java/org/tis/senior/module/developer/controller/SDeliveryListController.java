@@ -11,11 +11,8 @@ import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliver
 import org.tis.senior.module.developer.controller.request.DeliveryListSuperadditionRequest;
 import org.tis.senior.module.developer.entity.SDeliveryList;
 import org.tis.senior.module.developer.entity.SSvnAccount;
-import org.tis.senior.module.developer.entity.vo.DeliveryProjectDetail;
 import org.tis.senior.module.developer.service.ISDeliveryListService;
 import org.tmatesoft.svn.core.SVNException;
-
-import java.util.List;
 
 /**
  * sDeliveryList的Controller类
@@ -71,8 +68,7 @@ public class SDeliveryListController extends BaseController<SDeliveryList>  {
      */
     @GetMapping("/{branchGuid}/history")
     public ResultVO assembleDelivery(@PathVariable @NotBlank(message = "分支guid不能为空") String branchGuid) throws SVNException {
-        List<DeliveryProjectDetail> deliveryProjectDetails = sDeliveryListService.assembleDelivery(branchGuid);
-        return ResultVO.success("查询成功",deliveryProjectDetails);
+        return ResultVO.success("查询成功",sDeliveryListService.assembleDelivery(branchGuid));
     }
 
     /**

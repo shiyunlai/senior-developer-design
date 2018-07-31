@@ -45,9 +45,9 @@ public class SDeliveryController extends BaseController<SDelivery>  {
         return ResultVO.success("修改成功！");
     }
     
-    @GetMapping("/{id}")
-    public ResultVO detail(@PathVariable @NotBlank(message = "id不能为空") String id) {
-        SDelivery sDelivery = sDeliveryService.selectById(id);
+    @GetMapping("/{guid}")
+    public ResultVO detail(@PathVariable @NotBlank(message = "投放申请的guid不能为空") String guid) {
+        SDelivery sDelivery = sDeliveryService.selectById(guid);
         if (sDeliveryService == null) {
             return ResultVO.error("404", "找不到对应记录或已经被删除！");
         }
