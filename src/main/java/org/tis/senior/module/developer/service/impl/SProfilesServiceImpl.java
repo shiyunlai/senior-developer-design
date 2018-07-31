@@ -398,7 +398,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         if (CollectionUtils.isEmpty(maps)) {
             throw new DeveloperException(guid + "对应环境没有关联分支");
         }
-        String destUrl = maps.get(0).get(SBranch.COLUMN_FULL_PATH).toString();
+        String destUrl = maps.get(0).get("fullPath").toString();
 
         EntityWrapper<SProject> wrapper = new EntityWrapper<>();
         wrapper.in(SProject.COLUMN_GUID, projectGuids);
@@ -424,7 +424,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         if (CollectionUtils.isEmpty(maps)) {
             throw new DeveloperException(guid + "对应环境没有关联分支");
         }
-        List<String> dir = svnKitService.getDir(maps.get(0).get(SBranch.COLUMN_FULL_PATH).toString());
+        List<String> dir = svnKitService.getDir(maps.get(0).get("fullPath").toString());
         List<SProject> sProjects = projectService.selectProjectAll();
         Map<Boolean, List<SProject>> collect = sProjects.stream()
                 .collect(Collectors.groupingBy(p -> dir.contains(p.getProjectName())));
