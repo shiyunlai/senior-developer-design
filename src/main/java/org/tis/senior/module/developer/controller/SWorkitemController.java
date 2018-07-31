@@ -1,7 +1,5 @@
 package org.tis.senior.module.developer.controller;
 
-import com.alibaba.fastjson.support.spring.annotation.FastJsonFilter;
-import com.alibaba.fastjson.support.spring.annotation.FastJsonView;
 import com.baomidou.mybatisplus.plugins.Page;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.hibernate.validator.constraints.NotBlank;
@@ -16,7 +14,6 @@ import org.tis.senior.module.developer.controller.request.WorkItemAddBranchReque
 import org.tis.senior.module.developer.controller.request.WorkItemAddProjectRequest;
 import org.tis.senior.module.developer.controller.request.WorkitemAddAndUpdateRequest;
 import org.tis.senior.module.developer.entity.SBranch;
-import org.tis.senior.module.developer.entity.SProject;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.SWorkitem;
 import org.tis.senior.module.developer.entity.enums.BranchType;
@@ -207,7 +204,6 @@ public class SWorkitemController extends BaseController<SWorkitem> {
      * @param guid
      * @return
      */
-    @FastJsonView(exclude = {@FastJsonFilter(clazz = SProject.class, props = {"deployConfig"})})
     @GetMapping("/{guid}/project")
     public ResultVO selectProject(@PathVariable @NotBlank(message = "工作项id不能为空") String guid) throws SVNException {
         ProjectDetail result = sWorkitemService.selectProjects(guid);

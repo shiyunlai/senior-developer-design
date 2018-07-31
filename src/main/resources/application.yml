@@ -11,8 +11,8 @@ tis:
   svn:
     username: admin
     password: administrator
-    base-feature-url: http://10.232.84.99/svn/repos/tip/development/branches/Feature/Feature_
-    base-hotfix-url: http://10.232.84.99/svn/repos/tip/development/branches/Hotfix/Hotfix_
+    base-feature-url: svn://47.96.147.236/svn/repos/tip/development/branches/Feature/Feature_
+    base-hotfix-url: svn://47.96.147.236/svn/repos/tip/development/branches/Hotfix/Hotfix_
 
 # :::::: spring ::::::
 
