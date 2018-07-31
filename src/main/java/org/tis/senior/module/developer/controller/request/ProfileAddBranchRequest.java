@@ -18,9 +18,6 @@ public class ProfileAddBranchRequest extends RestRequest {
     @NotBlank(message = "分支路径不能为空！")
     private String fullPath;
 
-    @NotBlank(message = "提交注释不能为空！")
-    private String message;
-
     @NotBlank(message = "分支说明不能为空")
     private String branchFor;
 
