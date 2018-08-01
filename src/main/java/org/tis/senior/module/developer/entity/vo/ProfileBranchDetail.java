@@ -31,6 +31,11 @@ public class ProfileBranchDetail {
     private String hostIp;
 
     /**
+     * 提交标识
+     */
+    private String artf;
+
+    /**
      * 安装路径:指系统所在的安装路径
      */
     private String installPath;

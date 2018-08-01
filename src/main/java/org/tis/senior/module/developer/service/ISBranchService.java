@@ -70,6 +70,6 @@ public interface ISBranchService extends IService<SBranch>  {
      * @param svnUrl
      * @return
      */
-    Integer verificationUrl(String svnUrl);
+    Integer verificationUrl(String svnUrl) throws SVNException;
 }
 

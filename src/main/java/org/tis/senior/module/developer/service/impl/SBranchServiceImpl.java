@@ -150,15 +150,8 @@ public class SBranchServiceImpl extends ServiceImpl<SBranchMapper, SBranch> impl
     }
 
     @Override
-    public Integer verificationUrl(String svnUrl) {
-
-        int lastRevision = 0;
-        try {
-            lastRevision = svnKitService.getLastRevision(svnUrl);
-        } catch (SVNException e) {
-            throw new DeveloperException("此url不符合svn的路径！");
-        }
-        return lastRevision;
+    public Integer verificationUrl(String svnUrl) throws SVNException {
+        return svnKitService.getLastRevision(svnUrl);
     }
 }
 
