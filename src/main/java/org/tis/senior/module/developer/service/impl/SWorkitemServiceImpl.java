@@ -282,7 +282,7 @@ public class SWorkitemServiceImpl extends ServiceImpl<SWorkitemMapper, SWorkitem
         if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
             throw new DeveloperException("此工作项有投放申请未完成操作，不能修改成已投产！");
         }
-        sWorkitem.setItemStatus(ItemStatus.CANCEL);
+        sWorkitem.setItemStatus(ItemStatus.STARTUP);
         updateById(sWorkitem);
     }
 

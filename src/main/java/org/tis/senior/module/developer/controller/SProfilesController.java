@@ -66,7 +66,7 @@ public class SProfilesController extends BaseController<SProfiles>  {
     
     @DeleteMapping("/{guid}")
     public ResultVO delete(@PathVariable @NotNull(message = "id不能为空") Integer guid) {
-        sProfilesService.deleteById(guid);
+        sProfilesService.deleteProfileAndBranchMapping(guid);
         return ResultVO.success("删除成功");
     }
     
@@ -163,10 +163,10 @@ public class SProfilesController extends BaseController<SProfiles>  {
      * 查询所有的运行环境给出默认的投放时间及打包窗口
      * @return
      */
-    @GetMapping("/packTimeVerify")
-    public ResultVO packTimeVerify() throws ParseException {
+    @GetMapping("/packTimeVerify/{guidWorkitem}/delivered")
+    public ResultVO packTimeVerify(@PathVariable @NotNull(message = "工作项guid不能为空")Integer guidWorkitem) throws ParseException {
 
-        return ResultVO.success("查询成功",sProfilesService.profileAllPackTimeVerify());
+        return ResultVO.success("查询成功",sProfilesService.profileAllPackTimeVerify(guidWorkitem));
     }
 
     /**
@@ -220,6 +220,16 @@ public class SProfilesController extends BaseController<SProfiles>  {
                                @RequestBody @Validated WorkItemAddProjectRequest request) throws SVNException {
         sProfilesService.insertProjects(guid, request.getProjectGuids());
         return ResultVO.success("拉取工程成功！");
+    }
+
+    /**
+     * 追加
+     * @return
+     */
+    @GetMapping("/addToNewProfiles/{guidWorkitem}/delivered")
+    public ResultVO addToNewProfiles(@PathVariable @NotNull(message = "工作项guid不能为空")Integer guidWorkitem){
+
+        return ResultVO.success("查询成功",sProfilesService.addToNewProfile(guidWorkitem));
     }
 }
 

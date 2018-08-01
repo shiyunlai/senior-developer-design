@@ -54,6 +54,9 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
     @Autowired
     private SvnProperties svnProperties;
 
+    @Autowired
+    private ISWorkitemService workitemService;
+
     @Override
     public List<SProfiles> selectProfilesAll() {
         EntityWrapper<SProfiles> spEntityWrapper = new EntityWrapper<>();
@@ -100,17 +103,12 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT, BranchForWhat.RELEASE);
         List<SBranchMapping> sBranchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
         if (sBranchMappings.size() > 0) {
-            SBranchMapping sbm = sBranchMappings.get(0);
-
-            EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
-            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,sbm.getGuidOfWhats());
-            deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.APPLYING);
-            if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
-                throw new DeveloperException("此运行环境有对应的投放申请在申请中，不允许删除！");
-            }
-
-            //删除对应的第三张关联表
-            branchMappingService.deleteById(sbm.getGuid());
+            throw new DeveloperException("此运行环境有关联的分支，请取消关联后，再删除！");
+        }
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,profileGuid);
+        if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
+            throw new DeveloperException("此运行环境有投放申请，不允许删除！");
         }
         //删除guid对应的运行环境对象
         deleteById(profileGuid);
@@ -124,7 +122,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
             deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_PROFILES, profileGuid);
             deliveryEntityWrapper.ne(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
             if(deliveryService.selectList(deliveryEntityWrapper).size() > 0){
-                throw new DeveloperException("还有投放申请使用此环境未投放完成，不允许关闭！");
+                throw new DeveloperException("此运行环境还有投放申请未完成投放，不允许关闭！");
             }
         }
         profiles.setIsAllowDelivery(isAllowDelivery);
@@ -250,7 +248,7 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
     }
 
     @Override
-    public List<SProfileDetail> profileAllPackTimeVerify() {
+    public List<SProfileDetail>  profileAllPackTimeVerify(Integer guidWorkitem) {
         List<SProfiles> profiles = selectProfilesAll();
         List<SProfileDetail> sProfileDetails = new ArrayList<>();
         //循环所有可投放的环境
@@ -271,6 +269,29 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
             sProfileDetail.setPackTimeDetails(packTimeVerify.getPackTimeDetails());
             sProfileDetails.add(sProfileDetail);
         });
+
+        List<Integer> guidProfile = new ArrayList<>();
+        SWorkitem workitem = workitemService.selectById(guidWorkitem);
+        if(workitem != null){
+            //查询这个工作项的投放申请成功投放的申请记录
+            EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM, workitem.getGuid());
+            deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.DELIVERED);
+            List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
+            if(deliverys.size() > 0){
+                //
+                List<Integer> guidProfiles = deliverys.stream().map(SDelivery::getGuidProfiles).collect(Collectors.toList());
+                Set<Integer> guidPro = new HashSet<>();
+                guidPro.addAll(guidProfiles);
+                List<SProfiles> profileList = selectBatchIds(guidPro);
+                guidProfile = profileList.stream().map(SProfiles::getGuid).collect(Collectors.toList());
+            }
+        }
+        for (SProfileDetail sProfileDetail : sProfileDetails) {
+            if(guidProfile.contains(sProfileDetail.getGuidProfile())){
+                sProfileDetail.setDelivered(true);
+            }
+        }
 
         return sProfileDetails;
     }
@@ -353,6 +374,25 @@ public class SProfilesServiceImpl extends ServiceImpl<SProfilesMapper, SProfiles
         packTimeVerify.setPackTimeDetails(packTimeDetails);
 
         return packTimeVerify;
+    }
+
+    @Override
+    public List<SProfileDetail> addToNewProfile(Integer guidWorkitem) {
+        List<SProfileDetail> profileDetails = profileAllPackTimeVerify(guidWorkitem);
+
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,guidWorkitem);
+        List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
+
+        List<Integer> guidProfile = deliverys.stream().map(SDelivery::getGuidProfiles).collect(Collectors.toList());
+
+        for (SProfileDetail sProfileDetail : profileDetails) {
+            if(guidProfile.contains(sProfileDetail.getGuidProfile())){
+                sProfileDetail.setDelivered(true);
+            }
+        }
+
+        return profileDetails;
     }
 
     @Override
