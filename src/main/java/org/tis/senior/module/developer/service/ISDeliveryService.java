@@ -3,6 +3,7 @@ package org.tis.senior.module.developer.service;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.plugins.Page;
 import com.baomidou.mybatisplus.service.IService;
+import org.tis.senior.module.developer.controller.request.DeliveredNewProfilesRequest;
 import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.SDeliveryUpdateRequest;
@@ -96,6 +97,10 @@ public interface ISDeliveryService extends IService<SDelivery>  {
      */
     SProfileDetail selectProfileDeteilVerify(Integer guidDelivery) throws ParseException;
 
+    /**
+     * 复制一个申请投放到新环境
+     */
+    List<SDelivery> deliveredNewProfiles(DeliveredNewProfilesRequest request);
 
 }
 

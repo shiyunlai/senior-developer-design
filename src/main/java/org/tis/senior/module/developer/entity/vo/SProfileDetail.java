@@ -24,6 +24,11 @@ public class SProfileDetail {
     private String profilesName;
 
     /**
+     * 是否勾选
+     */
+    private boolean isDelivered = false;
+
+    /**
      * 投放时间
      */
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd")

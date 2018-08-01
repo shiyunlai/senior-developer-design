@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import org.tis.senior.module.core.web.controller.BaseController;
 import org.tis.senior.module.core.web.vo.ResultVO;
 import org.tis.senior.module.core.web.vo.SmartPage;
+import org.tis.senior.module.developer.controller.request.DeliveredNewProfilesRequest;
 import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
 import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.SDeliveryUpdateRequest;
@@ -174,6 +175,14 @@ public class SDeliveryController extends BaseController<SDelivery>  {
 
         return ResultVO.success("查询成功",sDeliveryService.selectProfileDeteilVerify(guidDelivery));
     }
-    
+
+    /**
+     * 将投放申请投放到新环境中
+     * @return
+     */
+    @PostMapping("/newProfiles")
+    public ResultVO newProfiles(@RequestBody @Validated DeliveredNewProfilesRequest request){
+        return ResultVO.success("添加成功！",sDeliveryService.deliveredNewProfiles(request));
+    }
 }
 

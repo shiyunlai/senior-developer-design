@@ -3,19 +3,19 @@ package org.tis.senior.module.developer.service.impl;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.plugins.Page;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.tis.senior.module.developer.controller.request.DeliveryOutExeclRequest;
-import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
-import org.tis.senior.module.developer.controller.request.SDeliveryUpdateRequest;
+import org.tis.senior.module.developer.controller.request.*;
 import org.tis.senior.module.developer.dao.SDeliveryMapper;
 import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.*;
 import org.tis.senior.module.developer.entity.vo.*;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.*;
+import org.tis.senior.module.developer.util.DeveloperUtils;
 import org.tmatesoft.svn.core.SVNException;
 
 import java.text.ParseException;
@@ -47,6 +47,8 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     private ISCheckService checkService;
     @Autowired
     private ISProfilesService profilesService;
+    @Autowired
+    private ISStandardListService standardListService;
 
     @Override
     public Page<SDelivery> getDeliveryAll(Page<SDelivery> page, EntityWrapper<SDelivery> wrapper, SSvnAccount svnAccount) {
@@ -355,7 +357,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     }
 
     @Override
-    public SProfileDetail selectProfileDeteilVerify(Integer guidDelivery) throws ParseException {
+    public SProfileDetail selectProfileDeteilVerify(Integer guidDelivery) {
         SDelivery delivery = selectById(guidDelivery);
         if(delivery == null){
             throw new DeveloperException("查询不到对应的投放申请!");
@@ -368,6 +370,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         SProfileDetail sProfileDetail = new SProfileDetail();
         PackTimeVerify packTimeVerify = null;
         try {
+            //调头验证投放时间及投放窗口
             packTimeVerify = profilesService.packTimeVerify(sProfiles.getPackTiming());
         } catch (ParseException e) {
             throw new DeveloperException("窗口不是时间格式!");
@@ -382,6 +385,135 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
         sProfileDetail.setPackTimeDetails(packTimeVerify.getPackTimeDetails());
 
         return sProfileDetail;
+    }
+
+    @Override
+    public List<SDelivery> deliveredNewProfiles(DeliveredNewProfilesRequest request) {
+        SDelivery delivery = selectById(request.getGuidDelivery());
+        if(delivery == null){
+            throw new DeveloperException("找不到此投放申请!");
+        }
+        if(!delivery.getDeliveryResult().equals(DeliveryResult.APPLYING)){
+            throw new DeveloperException("此投放申请正在处理或已被处理!");
+        }
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM, delivery.getGuidWorkitem());
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT, DeliveryResult.DELIVERED);
+        List<SDelivery> deliverys = selectList(deliveryEntityWrapper);
+
+        List<Integer> guidProfile = request.getProfiles().stream().
+                map(DeliveryProfileRequest::getGuidProfiles).collect(Collectors.toList());
+
+        List<Integer> deliGuidProfile = deliverys.stream().map(SDelivery::getGuidProfiles).collect(Collectors.toList());
+        if(guidProfile.contains(delivery.getGuidProfiles()) || guidProfile.contains(deliGuidProfile)){
+            throw new DeveloperException("不能向已投放的环境继续投放!");
+        }
+
+        //查询此投放申请的工作项是否有关联分支信息
+        EntityWrapper<SBranchMapping> branchMappingEntityWrapper = new EntityWrapper<>();
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_GUID_OF_WHATS, delivery.getGuidWorkitem());
+        branchMappingEntityWrapper.eq(SBranchMapping.COLUMN_FOR_WHAT,BranchForWhat.WORKITEM);
+        List<SBranchMapping> branchMappings = branchMappingService.selectList(branchMappingEntityWrapper);
+        if(branchMappings.size() != 1){
+            throw new DeveloperException("此工作项的投放申请没有关联分支信息!");
+        }
+        SBranch branch = branchService.selectById(branchMappings.get(0).getGuidBranch());
+
+        //获取本次要投克隆投放申请的代码
+        EntityWrapper<SDeliveryList> deliveryListEntityWrapper = new EntityWrapper<>();
+        deliveryListEntityWrapper.eq(SDeliveryList.COLUMN_GUID_DELIVERY, delivery.getGuid());
+        List<SDeliveryList> sDeliveryLists = deliveryListService.selectList(deliveryListEntityWrapper);
+        //获取此工作项的标准清单代码
+        EntityWrapper<SStandardList> standardListEntityWrapper = new EntityWrapper<>();
+        standardListEntityWrapper.eq(SStandardList.COLUMN_GUID_WORKITEM, delivery.getGuidWorkitem());
+        List<SStandardList> standardLists = standardListService.selectList(standardListEntityWrapper);
+
+        List<SDelivery> sDeliveries = new ArrayList<>();
+        request.getProfiles().forEach(profiles ->{
+            SDelivery sDelivery = new SDelivery();
+            BeanUtils.copyProperties(delivery,sDelivery);
+            sDelivery.setGuid(null);
+            sDelivery.setGuidProfiles(profiles.getGuidProfiles());
+            sDelivery.setPackTiming(profiles.getPackTiming());
+            sDelivery.setDeliveryTime(profiles.getDeliveryTime());
+            sDelivery.setApplyAlias(profiles.getApplyAlias());
+            sDelivery.setDeliveryResult(DeliveryResult.APPLYING);
+            sDeliveries.add(sDelivery);
+        });
+        //新增投放申请
+        insertBatch(sDeliveries);
+
+        List<SDeliveryList> deliveryLists = new ArrayList<>();
+        if(standardLists.size()> 0){
+            for (SDelivery sDelivery : sDeliveries) {
+                List<SDeliveryList> stList = new ArrayList<>();
+                here:
+                for (SStandardList standardList : standardLists) {
+                    for (SDeliveryList sDeliveryList : sDeliveryLists) {
+                        //筛选标准清单与被复制投放清单的同一个文件
+                        if(standardList.getFullPath().equals(sDeliveryList.getFullPath())){
+                            continue here;
+                        }
+                    }
+                    //组装投放申请
+                    SDeliveryList deliveryList = new SDeliveryList();
+                    BeanUtils.copyProperties(standardList, deliveryList);
+                    deliveryList.setGuid(null);
+                    deliveryList.setGuidDelivery(sDelivery.getGuid());
+                    stList.add(deliveryList);
+                }
+                if(stList.size() > 0){
+                    deliveryListService.insertBatch(stList);
+                }
+            }
+            for (SDelivery sDelivery : sDeliveries) {
+                List<SDeliveryList> deliveryLists1 = new ArrayList<>();
+                for (SDeliveryList sDeliveryList : sDeliveryLists) {
+                    for (SStandardList standardList : standardLists) {
+                        //判断标准清单里是否有代码清单导出为ECD
+                        if(PatchType.ECD.equals(standardList.getPatchType())){
+                            //获取截取路径到模块前面的字符
+                            String subPath = standardList.getFullPath().substring(
+                                    0,standardList.getFullPath().indexOf(DeveloperUtils.getModule(
+                                            branch.getFullPath(), standardList.getFullPath())));
+                            /*
+                                如果标准清单的工程模块导出为ecd，这次投放的代码清单也是标准清单模块下的文件，那么将
+                                这个投放代码的导出变更标准清单的导出类型
+                             */
+                            if(sDeliveryList.getFullPath().contains(subPath) && PatchType.EPD.equals(sDeliveryList.getPatchType())){
+                                sDeliveryList.setPatchType(standardList.getPatchType());
+                                break ;
+                            }
+                        }
+                    }
+                    sDeliveryList.setGuidDelivery(sDelivery.getGuid());
+                    sDeliveryList.setGuid(null);
+                    deliveryLists1.add(sDeliveryList);
+                }
+                if(deliveryLists1.size() > 0){
+                    deliveryListService.insertBatch(deliveryLists);
+                }
+
+            }
+
+        }else{
+
+            //直接将被克隆的投放申请投入到新环境
+            for (SDelivery sDelivery : sDeliveries) {
+                List<SDeliveryList> deLists = new ArrayList<>();
+                for (SDeliveryList sDeliveryList : sDeliveryLists) {
+                    sDeliveryList.setGuid(null);
+                    sDeliveryList.setGuidDelivery(sDelivery.getGuid());
+                    deLists.add(sDeliveryList);
+                }
+                if(deLists.size() > 0){
+                    deliveryListService.insertBatch(deLists);
+                }
+
+            }
+        }
+
+        return sDeliveries;
     }
 
 }

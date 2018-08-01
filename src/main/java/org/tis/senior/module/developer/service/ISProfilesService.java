@@ -103,10 +103,10 @@ public interface ISProfilesService extends IService<SProfiles>  {
     SProfiles validateProfiles(String profileId, String packTiming);
 
     /**
-     * 查询所有运行环境
+     * 查询所有运行环境及工作项所成功投放的投放环境
      * @return
      */
-    List<SProfileDetail> profileAllPackTimeVerify() throws ParseException;
+    List<SProfileDetail> profileAllPackTimeVerify(Integer guidWorkitem) throws ParseException;
 
     /**
      * 建分支
@@ -135,5 +135,12 @@ public interface ISProfilesService extends IService<SProfiles>  {
      * @throws ParseException
      */
     PackTimeVerify packTimeVerify(String packTimeing) throws ParseException;
+
+    /**
+     * 投放新环境的所有可投放环境
+     * @param guidWorkitem
+     * @return
+     */
+    List<SProfileDetail> addToNewProfile(Integer guidWorkitem);
 }
 

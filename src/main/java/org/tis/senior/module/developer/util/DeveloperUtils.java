@@ -6,9 +6,7 @@ import com.baomidou.mybatisplus.toolkit.CollectionUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 
 public class DeveloperUtils {
 
@@ -221,7 +219,19 @@ public class DeveloperUtils {
     }
 
     public static void main(String[] args) {
-        String str = "dsads/dsaddas/d/";
-        System.out.println(str.substring(str.lastIndexOf("/")));
+       List<Integer> str1 = new ArrayList<>();
+        str1.add(1);
+        str1.add(5);
+        str1.add(3);
+       List<Integer> str2 = new ArrayList<>();
+        str2.add(1);
+        str2.add(2);
+        str2.add(3);
+        str2.add(4);
+        if(str2.containsAll(str1)){
+            System.out.println("包含");
+        }else {
+            System.out.println("不包含");
+        }
     }
 }

@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.tis.senior.module.developer.controller.request.DeliveryListAndDeliveryAddRequest;
 import org.tis.senior.module.developer.controller.request.DeliveryListSuperadditionRequest;
 import org.tis.senior.module.developer.controller.request.DeliveryProfileRequest;
-import org.tis.senior.module.developer.controller.request.SDliveryAddRequest;
 import org.tis.senior.module.developer.dao.SDeliveryListMapper;
 import org.tis.senior.module.developer.entity.*;
 import org.tis.senior.module.developer.entity.enums.*;
@@ -311,9 +310,36 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 }
             }
         }
+
         //查询所有工程
         Map<String, SProject> projectMap = projectService.selectProjectAll().stream().
                 collect(Collectors.toMap(SProject::getProjectName, p -> p));
+        //获取已成功合并的投放申请
+        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
+        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
+        List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
+        if(deliverys.size() == 0 && request.getDeliveryList().size() == 0){
+            throw new DeveloperException("没有要投放的代码！");
+        }
+        Set<Integer> achieveProfileGuid = new HashSet<>();
+        //创建工作项已成功投放申请的运行环境guid
+        for (SDelivery delivery:deliverys) {
+            achieveProfileGuid.add(delivery.getGuidProfiles());
+        }
+
+        //获取本次投放的环境guid集合
+        List<Integer> nowGuidProfile = request.getDliveryAddRequest().getProfiles().stream().
+                map(DeliveryProfileRequest::getGuidProfiles).collect(Collectors.toList());
+        if(request.getDeliveryList().size() > 0){
+            if(!nowGuidProfile.containsAll(achieveProfileGuid)){
+                throw new DeveloperException("本次投放选择的环境必须包含此工作项已投放的环境！");
+            }
+        }else{
+            if(nowGuidProfile.containsAll(achieveProfileGuid)){
+                throw new DeveloperException("未选择代码清单只能向新环境投放！");
+            }
+        }
         //判断是否是新投放
         EntityWrapper<SDelivery> deliverysEntityWrapper = new EntityWrapper<>();
         deliverysEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
@@ -325,59 +351,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         //创建已选择的环境的投放申请中的运行环境guid集合
         List<Integer> choiceProfileGuid = request.getDliveryAddRequest().getProfiles().stream().map(
                 DeliveryProfileRequest::getGuidProfiles).collect(Collectors.toList());
-        //获取投放日期以及具体打包窗口是否已经完成投放
-        EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
-        int delIndex = 0;
-        for (DeliveryProfileRequest profileRequest:request.getDliveryAddRequest().getProfiles()){
-            deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
-            deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
-                    new SimpleDateFormat("yyyy-MM-dd").format(profileRequest.getDeliveryTime()));
-            deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING,profileRequest.getPackTiming());
-            deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,profileRequest.getGuidProfiles());
-            delIndex++;
-            if(delIndex != request.getDliveryAddRequest().getProfiles().size()){
-                deliveryWrapper.orNew();
-            }
-        }
-        List<SDelivery> deliveries = deliveryService.selectList(deliveryWrapper);
-                if(deliveries.size() > 0){
-            throw new DeveloperException("你选择的投放环境对应的打包窗口已完成投放，请选择其他时间投放！");
-        }
-
-        //获取已成功合并的投放申请
-        EntityWrapper<SDelivery> deliveryEntityWrapper = new EntityWrapper<>();
-        deliveryEntityWrapper.eq(SDelivery.COLUMN_GUID_WORKITEM,request.getGuidWorkitem());
-        deliveryEntityWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
-        List<SDelivery> deliverys = deliveryService.selectList(deliveryEntityWrapper);
-        if(deliverys.size() == 0 && request.getDeliveryList().size() == 0){
-            throw new DeveloperException("没有要投放的代码！");
-        }
-        //新增投放申请列表
-        List<SDelivery> deliveryList = new ArrayList<>();
-        SDliveryAddRequest dliveryAddRequest = request.getDliveryAddRequest();
-        List<DeliveryProfileRequest> guidPro = dliveryAddRequest.getProfiles();
-        for (DeliveryProfileRequest req : guidPro) {
-            for (SDelivery delivery:deliverys){
-                if(req.getGuidProfiles().equals(delivery.getGuidProfiles()) && request.getDeliveryList().size() == 0){
-                    throw new DeveloperException("没有新的提交清单，只能向新环境投放申请！");
-                }
-            }
-            //组装投放申请
-            SDelivery delivery = new SDelivery();
-            delivery.setApplyAlias(req.getApplyAlias());
-            delivery.setGuidWorkitem(request.getGuidWorkitem());
-            if(profilesService.selectById(req.getGuidProfiles()) == null){
-                throw new DeveloperException("投放的环境不存在，请重新选择环境！");
-            }
-            delivery.setGuidProfiles(req.getGuidProfiles());
-            delivery.setDeliveryType(DeliveryType.GENERAL);
-            delivery.setProposer(userId);
-            delivery.setApplyTime(new Date());
-            delivery.setPackTiming(req.getPackTiming());
-            delivery.setDeliveryTime(req.getDeliveryTime());
-            delivery.setDeliveryResult(DeliveryResult.APPLYING);
-            deliveryList.add(delivery);
-        }
         //集合添加核对中及核对成功状态，控制投放申请的环境是否可投放
         List<CheckStatus> checkStatuses = new ArrayList<>();
         checkStatuses.add(CheckStatus.WAIT);
@@ -399,19 +372,61 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         if(checkService.selectList(checkEntityWrapper).size() > 0){
             throw new DeveloperException("你本次投放的环境窗口有申请正在核对中！");
         }
+
+        //获取投放日期以及具体打包窗口是否已经完成投放
+        EntityWrapper<SDelivery> deliveryWrapper = new EntityWrapper<>();
+        int delIndex = 0;
+        for (DeliveryProfileRequest profileRequest:request.getDliveryAddRequest().getProfiles()){
+            deliveryWrapper.eq(SDelivery.COLUMN_DELIVERY_RESULT,DeliveryResult.DELIVERED);
+            deliveryWrapper.eq("DATE_FORMAT(" + SDelivery.COLUMN_DELIVERY_TIME + ", '%Y-%m-%d')",
+                    new SimpleDateFormat("yyyy-MM-dd").format(profileRequest.getDeliveryTime()));
+            deliveryWrapper.eq(SDelivery.COLUMN_PACK_TIMING,profileRequest.getPackTiming());
+            deliveryWrapper.eq(SDelivery.COLUMN_GUID_PROFILES,profileRequest.getGuidProfiles());
+            delIndex++;
+            if(delIndex != request.getDliveryAddRequest().getProfiles().size()){
+                deliveryWrapper.orNew();
+            }
+        }
+        List<SDelivery> deliveries = deliveryService.selectList(deliveryWrapper);
+                if(deliveries.size() > 0){
+            throw new DeveloperException("你选择的投放环境对应的打包窗口已完成投放，请选择其他时间投放！");
+        }
+
+        //新增投放申请列表
+        List<SDelivery> deliveryList = new ArrayList<>();
+        List<DeliveryProfileRequest> guidPro = request.getDliveryAddRequest().getProfiles();
+        for (DeliveryProfileRequest req : guidPro) {
+            for (Integer guidProfile:achieveProfileGuid){
+                if(req.getGuidProfiles().equals(guidProfile) && request.getDeliveryList().size() == 0){
+                    throw new DeveloperException("没有新的提交清单，只能向新环境投放申请！");
+                }
+            }
+            //组装投放申请
+            SDelivery delivery = new SDelivery();
+            delivery.setApplyAlias(req.getApplyAlias());
+            delivery.setGuidWorkitem(request.getGuidWorkitem());
+            if(profilesService.selectById(req.getGuidProfiles()) == null){
+                throw new DeveloperException("投放的环境不存在，请重新选择环境！");
+            }
+            delivery.setGuidProfiles(req.getGuidProfiles());
+            delivery.setDeliveryType(DeliveryType.GENERAL);
+            delivery.setProposer(userId);
+            delivery.setApplyTime(new Date());
+            delivery.setPackTiming(req.getPackTiming());
+            delivery.setDeliveryTime(req.getDeliveryTime());
+            delivery.setDeliveryResult(DeliveryResult.APPLYING);
+            deliveryList.add(delivery);
+        }
+
         //批量添加投放申请
         deliveryService.insertBatch(deliveryList);
-        //添加标准清单的数组
+        //添加标准清单的集合
         List<SDeliveryList> standardlList = new ArrayList<>();
         //获取分支详情
         SBranch branch= branchService.selectById(request.getGuidBranch());
         //判断此工作项是否有成功投放的申请记录
-        if (deliverys.size() > 0) {
-            List<Integer> achieveProfileGuid = new ArrayList<>();
-            //创建工作项已成功投放申请的运行环境guid
-            for (SDelivery delivery:deliverys) {
-                achieveProfileGuid.add(delivery.getGuidProfiles());
-            }
+        if (achieveProfileGuid.size() > 0) {
+
             //移除已成功投放运行环境的投放申请
             choiceProfileGuid.removeAll(achieveProfileGuid);
             if(choiceProfileGuid.size() > 0){
@@ -451,21 +466,20 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                 List<SDeliveryList> deliveryLists = new ArrayList<>();
                 //组装投产代码清单
                 for (SDeliveryList dlar : request.getDeliveryList()) {
-                    if(standardlList.size() > 0){
-                        for(SDeliveryList standardList:standardlList){
-                            //判断标准清单里是否有代码清单导出为ECD
-                            if(PatchType.ECD.equals(standardList.getPatchType())){
-                                //获取截取路径到模块前面的字符
-                                String subPath = standardList.getFullPath().substring(
-                                        0,standardList.getFullPath().indexOf(DeveloperUtils.getModule(
-                                                branch.getFullPath(), standardList.getFullPath())));
-                                /*
-                                    如果标准清单的工程模块导出为ecd，这次投放的代码清单也是标准清单模块下的文件，那么将
-                                    这个投放代码的导出变更标准清单的导出类型
-                                 */
-                                if(dlar.getFullPath().contains(subPath) && PatchType.EPD.equals(dlar.getPatchType())){
-                                    dlar.setPatchType(standardList.getPatchType());
-                                }
+                    for(SDeliveryList standardList:standardlList){
+                        //判断标准清单里是否有代码清单导出为ECD
+                        if(PatchType.ECD.equals(standardList.getPatchType())){
+                            //获取截取路径到模块前面的字符
+                            String subPath = standardList.getFullPath().substring(
+                                    0,standardList.getFullPath().indexOf(DeveloperUtils.getModule(
+                                            branch.getFullPath(), standardList.getFullPath())));
+                            /*
+                                如果标准清单的工程模块导出为ecd，这次投放的代码清单也是标准清单模块下的文件，那么将
+                                这个投放代码的导出变更标准清单的导出类型
+                             */
+                            if(dlar.getFullPath().contains(subPath) && PatchType.EPD.equals(dlar.getPatchType())){
+                                dlar.setPatchType(standardList.getPatchType());
+                                break;
                             }
                         }
                     }
@@ -593,7 +607,6 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
         List<Integer> deletes = new ArrayList<>();
         for (Integer guidDelivery:request.getGuidDelivery()){
             //sd  跳出循环的标记
-            sd:
             for (SDeliveryList deliveryList:request.getDeliveryList()){
                 for(SDeliveryList dl:deliveryLists){
                     if(guidDelivery.equals(dl.getGuidDelivery())){
@@ -627,7 +640,7 @@ public class SDeliveryListServiceImpl extends ServiceImpl<SDeliveryListMapper, S
                                     throw new DeveloperException("追加投放发生了预料之外的异常！");
                                 }
                             }
-                            continue sd;
+                            break;
                         }
                     }
                 }
