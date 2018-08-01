@@ -12,6 +12,7 @@ import org.tis.senior.module.developer.controller.request.VerifcationUrlRequest;
 import org.tis.senior.module.developer.entity.SBranch;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.service.ISBranchService;
+import org.tmatesoft.svn.core.SVNException;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.groups.Default;
@@ -91,7 +92,7 @@ public class SBranchController extends BaseController<SBranch>  {
      * @return
      */
     @PostMapping("/path")
-    public ResultVO verificationUrl(@RequestBody @Validated VerifcationUrlRequest request){
+    public ResultVO verificationUrl(@RequestBody @Validated VerifcationUrlRequest request) throws SVNException {
 
         return  ResultVO.success("验证通过", sBranchService.verificationUrl(request.getSvnUrl()));
     }

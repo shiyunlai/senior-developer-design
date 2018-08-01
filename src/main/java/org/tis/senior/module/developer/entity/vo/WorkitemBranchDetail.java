@@ -47,6 +47,11 @@ public class WorkitemBranchDetail {
     private String owner;
 
     /**
+     * 提交标识
+     */
+    private String artf;
+
+    /**
      * 需求描述:工作项对应的需求简述
      */
     private String requirementDesc;
