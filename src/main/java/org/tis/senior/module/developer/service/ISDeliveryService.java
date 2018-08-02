@@ -10,6 +10,7 @@ import org.tis.senior.module.developer.controller.request.SDeliveryUpdateRequest
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.SSvnAccount;
 import org.tis.senior.module.developer.entity.vo.DeliveryDetail;
+import org.tis.senior.module.developer.entity.vo.DeliveryWorkitemDetail;
 import org.tis.senior.module.developer.entity.vo.SDeliveryListDetail;
 import org.tis.senior.module.developer.entity.vo.SProfileDetail;
 import org.tmatesoft.svn.core.SVNException;
@@ -26,8 +27,15 @@ import java.util.List;
 public interface ISDeliveryService extends IService<SDelivery>  {
 
 
-    Page<SDelivery> getDeliveryAll(Page<SDelivery> page,
-                                   EntityWrapper<SDelivery> wrapper,SSvnAccount sSvnAccount);
+    /**
+     * 查询出登录用户下的所有投放申请
+     * @param page
+     * @param wrapper
+     * @param sSvnAccount
+     * @return
+     */
+    Page<DeliveryWorkitemDetail> getDeliveryAll(Page<DeliveryWorkitemDetail> page,
+                                   EntityWrapper<DeliveryWorkitemDetail> wrapper,SSvnAccount sSvnAccount);
 
     /**
      * 获取合并投放信息

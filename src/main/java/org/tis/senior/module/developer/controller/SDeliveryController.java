@@ -1,5 +1,6 @@
 package org.tis.senior.module.developer.controller;
 
+import com.baomidou.mybatisplus.plugins.Page;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -13,6 +14,7 @@ import org.tis.senior.module.developer.controller.request.MergeDeliveryRequest;
 import org.tis.senior.module.developer.controller.request.SDeliveryUpdateRequest;
 import org.tis.senior.module.developer.entity.SDelivery;
 import org.tis.senior.module.developer.entity.SSvnAccount;
+import org.tis.senior.module.developer.entity.vo.DeliveryWorkitemDetail;
 import org.tis.senior.module.developer.exception.DeveloperException;
 import org.tis.senior.module.developer.service.ISDeliveryService;
 import org.tmatesoft.svn.core.SVNException;
@@ -61,13 +63,17 @@ public class SDeliveryController extends BaseController<SDelivery>  {
      * @return
      */
     @PostMapping("/list")
-    public ResultVO list(@RequestBody @Validated SmartPage<SDelivery> page) {
+    public ResultVO list(@RequestBody @Validated SmartPage<DeliveryWorkitemDetail> page) {
 
         SSvnAccount svnAccount = getUser();
         if(svnAccount == null){
             throw new DeveloperException("尚未登录，请登录后再试！");
         }
-        return  ResultVO.success("查询成功", sDeliveryService.getDeliveryAll(getPage(page),getCondition(page),svnAccount));
+        Page<DeliveryWorkitemDetail> deliveryDetailPage = new Page<DeliveryWorkitemDetail>
+                (page.getPage().getCurrent(), page.getPage().getSize(),
+                        page.getPage().getOrderByField(), page.getPage().getAsc());
+
+        return  ResultVO.success("查询成功", sDeliveryService.getDeliveryAll(deliveryDetailPage,getWrapper(page.getCondition()),svnAccount));
     }
 
     /**

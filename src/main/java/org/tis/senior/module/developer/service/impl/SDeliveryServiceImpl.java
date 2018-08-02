@@ -51,11 +51,11 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     private ISStandardListService standardListService;
 
     @Override
-    public Page<SDelivery> getDeliveryAll(Page<SDelivery> page, EntityWrapper<SDelivery> wrapper, SSvnAccount svnAccount) {
+    public Page<DeliveryWorkitemDetail> getDeliveryAll(Page<DeliveryWorkitemDetail> page, EntityWrapper<DeliveryWorkitemDetail> wrapper, SSvnAccount svnAccount) {
         if(!svnAccount.getRole().equals(SvnRole.RCT)){
             wrapper.like(SDelivery.COLUMN_PROPOSER, svnAccount.getUserId());
         }
-        return page.setRecords(this.baseMapper.selectPage(page, wrapper));
+        return page.setRecords(this.baseMapper.selectDeliveryWorkitemDetail(page, wrapper));
     }
 
     @Override
