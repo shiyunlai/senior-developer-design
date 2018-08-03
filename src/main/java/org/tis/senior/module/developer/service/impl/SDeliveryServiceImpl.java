@@ -51,11 +51,11 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
     private ISStandardListService standardListService;
 
     @Override
-    public Page<SDelivery> getDeliveryAll(Page<SDelivery> page, EntityWrapper<SDelivery> wrapper, SSvnAccount svnAccount) {
+    public Page<DeliveryWorkitemDetail> getDeliveryAll(Page<DeliveryWorkitemDetail> page, EntityWrapper<DeliveryWorkitemDetail> wrapper, SSvnAccount svnAccount) {
         if(!svnAccount.getRole().equals(SvnRole.RCT)){
             wrapper.like(SDelivery.COLUMN_PROPOSER, svnAccount.getUserId());
         }
-        return page.setRecords(this.baseMapper.selectPage(page, wrapper));
+        return page.setRecords(this.baseMapper.selectDeliveryWorkitemDetail(page, wrapper));
     }
 
     @Override
@@ -202,7 +202,7 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
             throw new DeveloperException("没有找到对应的投放申请！");
         }
 
-        if (delivery.getDeliveryResult().equals(DeliveryResult.DELIVERED)) {
+        if (!delivery.getDeliveryResult().equals(DeliveryResult.APPLYING)) {
             throw new DeveloperException("此投放申请已成功投放，不允许删除！");
         }
 
@@ -226,7 +226,6 @@ public class SDeliveryServiceImpl extends ServiceImpl<SDeliveryMapper, SDelivery
 
             if (branchMapping.size() > 0) {
                 branchService.revertBranchRevision(branchMapping.get(0).getGuidBranch());
-
             }
 
         }

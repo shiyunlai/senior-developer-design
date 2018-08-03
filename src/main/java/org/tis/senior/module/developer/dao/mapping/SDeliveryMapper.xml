@@ -2,4 +2,13 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.tis.senior.module.developer.dao.SDeliveryMapper">
 
+    <select id="selectDeliveryWorkitemDetail" resultType="org.tis.senior.module.developer.entity.vo.DeliveryWorkitemDetail">
+        SELECT * FROM s_delivery d LEFT JOIN (SELECT guid,item_name FROM s_workitem) w ON d.guid_workitem = w.guid
+        <if test="ew != null">
+            <where>
+                ${ew.sqlSegment}
+            </where>
+        </if>
+    </select>
+
 </mapper>
