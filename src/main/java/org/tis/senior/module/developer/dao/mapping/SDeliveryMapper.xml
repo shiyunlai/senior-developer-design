@@ -3,7 +3,7 @@
 <mapper namespace="org.tis.senior.module.developer.dao.SDeliveryMapper">
 
     <select id="selectDeliveryWorkitemDetail" resultType="org.tis.senior.module.developer.entity.vo.DeliveryWorkitemDetail">
-        SELECT * FROM s_delivery d LEFT JOIN (SELECT guid as guidItem,item_name FROM s_workitem) w ON d.guid_workitem = w.guid
+        SELECT * FROM s_delivery d LEFT JOIN (SELECT guid as guidItem,item_name FROM s_workitem) w ON d.guid_workitem = w.guidItem
         <if test="ew != null">
             <where>
                 ${ew.sqlSegment}
